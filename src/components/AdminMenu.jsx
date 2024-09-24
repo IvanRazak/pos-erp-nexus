@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useAddPaymentOption, useAddCustomerType, useAddExtraOption, useAddUser } from '../integrations/supabase';
 import { toast } from "@/components/ui/use-toast";
+import bcrypt from 'bcryptjs';
 
 const AdminMenu = () => {
   const addPaymentOption = useAddPaymentOption();
@@ -58,21 +59,30 @@ const AdminMenu = () => {
     });
   };
 
-  const handleGerenciarUsuarios = (event) => {
+  const handleGerenciarUsuarios = async (event) => {
     event.preventDefault();
     const formData = new FormData(event.target);
     const username = formData.get('username');
     const email = formData.get('email');
+    const password = formData.get('password');
     const role = formData.get('role');
-    addUser.mutate({ username, email, role }, {
-      onSuccess: () => {
-        toast({ title: "Usuário cadastrado com sucesso!" });
-        event.target.reset();
-      },
-      onError: (error) => {
-        toast({ title: "Erro ao cadastrar usuário", description: error.message, variant: "destructive" });
-      }
-    });
+
+    try {
+      const salt = await bcrypt.genSalt(10);
+      const password_hash = await bcrypt.hash(password, salt);
+
+      addUser.mutate({ username, email, password_hash, role }, {
+        onSuccess: () => {
+          toast({ title: "Usuário cadastrado com sucesso!" });
+          event.target.reset();
+        },
+        onError: (error) => {
+          toast({ title: "Erro ao cadastrar usuário", description: error.message, variant: "destructive" });
+        }
+      });
+    } catch (error) {
+      toast({ title: "Erro ao gerar hash da senha", description: error.message, variant: "destructive" });
+    }
   };
 
   return (
@@ -136,6 +146,7 @@ const AdminMenu = () => {
             <form onSubmit={handleGerenciarUsuarios}>
               <Input name="username" placeholder="Nome do usuário" className="mb-4" />
               <Input name="email" type="email" placeholder="E-mail" className="mb-4" />
+              <Input name="password" type="password" placeholder="Senha" className="mb-4" />
               <Select name="role">
                 <SelectTrigger>
                   <SelectValue placeholder="Nível de acesso" />
