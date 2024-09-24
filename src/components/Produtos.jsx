@@ -9,6 +9,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { useSupabaseAuth } from '../integrations/supabase/auth';
 import { supabase } from '../lib/supabase';
 import EditProdutoModal from './EditProdutoModal';
+import { useProducts, useAddProduct, useUpdateProduct, useDeleteProduct } from '../integrations/supabase';
 
 const Produtos = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -19,41 +20,31 @@ const Produtos = () => {
 
   const isAdmin = session?.user?.role === 'admin';
 
-  const { data: produtos, isLoading } = useQuery({
-    queryKey: ['produtos'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('products')
-        .select('*');
-      if (error) throw error;
-      return data;
-    },
-  });
-
-  const cadastrarProdutoMutation = useMutation({
-    mutationFn: async (novoProduto) => {
-      const { data, error } = await supabase
-        .from('products')
-        .insert([novoProduto])
-        .select();
-      if (error) throw error;
-      return data[0];
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries(['produtos']);
-      toast({
-        title: "Produto cadastrado com sucesso!",
-        description: "O novo produto foi adicionado à lista.",
-      });
-      setIsDialogOpen(false);
-    },
-  });
+  const { data: produtos, isLoading } = useProducts();
+  const addProduct = useAddProduct();
+  const updateProduct = useUpdateProduct();
+  const deleteProduct = useDeleteProduct();
 
   const handleSubmit = (event) => {
     event.preventDefault();
     const formData = new FormData(event.target);
     const novoProduto = Object.fromEntries(formData.entries());
-    cadastrarProdutoMutation.mutate(novoProduto);
+    addProduct.mutate(novoProduto, {
+      onSuccess: () => {
+        toast({
+          title: "Produto cadastrado com sucesso!",
+          description: "O novo produto foi adicionado à lista.",
+        });
+        setIsDialogOpen(false);
+      },
+      onError: (error) => {
+        toast({
+          title: "Erro ao cadastrar produto",
+          description: error.message,
+          variant: "destructive",
+        });
+      }
+    });
   };
 
   const handleOpenEditModal = (produto) => {
@@ -62,6 +53,24 @@ const Produtos = () => {
 
   const handleCloseEditModal = () => {
     setEditingProduto(null);
+  };
+
+  const handleDeleteProduct = (id) => {
+    deleteProduct.mutate(id, {
+      onSuccess: () => {
+        toast({
+          title: "Produto excluído com sucesso!",
+          description: "O produto foi removido da lista.",
+        });
+      },
+      onError: (error) => {
+        toast({
+          title: "Erro ao excluir produto",
+          description: error.message,
+          variant: "destructive",
+        });
+      }
+    });
   };
 
   if (isLoading) return <div>Carregando...</div>;
@@ -120,7 +129,7 @@ const Produtos = () => {
             <TableHead>Formato</TableHead>
             <TableHead>Impressão</TableHead>
             <TableHead>Tipo de Unidade</TableHead>
-            {isAdmin && <TableHead>Ações</TableHead>}
+            <TableHead>Ações</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -135,17 +144,18 @@ const Produtos = () => {
               <TableCell>{produto.format}</TableCell>
               <TableCell>{produto.print_type}</TableCell>
               <TableCell>{produto.unit_type}</TableCell>
-              {isAdmin && (
-                <TableCell>
-                  <Button onClick={() => handleOpenEditModal(produto)}>Editar</Button>
-                </TableCell>
-              )}
+              <TableCell>
+                <Button onClick={() => handleOpenEditModal(produto)}>Editar</Button>
+                {isAdmin && (
+                  <Button onClick={() => handleDeleteProduct(produto.id)} variant="destructive" className="ml-2">Excluir</Button>
+                )}
+              </TableCell>
             </TableRow>
           ))}
         </TableBody>
       </Table>
       {editingProduto && (
-        <EditProdutoModal produto={editingProduto} onClose={handleCloseEditModal} />
+        <EditProdutoModal produto={editingProduto} onClose={handleCloseEditModal} onUpdate={updateProduct.mutate} />
       )}
     </div>
   );

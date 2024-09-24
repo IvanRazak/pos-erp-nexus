@@ -7,14 +7,6 @@ import { ThemeSupa } from '@supabase/auth-ui-shared';
 const SupabaseAuthContext = createContext();
 
 export const SupabaseAuthProvider = ({ children }) => {
-  return (
-    <SupabaseAuthProviderInner>
-      {children}
-    </SupabaseAuthProviderInner>
-  );
-}
-
-export const SupabaseAuthProviderInner = ({ children }) => {
   const [session, setSession] = useState(null);
   const [loading, setLoading] = useState(true);
   const queryClient = useQueryClient();
