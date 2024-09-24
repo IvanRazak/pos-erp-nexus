@@ -6,6 +6,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { DatePicker } from "@/components/ui/date-picker";
+import { useProducts, useCustomers, useExtraOptions, usePaymentOptions } from '../integrations/supabase';
 
 const Venda = () => {
   const [carrinho, setCarrinho] = useState([]);
@@ -16,47 +17,20 @@ const Venda = () => {
   const [altura, setAltura] = useState(0);
   const [desconto, setDesconto] = useState(0);
   const [dataEntrega, setDataEntrega] = useState(new Date());
+  const [opcaoPagamento, setOpcaoPagamento] = useState('');
 
-  const { data: produtos } = useQuery({
-    queryKey: ['produtos'],
-    queryFn: async () => {
-      // Simular uma chamada à API
-      return [
-        { id: 1, nome: 'Produto 1', precoVenda: 100, tipoUnidade: 'unidade' },
-        { id: 2, nome: 'Produto 2', precoVenda: 200, tipoUnidade: 'metroQuadrado' },
-      ];
-    },
-  });
-
-  const { data: clientes } = useQuery({
-    queryKey: ['clientes'],
-    queryFn: async () => {
-      // Simular uma chamada à API
-      return [
-        { id: 1, nome: 'Cliente 1', telefone: '1234567890' },
-        { id: 2, nome: 'Cliente 2', telefone: '0987654321' },
-      ];
-    },
-  });
-
-  const { data: opcoesExtras } = useQuery({
-    queryKey: ['opcoesExtras'],
-    queryFn: async () => {
-      // Simular uma chamada à API
-      return [
-        { id: 1, nome: 'Opção Extra 1', preco: 10 },
-        { id: 2, nome: 'Opção Extra 2', preco: 20 },
-      ];
-    },
-  });
+  const { data: produtos } = useProducts();
+  const { data: clientes } = useCustomers();
+  const { data: opcoesExtras } = useExtraOptions();
+  const { data: opcoesPagamento } = usePaymentOptions();
 
   const adicionarAoCarrinho = () => {
     if (produtoSelecionado) {
-      const quantidadeTotal = produtoSelecionado.tipoUnidade === 'metroQuadrado' ? largura * altura : quantidade;
+      const quantidadeTotal = produtoSelecionado.unit_type === 'square_meter' ? largura * altura : quantidade;
       const novoItem = {
         ...produtoSelecionado,
         quantidade: quantidadeTotal,
-        total: produtoSelecionado.precoVenda * quantidadeTotal,
+        total: produtoSelecionado.sale_price * quantidadeTotal,
       };
       setCarrinho([...carrinho, novoItem]);
       setProdutoSelecionado(null);
@@ -77,13 +51,13 @@ const Venda = () => {
       <div className="grid grid-cols-2 gap-4">
         <div>
           <h3 className="text-xl font-semibold mb-2">Selecionar Produto</h3>
-          <Select onValueChange={(value) => setProdutoSelecionado(produtos.find(p => p.id === parseInt(value)))}>
+          <Select onValueChange={(value) => setProdutoSelecionado(produtos.find(p => p.id === value))}>
             <SelectTrigger>
               <SelectValue placeholder="Selecione um produto" />
             </SelectTrigger>
             <SelectContent>
               {produtos?.map((produto) => (
-                <SelectItem key={produto.id} value={produto.id.toString()}>{produto.nome}</SelectItem>
+                <SelectItem key={produto.id} value={produto.id}>{produto.name}</SelectItem>
               ))}
             </SelectContent>
           </Select>
@@ -98,15 +72,15 @@ const Venda = () => {
                 </DialogHeader>
                 {opcoesExtras?.map((opcao) => (
                   <div key={opcao.id} className="flex items-center justify-between">
-                    <span>{opcao.nome}</span>
-                    <span>R$ {opcao.preco.toFixed(2)}</span>
+                    <span>{opcao.name}</span>
+                    <span>R$ {opcao.price.toFixed(2)}</span>
                     <Button>Adicionar</Button>
                   </div>
                 ))}
               </DialogContent>
             </Dialog>
           )}
-          {produtoSelecionado?.tipoUnidade === 'metroQuadrado' ? (
+          {produtoSelecionado?.unit_type === 'square_meter' ? (
             <>
               <Input type="number" placeholder="Largura" value={largura} onChange={(e) => setLargura(parseFloat(e.target.value))} className="mt-2" />
               <Input type="number" placeholder="Altura" value={altura} onChange={(e) => setAltura(parseFloat(e.target.value))} className="mt-2" />
@@ -118,13 +92,13 @@ const Venda = () => {
         </div>
         <div>
           <h3 className="text-xl font-semibold mb-2">Selecionar Cliente</h3>
-          <Select onValueChange={(value) => setClienteSelecionado(clientes.find(c => c.id === parseInt(value)))}>
+          <Select onValueChange={(value) => setClienteSelecionado(clientes.find(c => c.id === value))}>
             <SelectTrigger>
               <SelectValue placeholder="Selecione um cliente" />
             </SelectTrigger>
             <SelectContent>
               {clientes?.map((cliente) => (
-                <SelectItem key={cliente.id} value={cliente.id.toString()}>{cliente.nome}</SelectItem>
+                <SelectItem key={cliente.id} value={cliente.id}>{cliente.name}</SelectItem>
               ))}
             </SelectContent>
           </Select>
@@ -157,9 +131,9 @@ const Venda = () => {
           <TableBody>
             {carrinho.map((item, index) => (
               <TableRow key={index}>
-                <TableCell>{item.nome}</TableCell>
+                <TableCell>{item.name}</TableCell>
                 <TableCell>{item.quantidade}</TableCell>
-                <TableCell>R$ {item.precoVenda.toFixed(2)}</TableCell>
+                <TableCell>R$ {item.sale_price.toFixed(2)}</TableCell>
                 <TableCell>R$ {item.total.toFixed(2)}</TableCell>
               </TableRow>
             ))}
@@ -173,14 +147,14 @@ const Venda = () => {
           onSelect={setDataEntrega}
           className="mt-2"
         />
-        <Select className="mt-2">
+        <Select onValueChange={setOpcaoPagamento} className="mt-2">
           <SelectTrigger>
             <SelectValue placeholder="Opção de Pagamento" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="aVista">À Vista</SelectItem>
-            <SelectItem value="parcelado">Parcelado</SelectItem>
-            <SelectItem value="parcial">Pagamento Parcial</SelectItem>
+            {opcoesPagamento?.map((opcao) => (
+              <SelectItem key={opcao.id} value={opcao.name}>{opcao.name}</SelectItem>
+            ))}
           </SelectContent>
         </Select>
         <p className="mt-2 text-xl font-bold">Total: R$ {calcularTotal().toFixed(2)}</p>
