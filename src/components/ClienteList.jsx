@@ -3,10 +3,12 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import ClienteModal from './ClienteModal';
+import EditClienteModal from './EditClienteModal';
 
-const ClienteList = ({ clientes, onDelete, onUpdate }) => {
+const ClienteList = ({ clientes, onDelete, onUpdate, isAdmin }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCliente, setSelectedCliente] = useState(null);
+  const [editingCliente, setEditingCliente] = useState(null);
 
   const filteredClientes = clientes?.filter(cliente =>
     cliente.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -20,6 +22,14 @@ const ClienteList = ({ clientes, onDelete, onUpdate }) => {
 
   const handleCloseModal = () => {
     setSelectedCliente(null);
+  };
+
+  const handleOpenEditModal = (cliente) => {
+    setEditingCliente(cliente);
+  };
+
+  const handleCloseEditModal = () => {
+    setEditingCliente(null);
   };
 
   return (
@@ -50,6 +60,9 @@ const ClienteList = ({ clientes, onDelete, onUpdate }) => {
               <TableCell>{cliente.customer_type?.name || 'N/A'}</TableCell>
               <TableCell>
                 <Button onClick={() => handleOpenModal(cliente)}>Ver Pedidos</Button>
+                {isAdmin && (
+                  <Button onClick={() => handleOpenEditModal(cliente)} className="ml-2">Editar</Button>
+                )}
                 <Button onClick={() => onDelete(cliente.id)} variant="destructive" className="ml-2">Excluir</Button>
               </TableCell>
             </TableRow>
@@ -58,6 +71,9 @@ const ClienteList = ({ clientes, onDelete, onUpdate }) => {
       </Table>
       {selectedCliente && (
         <ClienteModal cliente={selectedCliente} onClose={handleCloseModal} onUpdate={onUpdate} />
+      )}
+      {editingCliente && (
+        <EditClienteModal cliente={editingCliente} onClose={handleCloseEditModal} onUpdate={onUpdate} />
       )}
     </div>
   );

@@ -13,6 +13,7 @@ import { cn } from "@/lib/utils";
 import { useProducts, useCustomers, useExtraOptions, usePaymentOptions, useAddOrder } from '../integrations/supabase';
 import ClienteForm from './ClienteForm';
 import { toast } from "@/components/ui/use-toast";
+import ProdutoExtraOptionsModal from './ProdutoExtraOptionsModal';
 
 const Venda = () => {
   const [carrinho, setCarrinho] = useState([]);
@@ -25,6 +26,7 @@ const Venda = () => {
   const [dataEntrega, setDataEntrega] = useState(null);
   const [opcaoPagamento, setOpcaoPagamento] = useState('');
   const [isNewClientDialogOpen, setIsNewClientDialogOpen] = useState(false);
+  const [isExtraOptionsModalOpen, setIsExtraOptionsModalOpen] = useState(false);
 
   const { data: produtos } = useProducts();
   const { data: clientes, refetch: refetchClientes } = useCustomers();
@@ -34,22 +36,31 @@ const Venda = () => {
 
   const adicionarAoCarrinho = () => {
     if (produtoSelecionado) {
-      const quantidadeTotal = produtoSelecionado.unit_type === 'square_meter' ? largura * altura : quantidade;
-      const novoItem = {
-        ...produtoSelecionado,
-        quantidade: quantidadeTotal,
-        total: produtoSelecionado.sale_price * quantidadeTotal,
-      };
-      setCarrinho([...carrinho, novoItem]);
-      setProdutoSelecionado(null);
-      setQuantidade(1);
-      setLargura(0);
-      setAltura(0);
+      setIsExtraOptionsModalOpen(true);
     }
   };
 
+  const handleAdicionarAoCarrinhoComExtras = (extrasEscolhidas) => {
+    const quantidadeTotal = produtoSelecionado.unit_type === 'square_meter' ? largura * altura : quantidade;
+    const novoItem = {
+      ...produtoSelecionado,
+      quantidade: quantidadeTotal,
+      total: produtoSelecionado.sale_price * quantidadeTotal,
+      extras: extrasEscolhidas,
+    };
+    setCarrinho([...carrinho, novoItem]);
+    setProdutoSelecionado(null);
+    setQuantidade(1);
+    setLargura(0);
+    setAltura(0);
+    setIsExtraOptionsModalOpen(false);
+  };
+
   const calcularTotal = () => {
-    const subtotal = carrinho.reduce((acc, item) => acc + item.total, 0);
+    const subtotal = carrinho.reduce((acc, item) => {
+      const itemTotal = item.total + item.extras.reduce((extrasTotal, extra) => extrasTotal + extra.price, 0);
+      return acc + itemTotal;
+    }, 0);
     return subtotal - desconto;
   };
 
@@ -78,6 +89,7 @@ const Venda = () => {
         product_id: item.id,
         quantity: item.quantidade,
         unit_price: item.sale_price,
+        extras: item.extras,
       })),
     };
 
@@ -117,25 +129,6 @@ const Venda = () => {
               ))}
             </SelectContent>
           </Select>
-          {produtoSelecionado && (
-            <Dialog>
-              <DialogTrigger asChild>
-                <Button className="mt-2">Adicionar Opções Extras</Button>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Opções Extras</DialogTitle>
-                </DialogHeader>
-                {opcoesExtras?.map((opcao) => (
-                  <div key={opcao.id} className="flex items-center justify-between">
-                    <span>{opcao.name}</span>
-                    <span>R$ {opcao.price.toFixed(2)}</span>
-                    <Button>Adicionar</Button>
-                  </div>
-                ))}
-              </DialogContent>
-            </Dialog>
-          )}
           {produtoSelecionado?.unit_type === 'square_meter' ? (
             <>
               <Input type="number" placeholder="Largura" value={largura} onChange={(e) => setLargura(parseFloat(e.target.value))} className="mt-2" />
@@ -179,6 +172,7 @@ const Venda = () => {
               <TableHead>Produto</TableHead>
               <TableHead>Quantidade</TableHead>
               <TableHead>Preço Unitário</TableHead>
+              <TableHead>Extras</TableHead>
               <TableHead>Total</TableHead>
             </TableRow>
           </TableHeader>
@@ -188,7 +182,12 @@ const Venda = () => {
                 <TableCell>{item.name}</TableCell>
                 <TableCell>{item.quantidade}</TableCell>
                 <TableCell>R$ {item.sale_price.toFixed(2)}</TableCell>
-                <TableCell>R$ {item.total.toFixed(2)}</TableCell>
+                <TableCell>
+                  {item.extras.map((extra, i) => (
+                    <div key={i}>{extra.name}: R$ {extra.price.toFixed(2)}</div>
+                  ))}
+                </TableCell>
+                <TableCell>R$ {(item.total + item.extras.reduce((acc, extra) => acc + extra.price, 0)).toFixed(2)}</TableCell>
               </TableRow>
             ))}
           </TableBody>
@@ -231,6 +230,14 @@ const Venda = () => {
         <p className="mt-2 text-xl font-bold">Total: R$ {calcularTotal().toFixed(2)}</p>
         <Button className="mt-2" onClick={finalizarVenda}>Finalizar Venda</Button>
       </div>
+      {isExtraOptionsModalOpen && (
+        <ProdutoExtraOptionsModal
+          produto={produtoSelecionado}
+          opcoesExtras={opcoesExtras}
+          onClose={() => setIsExtraOptionsModalOpen(false)}
+          onConfirm={handleAdicionarAoCarrinhoComExtras}
+        />
+      )}
     </div>
   );
 };

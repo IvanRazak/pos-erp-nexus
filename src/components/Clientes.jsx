@@ -3,6 +3,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import ClienteForm from './ClienteForm';
 import ClienteList from './ClienteList';
 import { useCustomers, useAddCustomer, useUpdateCustomer, useDeleteCustomer } from '../integrations/supabase';
+import { useSupabaseAuth } from '../integrations/supabase/auth';
 
 const Clientes = () => {
   const [activeTab, setActiveTab] = useState("lista");
@@ -10,11 +11,14 @@ const Clientes = () => {
   const addCustomer = useAddCustomer();
   const updateCustomer = useUpdateCustomer();
   const deleteCustomer = useDeleteCustomer();
+  const { session } = useSupabaseAuth();
 
   const handleSuccess = () => {
     refetch();
     setActiveTab("lista");
   };
+
+  const isAdmin = session?.user?.role === 'admin';
 
   if (isLoading) return <div>Carregando...</div>;
   if (error) return <div>Erro ao carregar clientes: {error.message}</div>;
@@ -32,6 +36,7 @@ const Clientes = () => {
             clientes={clientes} 
             onDelete={deleteCustomer.mutate}
             onUpdate={updateCustomer.mutate}
+            isAdmin={isAdmin}
           />
         </TabsContent>
         <TabsContent value="cadastro">

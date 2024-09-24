@@ -6,12 +6,18 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useToast } from "@/components/ui/use-toast";
+import { useSupabaseAuth } from '../integrations/supabase/auth';
 import { supabase } from '../lib/supabase';
+import EditProdutoModal from './EditProdutoModal';
 
 const Produtos = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [editingProduto, setEditingProduto] = useState(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { session } = useSupabaseAuth();
+
+  const isAdmin = session?.user?.role === 'admin';
 
   const { data: produtos, isLoading } = useQuery({
     queryKey: ['produtos'],
@@ -48,6 +54,14 @@ const Produtos = () => {
     const formData = new FormData(event.target);
     const novoProduto = Object.fromEntries(formData.entries());
     cadastrarProdutoMutation.mutate(novoProduto);
+  };
+
+  const handleOpenEditModal = (produto) => {
+    setEditingProduto(produto);
+  };
+
+  const handleCloseEditModal = () => {
+    setEditingProduto(null);
   };
 
   if (isLoading) return <div>Carregando...</div>;
@@ -106,6 +120,7 @@ const Produtos = () => {
             <TableHead>Formato</TableHead>
             <TableHead>Impressão</TableHead>
             <TableHead>Tipo de Unidade</TableHead>
+            {isAdmin && <TableHead>Ações</TableHead>}
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -120,10 +135,18 @@ const Produtos = () => {
               <TableCell>{produto.format}</TableCell>
               <TableCell>{produto.print_type}</TableCell>
               <TableCell>{produto.unit_type}</TableCell>
+              {isAdmin && (
+                <TableCell>
+                  <Button onClick={() => handleOpenEditModal(produto)}>Editar</Button>
+                </TableCell>
+              )}
             </TableRow>
           ))}
         </TableBody>
       </Table>
+      {editingProduto && (
+        <EditProdutoModal produto={editingProduto} onClose={handleCloseEditModal} />
+      )}
     </div>
   );
 };
