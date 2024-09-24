@@ -1,13 +1,18 @@
 import React, { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation } from '@tanstack/react-query';
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { DatePicker } from "@/components/ui/date-picker";
-import { useProducts, useCustomers, useExtraOptions, usePaymentOptions } from '../integrations/supabase';
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { format } from "date-fns";
+import { CalendarIcon } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { useProducts, useCustomers, useExtraOptions, usePaymentOptions, useAddOrder } from '../integrations/supabase';
 import ClienteForm from './ClienteForm';
+import { toast } from "@/components/ui/use-toast";
 
 const Venda = () => {
   const [carrinho, setCarrinho] = useState([]);
@@ -17,7 +22,7 @@ const Venda = () => {
   const [largura, setLargura] = useState(0);
   const [altura, setAltura] = useState(0);
   const [desconto, setDesconto] = useState(0);
-  const [dataEntrega, setDataEntrega] = useState(new Date());
+  const [dataEntrega, setDataEntrega] = useState(null);
   const [opcaoPagamento, setOpcaoPagamento] = useState('');
   const [isNewClientDialogOpen, setIsNewClientDialogOpen] = useState(false);
 
@@ -25,6 +30,7 @@ const Venda = () => {
   const { data: clientes, refetch: refetchClientes } = useCustomers();
   const { data: opcoesExtras } = useExtraOptions();
   const { data: opcoesPagamento } = usePaymentOptions();
+  const addOrder = useAddOrder();
 
   const adicionarAoCarrinho = () => {
     if (produtoSelecionado) {
@@ -50,6 +56,50 @@ const Venda = () => {
   const handleNewClientSuccess = () => {
     setIsNewClientDialogOpen(false);
     refetchClientes();
+  };
+
+  const finalizarVenda = async () => {
+    if (!clienteSelecionado || carrinho.length === 0 || !dataEntrega || !opcaoPagamento) {
+      toast({
+        title: "Erro ao finalizar venda",
+        description: "Por favor, preencha todos os campos obrigatórios.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const novaVenda = {
+      customer_id: clienteSelecionado,
+      total_amount: calcularTotal(),
+      status: 'in_production',
+      delivery_date: format(dataEntrega, 'yyyy-MM-dd'),
+      payment_option: opcaoPagamento,
+      items: carrinho.map(item => ({
+        product_id: item.id,
+        quantity: item.quantidade,
+        unit_price: item.sale_price,
+      })),
+    };
+
+    try {
+      await addOrder.mutateAsync(novaVenda);
+      toast({
+        title: "Venda finalizada com sucesso!",
+        description: "A nova venda foi registrada no sistema.",
+      });
+      // Limpar o carrinho e resetar os campos após a venda
+      setCarrinho([]);
+      setClienteSelecionado(null);
+      setDataEntrega(null);
+      setOpcaoPagamento('');
+      setDesconto(0);
+    } catch (error) {
+      toast({
+        title: "Erro ao finalizar venda",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
   };
 
   return (
@@ -99,7 +149,7 @@ const Venda = () => {
         </div>
         <div>
           <h3 className="text-xl font-semibold mb-2">Selecionar Cliente</h3>
-          <Select onValueChange={(value) => setClienteSelecionado(clientes.find(c => c.id === value))}>
+          <Select onValueChange={setClienteSelecionado}>
             <SelectTrigger>
               <SelectValue placeholder="Selecione um cliente" />
             </SelectTrigger>
@@ -147,11 +197,28 @@ const Venda = () => {
       </div>
       <div className="mt-4">
         <Input type="number" placeholder="Desconto" value={desconto} onChange={(e) => setDesconto(parseFloat(e.target.value))} />
-        <DatePicker
-          selected={dataEntrega}
-          onSelect={setDataEntrega}
-          className="mt-2"
-        />
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button
+              variant={"outline"}
+              className={cn(
+                "w-[280px] justify-start text-left font-normal",
+                !dataEntrega && "text-muted-foreground"
+              )}
+            >
+              <CalendarIcon className="mr-2 h-4 w-4" />
+              {dataEntrega ? format(dataEntrega, "PPP") : <span>Selecione a data de entrega</span>}
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-auto p-0">
+            <Calendar
+              mode="single"
+              selected={dataEntrega}
+              onSelect={setDataEntrega}
+              initialFocus
+            />
+          </PopoverContent>
+        </Popover>
         <Select onValueChange={setOpcaoPagamento} className="mt-2">
           <SelectTrigger>
             <SelectValue placeholder="Opção de Pagamento" />
@@ -163,7 +230,7 @@ const Venda = () => {
           </SelectContent>
         </Select>
         <p className="mt-2 text-xl font-bold">Total: R$ {calcularTotal().toFixed(2)}</p>
-        <Button className="mt-2">Finalizar Venda</Button>
+        <Button className="mt-2" onClick={finalizarVenda}>Finalizar Venda</Button>
       </div>
     </div>
   );
