@@ -55,7 +55,7 @@ export const useAddOrder = () => {
         .insert([{
           order_id: order.id,
           amount: newOrder.total_amount,
-          payment_option: newOrder.payment_option,
+          payment_option: newOrder.payment_option.toLowerCase(), // Convertendo para minúsculas para garantir compatibilidade
         }]);
 
       if (paymentError) throw paymentError;

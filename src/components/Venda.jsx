@@ -87,7 +87,6 @@ const Venda = () => {
         title: "Venda finalizada com sucesso!",
         description: "A nova venda foi registrada no sistema.",
       });
-      // Limpar o carrinho e resetar os campos após a venda
       setCarrinho([]);
       setClienteSelecionado(null);
       setDataEntrega(null);
