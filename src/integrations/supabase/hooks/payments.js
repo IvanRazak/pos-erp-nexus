@@ -63,3 +63,8 @@ export const useDeletePayment = () => {
     },
   });
 };
+
+export const useTransactions = () => useQuery({
+  queryKey: ['transactions'],
+  queryFn: () => fromSupabase(supabase.from('payments').select('*')),
+});

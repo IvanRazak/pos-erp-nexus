@@ -8,7 +8,8 @@ import {
   usePayments,
   useAddPayment,
   useUpdatePayment,
-  useDeletePayment
+  useDeletePayment,
+  useTransactions
 } from './hooks/payments';
 
 import {
@@ -94,6 +95,7 @@ export {
   useAddPayment,
   useUpdatePayment,
   useDeletePayment,
+  useTransactions,
   useOrder,
   useOrders,
   useAddOrder,
