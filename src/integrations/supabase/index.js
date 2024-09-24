@@ -67,6 +67,22 @@ import {
   useDeleteUser
 } from './hooks/users';
 
+import {
+  usePaymentOption,
+  usePaymentOptions,
+  useAddPaymentOption,
+  useUpdatePaymentOption,
+  useDeletePaymentOption
+} from './hooks/payment_options';
+
+import {
+  useCustomerType,
+  useCustomerTypes,
+  useAddCustomerType,
+  useUpdateCustomerType,
+  useDeleteCustomerType
+} from './hooks/customer_types';
+
 // Export all the imported functions and objects
 export {
   supabase,
@@ -112,5 +128,15 @@ export {
   useUsers,
   useAddUser,
   useUpdateUser,
-  useDeleteUser
+  useDeleteUser,
+  usePaymentOption,
+  usePaymentOptions,
+  useAddPaymentOption,
+  useUpdatePaymentOption,
+  useDeletePaymentOption,
+  useCustomerType,
+  useCustomerTypes,
+  useAddCustomerType,
+  useUpdateCustomerType,
+  useDeleteCustomerType
 };

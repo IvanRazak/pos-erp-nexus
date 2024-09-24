@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useForm } from 'react-hook-form';
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -7,17 +7,11 @@ import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { validateCPF, validateCNPJ, validatePhone } from '../utils/validations';
 import { fetchAddressByCEP } from '../utils/api';
+import { useCustomerTypes } from '../integrations/supabase';
 
-const ClienteForm = () => {
+const ClienteForm = ({ onSubmit }) => {
   const { register, handleSubmit, setValue, watch, formState: { errors } } = useForm();
-  const [isLoading, setIsLoading] = useState(false);
-
-  const onSubmit = async (data) => {
-    setIsLoading(true);
-    // Aqui você implementaria a lógica para salvar o cliente
-    console.log(data);
-    setIsLoading(false);
-  };
+  const { data: customerTypes, isLoading: isLoadingCustomerTypes } = useCustomerTypes();
 
   const handleCEPBlur = async (e) => {
     const cep = e.target.value.replace(/\D/g, '');
@@ -30,11 +24,6 @@ const ClienteForm = () => {
         setValue('estado', address.uf);
       }
     }
-  };
-
-  const handleWhatsAppWebhook = () => {
-    // Implementar lógica para enviar webhook
-    console.log("Enviando webhook para WhatsApp");
   };
 
   return (
@@ -67,16 +56,13 @@ const ClienteForm = () => {
       />
       {errors.telefone && <span className="text-red-500">{errors.telefone.message}</span>}
 
-      <div className="flex space-x-2">
-        <Input
-          {...register("whatsapp", { 
-            required: "WhatsApp é obrigatório",
-            validate: validatePhone
-          })}
-          placeholder="WhatsApp"
-        />
-        <Button type="button" onClick={handleWhatsAppWebhook}>Enviar Webhook</Button>
-      </div>
+      <Input
+        {...register("whatsapp", { 
+          required: "WhatsApp é obrigatório",
+          validate: validatePhone
+        })}
+        placeholder="WhatsApp"
+      />
       {errors.whatsapp && <span className="text-red-500">{errors.whatsapp.message}</span>}
 
       <Input
@@ -135,14 +121,17 @@ const ClienteForm = () => {
           <SelectValue placeholder="Tipo de Cliente" />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="comum">Cliente Comum</SelectItem>
-          <SelectItem value="revendedor">Revendedor</SelectItem>
+          {isLoadingCustomerTypes ? (
+            <SelectItem value="">Carregando...</SelectItem>
+          ) : (
+            customerTypes?.map((type) => (
+              <SelectItem key={type.id} value={type.id}>{type.name}</SelectItem>
+            ))
+          )}
         </SelectContent>
       </Select>
 
-      <Button type="submit" disabled={isLoading}>
-        {isLoading ? "Salvando..." : "Salvar Cliente"}
-      </Button>
+      <Button type="submit">Salvar Cliente</Button>
     </form>
   );
 };

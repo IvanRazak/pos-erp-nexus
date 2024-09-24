@@ -1,29 +1,17 @@
 import React, { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import ClienteModal from './ClienteModal';
 
-const ClienteList = () => {
+const ClienteList = ({ clientes, onDelete, onUpdate }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCliente, setSelectedCliente] = useState(null);
 
-  const { data: clientes, isLoading, error } = useQuery({
-    queryKey: ['clientes'],
-    queryFn: () => {
-      // Aqui você implementaria a chamada à API para buscar os clientes
-      return [
-        { id: 1, nome: 'João Silva', telefone: '(11) 99999-9999', email: 'joao@example.com', tipo: 'comum' },
-        { id: 2, nome: 'Maria Santos', telefone: '(11) 88888-8888', email: 'maria@example.com', tipo: 'revendedor' },
-      ];
-    },
-  });
-
   const filteredClientes = clientes?.filter(cliente =>
-    cliente.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    cliente.telefone.includes(searchTerm) ||
-    cliente.email.toLowerCase().includes(searchTerm.toLowerCase())
+    cliente.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    cliente.phone?.includes(searchTerm) ||
+    cliente.email?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const handleOpenModal = (cliente) => {
@@ -33,9 +21,6 @@ const ClienteList = () => {
   const handleCloseModal = () => {
     setSelectedCliente(null);
   };
-
-  if (isLoading) return <div>Carregando...</div>;
-  if (error) return <div>Erro ao carregar clientes: {error.message}</div>;
 
   return (
     <div>
@@ -59,19 +44,20 @@ const ClienteList = () => {
         <TableBody>
           {filteredClientes?.map((cliente) => (
             <TableRow key={cliente.id}>
-              <TableCell>{cliente.nome}</TableCell>
-              <TableCell>{cliente.telefone}</TableCell>
+              <TableCell>{cliente.name}</TableCell>
+              <TableCell>{cliente.phone}</TableCell>
               <TableCell>{cliente.email}</TableCell>
-              <TableCell>{cliente.tipo === 'comum' ? 'Cliente Comum' : 'Revendedor'}</TableCell>
+              <TableCell>{cliente.customer_type?.name || 'N/A'}</TableCell>
               <TableCell>
                 <Button onClick={() => handleOpenModal(cliente)}>Ver Pedidos</Button>
+                <Button onClick={() => onDelete(cliente.id)} variant="destructive" className="ml-2">Excluir</Button>
               </TableCell>
             </TableRow>
           ))}
         </TableBody>
       </Table>
       {selectedCliente && (
-        <ClienteModal cliente={selectedCliente} onClose={handleCloseModal} />
+        <ClienteModal cliente={selectedCliente} onClose={handleCloseModal} onUpdate={onUpdate} />
       )}
     </div>
   );
