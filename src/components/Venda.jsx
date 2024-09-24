@@ -225,7 +225,7 @@ const Venda = () => {
           </SelectTrigger>
           <SelectContent>
             {opcoesPagamento?.map((opcao) => (
-              <SelectItem key={opcao.id} value={opcao.id}>{opcao.name}</SelectItem>
+              <SelectItem key={opcao.id} value={opcao.name}>{opcao.name}</SelectItem>
             ))}
           </SelectContent>
         </Select>
