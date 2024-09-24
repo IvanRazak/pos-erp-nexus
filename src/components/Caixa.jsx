@@ -20,16 +20,16 @@ const Caixa = () => {
   const filtrarTransacoes = () => {
     if (!transacoes) return [];
     return transacoes.filter(transacao => {
-      const matchData = (!filtroDataInicio || new Date(transacao.dataPagamento) >= filtroDataInicio) &&
-                        (!filtroDataFim || new Date(transacao.dataPagamento) <= filtroDataFim);
-      const matchOpcaoPagamento = !filtroOpcaoPagamento || transacao.opcaoPagamento === filtroOpcaoPagamento;
+      const matchData = (!filtroDataInicio || new Date(transacao.payment_date) >= filtroDataInicio) &&
+                        (!filtroDataFim || new Date(transacao.payment_date) <= filtroDataFim);
+      const matchOpcaoPagamento = !filtroOpcaoPagamento || transacao.payment_option === filtroOpcaoPagamento;
       return matchData && matchOpcaoPagamento;
     });
   };
 
   const gerarRelatorio = () => {
     const transacoesFiltradas = filtrarTransacoes();
-    const totalVendas = transacoesFiltradas.reduce((acc, transacao) => acc + (transacao.valor || 0), 0);
+    const totalVendas = transacoesFiltradas.reduce((acc, transacao) => acc + (transacao.amount || 0), 0);
     const saldoInicial = 1000; // Exemplo de saldo inicial
     const saldoFinal = saldoInicial + totalVendas;
 
@@ -63,9 +63,9 @@ const Caixa = () => {
             <SelectValue placeholder="Opção de Pagamento" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">Todas</SelectItem>
+            <SelectItem value="">Todas</SelectItem>
             {paymentOptions?.map((option) => (
-              <SelectItem key={option.id} value={option.id}>{option.name}</SelectItem>
+              <SelectItem key={option.id} value={option.name}>{option.name}</SelectItem>
             ))}
           </SelectContent>
         </Select>
@@ -84,20 +84,20 @@ const Caixa = () => {
         <TableBody>
           {filtrarTransacoes().map((transacao) => (
             <TableRow key={transacao.id}>
-              <TableCell>{transacao.numeroPedido}</TableCell>
-              <TableCell>{transacao.cliente}</TableCell>
-              <TableCell>{transacao.opcaoPagamento}</TableCell>
-              <TableCell>{transacao.dataPagamento}</TableCell>
+              <TableCell>{transacao.order_id || 'N/A'}</TableCell>
+              <TableCell>{transacao.customer_name || 'N/A'}</TableCell>
+              <TableCell>{transacao.payment_option || 'N/A'}</TableCell>
+              <TableCell>{transacao.payment_date ? new Date(transacao.payment_date).toLocaleDateString() : 'N/A'}</TableCell>
               <TableCell>
                 <Input
-                  defaultValue={transacao.descricao}
+                  defaultValue={transacao.description || ''}
                   onChange={(e) => {
                     // Implementar lógica para atualizar a descrição
                     console.log(`Atualizando descrição da transação ${transacao.id}: ${e.target.value}`);
                   }}
                 />
               </TableCell>
-              <TableCell>R$ {transacao.valor ? transacao.valor.toFixed(2) : '0.00'}</TableCell>
+              <TableCell>R$ {transacao.amount ? transacao.amount.toFixed(2) : '0.00'}</TableCell>
             </TableRow>
           ))}
         </TableBody>
