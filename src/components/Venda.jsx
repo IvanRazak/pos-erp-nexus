@@ -73,7 +73,7 @@ const Venda = () => {
       total_amount: calcularTotal(),
       status: 'in_production',
       delivery_date: format(dataEntrega, 'yyyy-MM-dd'),
-      payment_option: opcaoPagamento,
+      payment_option: opcaoPagamento.toLowerCase(),
       items: carrinho.map(item => ({
         product_id: item.id,
         quantity: item.quantidade,

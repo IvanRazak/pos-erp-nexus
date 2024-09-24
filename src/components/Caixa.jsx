@@ -29,7 +29,7 @@ const Caixa = () => {
 
   const gerarRelatorio = () => {
     const transacoesFiltradas = filtrarTransacoes();
-    const totalVendas = transacoesFiltradas.reduce((acc, transacao) => acc + transacao.valor, 0);
+    const totalVendas = transacoesFiltradas.reduce((acc, transacao) => acc + (transacao.valor || 0), 0);
     const saldoInicial = 1000; // Exemplo de saldo inicial
     const saldoFinal = saldoInicial + totalVendas;
 
@@ -97,7 +97,7 @@ const Caixa = () => {
                   }}
                 />
               </TableCell>
-              <TableCell>R$ {transacao.valor.toFixed(2)}</TableCell>
+              <TableCell>R$ {transacao.valor ? transacao.valor.toFixed(2) : '0.00'}</TableCell>
             </TableRow>
           ))}
         </TableBody>
