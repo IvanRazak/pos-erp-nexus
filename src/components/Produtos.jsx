@@ -15,7 +15,7 @@ const Produtos = () => {
   const [editingProduto, setEditingProduto] = useState(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const { session } = useSupabaseAuth();
+  const { session } = useSupabaseAuth() || {};
 
   const isAdmin = session?.user?.role === 'admin';
 
@@ -124,7 +124,7 @@ const Produtos = () => {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {produtos.map((produto) => (
+          {produtos?.map((produto) => (
             <TableRow key={produto.id}>
               <TableCell>{produto.name}</TableCell>
               <TableCell>{produto.sale_price}</TableCell>

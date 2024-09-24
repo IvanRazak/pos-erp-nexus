@@ -11,7 +11,7 @@ const Clientes = () => {
   const addCustomer = useAddCustomer();
   const updateCustomer = useUpdateCustomer();
   const deleteCustomer = useDeleteCustomer();
-  const { session } = useSupabaseAuth();
+  const { session } = useSupabaseAuth() || {};
 
   const handleSuccess = () => {
     refetch();
