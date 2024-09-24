@@ -35,7 +35,6 @@ CREATE TABLE customers (
     documento TEXT,
     cpf TEXT,
     cnpj TEXT,
-    address TEXT,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
