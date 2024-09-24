@@ -63,9 +63,9 @@ const Caixa = () => {
             <SelectValue placeholder="Opção de Pagamento" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">Todas</SelectItem>
+            <SelectItem value="all">Todas</SelectItem>
             {paymentOptions?.map((option) => (
-              <SelectItem key={option.id} value={option.name}>{option.name}</SelectItem>
+              <SelectItem key={option.id} value={option.id}>{option.name}</SelectItem>
             ))}
           </SelectContent>
         </Select>

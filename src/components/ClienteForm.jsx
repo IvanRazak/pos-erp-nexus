@@ -141,7 +141,7 @@ const ClienteForm = ({ onSuccess }) => {
         </SelectTrigger>
         <SelectContent>
           {isLoadingCustomerTypes ? (
-            <SelectItem value="">Carregando...</SelectItem>
+            <SelectItem value="loading">Carregando...</SelectItem>
           ) : (
             customerTypes?.map((type) => (
               <SelectItem key={type.id} value={type.id}>{type.name}</SelectItem>
