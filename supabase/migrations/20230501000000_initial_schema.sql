@@ -102,6 +102,14 @@ CREATE TABLE payment_options (
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
+-- Create customer_types table
+CREATE TABLE customer_types (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    name TEXT NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
 -- Add triggers to update the updated_at column
 CREATE OR REPLACE FUNCTION update_modified_column()
 RETURNS TRIGGER AS $$
@@ -153,5 +161,10 @@ CREATE TRIGGER update_order_item_extras_modtime
 
 CREATE TRIGGER update_payment_options_modtime
     BEFORE UPDATE ON payment_options
+    FOR EACH ROW
+    EXECUTE FUNCTION update_modified_column();
+
+CREATE TRIGGER update_customer_types_modtime
+    BEFORE UPDATE ON customer_types
     FOR EACH ROW
     EXECUTE FUNCTION update_modified_column();

@@ -116,7 +116,7 @@ const ClienteForm = ({ onSubmit }) => {
         <label htmlFor="bloqueado">Bloquear cliente</label>
       </div>
 
-      <Select {...register("tipo")} defaultValue="comum">
+      <Select {...register("tipo")} defaultValue="">
         <SelectTrigger>
           <SelectValue placeholder="Tipo de Cliente" />
         </SelectTrigger>
