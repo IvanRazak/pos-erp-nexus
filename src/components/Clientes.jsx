@@ -6,10 +6,15 @@ import { useCustomers, useAddCustomer, useUpdateCustomer, useDeleteCustomer } fr
 
 const Clientes = () => {
   const [activeTab, setActiveTab] = useState("lista");
-  const { data: clientes, isLoading, error } = useCustomers();
+  const { data: clientes, isLoading, error, refetch } = useCustomers();
   const addCustomer = useAddCustomer();
   const updateCustomer = useUpdateCustomer();
   const deleteCustomer = useDeleteCustomer();
+
+  const handleSuccess = () => {
+    refetch();
+    setActiveTab("lista");
+  };
 
   if (isLoading) return <div>Carregando...</div>;
   if (error) return <div>Erro ao carregar clientes: {error.message}</div>;
@@ -30,7 +35,7 @@ const Clientes = () => {
           />
         </TabsContent>
         <TabsContent value="cadastro">
-          <ClienteForm onSubmit={addCustomer.mutate} />
+          <ClienteForm onSuccess={handleSuccess} />
         </TabsContent>
       </Tabs>
     </div>

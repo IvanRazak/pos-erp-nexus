@@ -7,11 +7,13 @@ import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { validateCPF, validateCNPJ, validatePhone } from '../utils/validations';
 import { fetchAddressByCEP } from '../utils/api';
-import { useCustomerTypes } from '../integrations/supabase';
+import { useCustomerTypes, useAddCustomer } from '../integrations/supabase';
+import { toast } from "@/components/ui/use-toast";
 
-const ClienteForm = ({ onSubmit }) => {
+const ClienteForm = ({ onSuccess }) => {
   const { register, handleSubmit, setValue, watch, formState: { errors } } = useForm();
   const { data: customerTypes, isLoading: isLoadingCustomerTypes } = useCustomerTypes();
+  const addCustomer = useAddCustomer();
 
   const handleCEPBlur = async (e) => {
     const cep = e.target.value.replace(/\D/g, '');
@@ -26,13 +28,30 @@ const ClienteForm = ({ onSubmit }) => {
     }
   };
 
+  const onSubmit = async (data) => {
+    try {
+      await addCustomer.mutateAsync(data);
+      toast({
+        title: "Cliente cadastrado com sucesso!",
+        description: "O novo cliente foi adicionado à lista.",
+      });
+      if (onSuccess) onSuccess();
+    } catch (error) {
+      toast({
+        title: "Erro ao cadastrar cliente",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  };
+
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
       <Input
-        {...register("nome", { required: "Nome é obrigatório" })}
+        {...register("name", { required: "Nome é obrigatório" })}
         placeholder="Nome"
       />
-      {errors.nome && <span className="text-red-500">{errors.nome.message}</span>}
+      {errors.name && <span className="text-red-500">{errors.name.message}</span>}
 
       <Input
         {...register("email", { 
@@ -48,13 +67,13 @@ const ClienteForm = ({ onSubmit }) => {
       {errors.email && <span className="text-red-500">{errors.email.message}</span>}
 
       <Input
-        {...register("telefone", { 
+        {...register("phone", { 
           required: "Telefone é obrigatório",
           validate: validatePhone
         })}
         placeholder="Telefone"
       />
-      {errors.telefone && <span className="text-red-500">{errors.telefone.message}</span>}
+      {errors.phone && <span className="text-red-500">{errors.phone.message}</span>}
 
       <Input
         {...register("whatsapp", { 
@@ -116,7 +135,7 @@ const ClienteForm = ({ onSubmit }) => {
         <label htmlFor="bloqueado">Bloquear cliente</label>
       </div>
 
-      <Select {...register("tipo")} defaultValue="">
+      <Select {...register("customer_type_id")} defaultValue="">
         <SelectTrigger>
           <SelectValue placeholder="Tipo de Cliente" />
         </SelectTrigger>

@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { DatePicker } from "@/components/ui/date-picker";
 import { useProducts, useCustomers, useExtraOptions, usePaymentOptions } from '../integrations/supabase';
+import ClienteForm from './ClienteForm';
 
 const Venda = () => {
   const [carrinho, setCarrinho] = useState([]);
@@ -18,9 +19,10 @@ const Venda = () => {
   const [desconto, setDesconto] = useState(0);
   const [dataEntrega, setDataEntrega] = useState(new Date());
   const [opcaoPagamento, setOpcaoPagamento] = useState('');
+  const [isNewClientDialogOpen, setIsNewClientDialogOpen] = useState(false);
 
   const { data: produtos } = useProducts();
-  const { data: clientes } = useCustomers();
+  const { data: clientes, refetch: refetchClientes } = useCustomers();
   const { data: opcoesExtras } = useExtraOptions();
   const { data: opcoesPagamento } = usePaymentOptions();
 
@@ -43,6 +45,11 @@ const Venda = () => {
   const calcularTotal = () => {
     const subtotal = carrinho.reduce((acc, item) => acc + item.total, 0);
     return subtotal - desconto;
+  };
+
+  const handleNewClientSuccess = () => {
+    setIsNewClientDialogOpen(false);
+    refetchClientes();
   };
 
   return (
@@ -102,19 +109,17 @@ const Venda = () => {
               ))}
             </SelectContent>
           </Select>
-          {!clienteSelecionado && (
-            <Dialog>
-              <DialogTrigger asChild>
-                <Button className="mt-2">Cadastrar Novo Cliente</Button>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Cadastro de Cliente</DialogTitle>
-                </DialogHeader>
-                {/* Adicionar formulário de cadastro de cliente aqui */}
-              </DialogContent>
-            </Dialog>
-          )}
+          <Dialog open={isNewClientDialogOpen} onOpenChange={setIsNewClientDialogOpen}>
+            <DialogTrigger asChild>
+              <Button className="mt-2">Cadastrar Novo Cliente</Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Cadastro de Cliente</DialogTitle>
+              </DialogHeader>
+              <ClienteForm onSuccess={handleNewClientSuccess} />
+            </DialogContent>
+          </Dialog>
         </div>
       </div>
       <div className="mt-4">
@@ -153,7 +158,7 @@ const Venda = () => {
           </SelectTrigger>
           <SelectContent>
             {opcoesPagamento?.map((opcao) => (
-              <SelectItem key={opcao.id} value={opcao.name}>{opcao.name}</SelectItem>
+              <SelectItem key={opcao.id} value={opcao.id}>{opcao.name}</SelectItem>
             ))}
           </SelectContent>
         </Select>
