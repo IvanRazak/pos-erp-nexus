@@ -58,7 +58,7 @@ const Caixa = () => {
           placeholderText="Data Fim"
         />
         
-        <Select onValueChange={setFiltroOpcaoPagamento}>
+        <Select onValueChange={setFiltroOpcaoPagamento} value={filtroOpcaoPagamento}>
           <SelectTrigger>
             <SelectValue placeholder="Opção de Pagamento" />
           </SelectTrigger>

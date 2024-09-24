@@ -168,3 +168,31 @@ CREATE TRIGGER update_customer_types_modtime
     BEFORE UPDATE ON customer_types
     FOR EACH ROW
     EXECUTE FUNCTION update_modified_column();
+
+-- Enable Row Level Security (RLS) on all tables
+ALTER TABLE users ENABLE ROW LEVEL SECURITY;
+ALTER TABLE customers ENABLE ROW LEVEL SECURITY;
+ALTER TABLE products ENABLE ROW LEVEL SECURITY;
+ALTER TABLE orders ENABLE ROW LEVEL SECURITY;
+ALTER TABLE order_items ENABLE ROW LEVEL SECURITY;
+ALTER TABLE payments ENABLE ROW LEVEL SECURITY;
+ALTER TABLE extra_options ENABLE ROW LEVEL SECURITY;
+ALTER TABLE order_item_extras ENABLE ROW LEVEL SECURITY;
+ALTER TABLE payment_options ENABLE ROW LEVEL SECURITY;
+ALTER TABLE customer_types ENABLE ROW LEVEL SECURITY;
+
+-- Create policies for each table
+CREATE POLICY "Enable read access for all users" ON users FOR SELECT USING (true);
+CREATE POLICY "Enable read access for all users" ON customers FOR SELECT USING (true);
+CREATE POLICY "Enable read access for all users" ON products FOR SELECT USING (true);
+CREATE POLICY "Enable read access for all users" ON orders FOR SELECT USING (true);
+CREATE POLICY "Enable read access for all users" ON order_items FOR SELECT USING (true);
+CREATE POLICY "Enable read access for all users" ON payments FOR SELECT USING (true);
+CREATE POLICY "Enable read access for all users" ON extra_options FOR SELECT USING (true);
+CREATE POLICY "Enable read access for all users" ON order_item_extras FOR SELECT USING (true);
+CREATE POLICY "Enable read access for all users" ON payment_options FOR SELECT USING (true);
+CREATE POLICY "Enable read access for all users" ON customer_types FOR SELECT USING (true);
+
+-- Insert some initial data
+INSERT INTO payment_options (name) VALUES ('Dinheiro'), ('Cartão de Crédito'), ('Cartão de Débito'), ('Transferência Bancária');
+INSERT INTO customer_types (name) VALUES ('Pessoa Física'), ('Pessoa Jurídica');

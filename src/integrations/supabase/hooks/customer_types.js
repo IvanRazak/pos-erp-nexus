@@ -7,17 +7,6 @@ const fromSupabase = async (query) => {
   return data;
 };
 
-/*
-### customer_types
-
-| name       | type                    | format | required |
-|------------|-------------------------|--------|----------|
-| id         | uuid                    | uuid   | true     |
-| name       | text                    | string | true     |
-| created_at | timestamp with time zone| string | false    |
-| updated_at | timestamp with time zone| string | false    |
-*/
-
 export const useCustomerType = (id) => useQuery({
   queryKey: ['customer_types', id],
   queryFn: () => fromSupabase(supabase.from('customer_types').select('*').eq('id', id).single()),
