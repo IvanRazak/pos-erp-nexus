@@ -63,9 +63,8 @@ const AdminMenu = () => {
     const formData = new FormData(event.target);
     const username = formData.get('username');
     const email = formData.get('email');
-    const password = formData.get('password');
     const role = formData.get('role');
-    addUser.mutate({ username, email, password, role }, {
+    addUser.mutate({ username, email, role }, {
       onSuccess: () => {
         toast({ title: "Usuário cadastrado com sucesso!" });
         event.target.reset();
@@ -137,7 +136,6 @@ const AdminMenu = () => {
             <form onSubmit={handleGerenciarUsuarios}>
               <Input name="username" placeholder="Nome do usuário" className="mb-4" />
               <Input name="email" type="email" placeholder="E-mail" className="mb-4" />
-              <Input name="password" type="password" placeholder="Senha" className="mb-4" />
               <Select name="role">
                 <SelectTrigger>
                   <SelectValue placeholder="Nível de acesso" />

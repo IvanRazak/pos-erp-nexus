@@ -22,7 +22,7 @@ CREATE TABLE customers (
     email TEXT UNIQUE,
     phone TEXT,
     address TEXT,
-    customer_type TEXT,
+    customer_type_id UUID,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
