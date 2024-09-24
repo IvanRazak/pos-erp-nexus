@@ -54,9 +54,9 @@ const Financeiro = () => {
             <SelectValue placeholder="Opção de Pagamento" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">Todas</SelectItem>
-            <SelectItem value="Cartão">Cartão</SelectItem>
-            <SelectItem value="Dinheiro">Dinheiro</SelectItem>
+            <SelectItem value="todas">Todas</SelectItem>
+            <Select value="Cartão">Cartão</Select>
+            <Select value="Dinheiro">Dinheiro</Select>
           </SelectContent>
         </Select>
       </div>

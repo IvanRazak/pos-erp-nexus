@@ -64,12 +64,13 @@ const Caixa = () => {
           onChange={setFiltroDataFim}
           placeholderText="Data Fim"
         />
+        
         <Select onValueChange={setFiltroOpcaoPagamento}>
           <SelectTrigger>
             <SelectValue placeholder="Opção de Pagamento" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">Todas</SelectItem>
+            <SelectItem value="todas">Todas</SelectItem>
             <SelectItem value="Cartão">Cartão</SelectItem>
             <SelectItem value="Dinheiro">Dinheiro</SelectItem>
           </SelectContent>
