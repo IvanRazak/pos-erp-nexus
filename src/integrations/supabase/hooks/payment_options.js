@@ -7,17 +7,6 @@ const fromSupabase = async (query) => {
   return data;
 };
 
-/*
-### payment_options
-
-| name       | type                    | format | required |
-|------------|-------------------------|--------|----------|
-| id         | uuid                    | uuid   | true     |
-| name       | text                    | string | true     |
-| created_at | timestamp with time zone| string | false    |
-| updated_at | timestamp with time zone| string | false    |
-*/
-
 export const usePaymentOption = (id) => useQuery({
   queryKey: ['payment_options', id],
   queryFn: () => fromSupabase(supabase.from('payment_options').select('*').eq('id', id).single()),
@@ -57,3 +46,8 @@ export const useDeletePaymentOption = () => {
     },
   });
 };
+
+export const useTransactions = () => useQuery({
+  queryKey: ['transactions'],
+  queryFn: () => fromSupabase(supabase.from('payments').select('*')),
+});

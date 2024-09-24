@@ -6,6 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { DatePicker } from "@/components/ui/date-picker";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { usePaymentOptions, useTransactions } from '../integrations/supabase';
 
 const Caixa = () => {
   const [filtroDataInicio, setFiltroDataInicio] = useState(null);
@@ -13,16 +14,8 @@ const Caixa = () => {
   const [filtroOpcaoPagamento, setFiltroOpcaoPagamento] = useState('');
   const [isRelatorioOpen, setIsRelatorioOpen] = useState(false);
 
-  const { data: transacoes, isLoading } = useQuery({
-    queryKey: ['transacoes'],
-    queryFn: async () => {
-      // Simular uma chamada à API
-      return [
-        { id: 1, numeroPedido: '001', cliente: 'Cliente 1', opcaoPagamento: 'Cartão', dataPagamento: '2023-05-01', descricao: 'Pagamento pedido 001', valor: 150.00 },
-        { id: 2, numeroPedido: '002', cliente: 'Cliente 2', opcaoPagamento: 'Dinheiro', dataPagamento: '2023-05-02', descricao: 'Pagamento pedido 002', valor: 200.00 },
-      ];
-    },
-  });
+  const { data: paymentOptions, isLoading: isLoadingPaymentOptions } = usePaymentOptions();
+  const { data: transacoes, isLoading: isLoadingTransactions } = useTransactions();
 
   const filtrarTransacoes = () => {
     if (!transacoes) return [];
@@ -48,7 +41,7 @@ const Caixa = () => {
     };
   };
 
-  if (isLoading) return <div>Carregando...</div>;
+  if (isLoadingTransactions || isLoadingPaymentOptions) return <div>Carregando...</div>;
 
   return (
     <div className="container mx-auto p-4">
@@ -70,9 +63,10 @@ const Caixa = () => {
             <SelectValue placeholder="Opção de Pagamento" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="todas">Todas</SelectItem>
-            <SelectItem value="Cartão">Cartão</SelectItem>
-            <SelectItem value="Dinheiro">Dinheiro</SelectItem>
+            <SelectItem value="">Todas</SelectItem>
+            {paymentOptions?.map((option) => (
+              <SelectItem key={option.id} value={option.name}>{option.name}</SelectItem>
+            ))}
           </SelectContent>
         </Select>
       </div>
