@@ -145,7 +145,7 @@ const Venda = () => {
             </SelectTrigger>
             <SelectContent>
               {produtos?.map((produto) => (
-                <SelectItem key={produto.id} value={produto.id.toString()}>{produto.name}</SelectItem>
+                <SelectItem key={produto.id} value={produto.id}>{produto.name}</SelectItem>
               ))}
             </SelectContent>
           </Select>
@@ -175,7 +175,7 @@ const Venda = () => {
             </SelectTrigger>
             <SelectContent>
               {clientes?.map((cliente) => (
-                <SelectItem key={cliente.id} value={cliente.id.toString()}>{cliente.name}</SelectItem>
+                <SelectItem key={cliente.id} value={cliente.id}>{cliente.name}</SelectItem>
               ))}
             </SelectContent>
           </Select>
