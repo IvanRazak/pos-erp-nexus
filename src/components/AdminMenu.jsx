@@ -164,7 +164,6 @@ const AdminMenu = () => {
       </div>
     </div>
   );
-
 };
 
 export default AdminMenu;

@@ -66,26 +66,12 @@ export const useAddOrder = () => {
         if (extrasError) throw extrasError;
       }
 
-      // Mapeamento atualizado das opções de pagamento
-      const paymentOptionMap = {
-        'dinheiro': 'cash',
-        'cartão de crédito': 'credit_card',
-        'cartao de credito': 'credit_card',
-        'cartão de débito': 'debit_card',
-        'cartao de debito': 'debit_card',
-        'transferência bancária': 'bank_transfer',
-        'transferencia bancaria': 'bank_transfer',
-        'pix': 'pix'
-      };
-
-      const mappedPaymentOption = paymentOptionMap[newOrder.payment_option.toLowerCase()] || newOrder.payment_option;
-
       const { error: paymentError } = await supabase
         .from('payments')
         .insert([{
           order_id: order.id,
           amount: newOrder.total_amount,
-          payment_option: mappedPaymentOption,
+          payment_option: newOrder.payment_option,
         }]);
 
       if (paymentError) throw paymentError;
