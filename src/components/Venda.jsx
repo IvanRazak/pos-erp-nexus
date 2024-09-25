@@ -28,6 +28,8 @@ const Venda = () => {
   const [opcaoPagamento, setOpcaoPagamento] = useState('');
   const [isNewClientDialogOpen, setIsNewClientDialogOpen] = useState(false);
   const [isExtraOptionsModalOpen, setIsExtraOptionsModalOpen] = useState(false);
+  const [valorPago, setValorPago] = useState(0);
+  const [isPagamentoParcial, setIsPagamentoParcial] = useState(false);
 
   const { data: produtos } = useProducts();
   const { data: clientes, refetch: refetchClientes } = useCustomers();
@@ -84,10 +86,16 @@ const Venda = () => {
       return;
     }
 
+    const totalVenda = calcularTotal();
+    const valorPagoFinal = isPagamentoParcial ? valorPago : totalVenda;
+    const saldoRestante = totalVenda - valorPagoFinal;
+
     const novaVenda = {
       customer_id: clienteSelecionado,
-      total_amount: calcularTotal(),
-      status: 'in_production',
+      total_amount: totalVenda,
+      paid_amount: valorPagoFinal,
+      remaining_balance: saldoRestante,
+      status: saldoRestante > 0 ? 'partial_payment' : 'in_production',
       delivery_date: format(dataEntrega, 'yyyy-MM-dd'),
       payment_option: opcaoPagamento.toLowerCase(),
       items: carrinho.map(item => ({
@@ -112,6 +120,8 @@ const Venda = () => {
       setDataEntrega(null);
       setOpcaoPagamento('');
       setDesconto(0);
+      setValorPago(0);
+      setIsPagamentoParcial(false);
     } catch (error) {
       toast({
         title: "Erro ao finalizar venda",
@@ -249,7 +259,32 @@ const Venda = () => {
             ))}
           </SelectContent>
         </Select>
+        <div className="mt-2">
+          <label className="flex items-center">
+            <input
+              type="checkbox"
+              checked={isPagamentoParcial}
+              onChange={(e) => setIsPagamentoParcial(e.target.checked)}
+              className="mr-2"
+            />
+            Pagamento Parcial
+          </label>
+        </div>
+        {isPagamentoParcial && (
+          <Input
+            type="number"
+            placeholder="Valor Pago"
+            value={valorPago}
+            onChange={(e) => setValorPago(parseFloat(e.target.value))}
+            className="mt-2"
+          />
+        )}
         <p className="mt-2 text-xl font-bold">Total: R$ {calcularTotal().toFixed(2)}</p>
+        {isPagamentoParcial && (
+          <p className="mt-2 text-lg">
+            Saldo Restante: R$ {(calcularTotal() - valorPago).toFixed(2)}
+          </p>
+        )}
         <Button className="mt-2" onClick={finalizarVenda}>Finalizar Venda</Button>
       </div>
       {isExtraOptionsModalOpen && (

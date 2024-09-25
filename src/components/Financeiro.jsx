@@ -5,31 +5,50 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { DatePicker } from "@/components/ui/date-picker";
+import { useOrders, useUpdateOrder } from '../integrations/supabase';
+import { toast } from "@/components/ui/use-toast";
 
 const Financeiro = () => {
   const [filtroDataInicio, setFiltroDataInicio] = useState(null);
   const [filtroDataFim, setFiltroDataFim] = useState(null);
   const [filtroOpcaoPagamento, setFiltroOpcaoPagamento] = useState('');
 
-  const { data: contasReceber, isLoading } = useQuery({
-    queryKey: ['contasReceber'],
-    queryFn: async () => {
-      // Simular uma chamada à API
-      return [
-        { id: 1, numeroPedido: '001', cliente: 'Cliente 1', valor: 150.00, dataVencimento: '2023-05-10', opcaoPagamento: 'Cartão' },
-        { id: 2, numeroPedido: '002', cliente: 'Cliente 2', valor: 200.00, dataVencimento: '2023-05-15', opcaoPagamento: 'Dinheiro' },
-      ];
-    },
-  });
+  const { data: pedidos, isLoading } = useOrders();
+  const updateOrder = useUpdateOrder();
 
-  const filtrarContasReceber = () => {
-    if (!contasReceber) return [];
-    return contasReceber.filter(conta => {
-      const matchData = (!filtroDataInicio || new Date(conta.dataVencimento) >= filtroDataInicio) &&
-                        (!filtroDataFim || new Date(conta.dataVencimento) <= filtroDataFim);
-      const matchOpcaoPagamento = !filtroOpcaoPagamento || conta.opcaoPagamento === filtroOpcaoPagamento;
-      return matchData && matchOpcaoPagamento;
+  const filtrarPedidos = () => {
+    if (!pedidos) return [];
+    return pedidos.filter(pedido => {
+      const matchData = (!filtroDataInicio || new Date(pedido.created_at) >= filtroDataInicio) &&
+                        (!filtroDataFim || new Date(pedido.created_at) <= filtroDataFim);
+      const matchOpcaoPagamento = !filtroOpcaoPagamento || pedido.payment_option === filtroOpcaoPagamento;
+      return matchData && matchOpcaoPagamento && pedido.remaining_balance > 0;
     });
+  };
+
+  const registrarPagamento = async (pedido, valorPago) => {
+    const novoValorPago = pedido.paid_amount + valorPago;
+    const novoSaldoRestante = pedido.total_amount - novoValorPago;
+    const novoStatus = novoSaldoRestante <= 0 ? 'paid' : 'partial_payment';
+
+    try {
+      await updateOrder.mutateAsync({
+        id: pedido.id,
+        paid_amount: novoValorPago,
+        remaining_balance: novoSaldoRestante,
+        status: novoStatus,
+      });
+      toast({
+        title: "Pagamento registrado com sucesso!",
+        description: `Novo saldo restante: R$ ${novoSaldoRestante.toFixed(2)}`,
+      });
+    } catch (error) {
+      toast({
+        title: "Erro ao registrar pagamento",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
   };
 
   if (isLoading) return <div>Carregando...</div>;
@@ -54,9 +73,11 @@ const Financeiro = () => {
             <SelectValue placeholder="Opção de Pagamento" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">Todas</SelectItem>
-            <SelectItem value="Cartão">Cartão</SelectItem>
-            <SelectItem value="Dinheiro">Dinheiro</SelectItem>
+            <SelectItem value="">Todas</SelectItem>
+            <SelectItem value="cash">Dinheiro</SelectItem>
+            <SelectItem value="credit_card">Cartão de Crédito</SelectItem>
+            <SelectItem value="debit_card">Cartão de Débito</SelectItem>
+            <SelectItem value="bank_transfer">Transferência Bancária</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -65,24 +86,46 @@ const Financeiro = () => {
           <TableRow>
             <TableHead>Número do Pedido</TableHead>
             <TableHead>Cliente</TableHead>
-            <TableHead>Valor</TableHead>
+            <TableHead>Valor Total</TableHead>
+            <TableHead>Valor Pago</TableHead>
+            <TableHead>Saldo Restante</TableHead>
             <TableHead>Data de Vencimento</TableHead>
             <TableHead>Opção de Pagamento</TableHead>
             <TableHead>Ações</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
-          {filtrarContasReceber().map((conta) => (
-            <TableRow key={conta.id}>
-              <TableCell>{conta.numeroPedido}</TableCell>
-              <TableCell>{conta.cliente}</TableCell>
-              <TableCell>R$ {conta.valor.toFixed(2)}</TableCell>
-              <TableCell>{conta.dataVencimento}</TableCell>
-              <TableCell>{conta.opcaoPagamento}</TableCell>
+          {filtrarPedidos().map((pedido) => (
+            <TableRow key={pedido.id}>
+              <TableCell>{pedido.id}</TableCell>
+              <TableCell>{pedido.customer?.name || 'N/A'}</TableCell>
+              <TableCell>R$ {pedido.total_amount.toFixed(2)}</TableCell>
+              <TableCell>R$ {pedido.paid_amount.toFixed(2)}</TableCell>
+              <TableCell>R$ {pedido.remaining_balance.toFixed(2)}</TableCell>
+              <TableCell>{pedido.delivery_date}</TableCell>
+              <TableCell>{pedido.payment_option}</TableCell>
               <TableCell>
+                <Input
+                  type="number"
+                  placeholder="Valor a pagar"
+                  className="w-24 mr-2"
+                  onKeyPress={(e) => {
+                    if (e.key === 'Enter') {
+                      const valorPago = parseFloat(e.target.value);
+                      if (valorPago > 0) {
+                        registrarPagamento(pedido, valorPago);
+                        e.target.value = '';
+                      }
+                    }
+                  }}
+                />
                 <Button onClick={() => {
-                  // Implementar lógica para registrar pagamento
-                  console.log(`Registrando pagamento da conta ${conta.id}`);
+                  const input = e.target.previousSibling;
+                  const valorPago = parseFloat(input.value);
+                  if (valorPago > 0) {
+                    registrarPagamento(pedido, valorPago);
+                    input.value = '';
+                  }
                 }}>
                   Registrar Pagamento
                 </Button>
