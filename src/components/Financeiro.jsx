@@ -87,14 +87,15 @@ const Financeiro = () => {
           onChange={setFiltroDataFim}
           placeholderText="Data Fim"
         />
+        
         <Select onValueChange={setFiltroOpcaoPagamento} value={filtroOpcaoPagamento}>
           <SelectTrigger>
             <SelectValue placeholder="Opção de Pagamento" />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="">Todas</SelectItem>
-            {opcoesPagamento?.map((opcao) => (
-              <SelectItem key={opcao.id} value={opcao.name}>{opcao.name}</SelectItem>
+            {opcoesPagamento?.map((option) => (
+              <SelectItem key={option.id} value={option.name}>{option.name}</SelectItem>
             ))}
           </SelectContent>
         </Select>

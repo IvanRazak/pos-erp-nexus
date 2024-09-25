@@ -246,7 +246,7 @@ const Venda = () => {
             />
           </PopoverContent>
         </Popover>
-        <Select onValueChange={setOpcaoPagamento} className="mt-2">
+        <Select onValueChange={setOpcaoPagamento} value={opcaoPagamento}>
           <SelectTrigger>
             <SelectValue placeholder="Opção de Pagamento" />
           </SelectTrigger>
