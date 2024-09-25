@@ -41,6 +41,7 @@ export const useAddOrder = () => {
         unit_price: item.unit_price,
         width: item.width || null,
         height: item.height || null,
+        m2: item.m2 || null,
       }));
 
       const { data: insertedItems, error: itemsError } = await supabase

@@ -38,6 +38,7 @@ const PedidoDetalhesModal = ({ pedido, onClose }) => {
               <TableHead>Valor Unitário</TableHead>
               <TableHead>Opções Extras</TableHead>
               <TableHead>Dimensões</TableHead>
+              <TableHead>M²</TableHead>
               <TableHead>Subtotal</TableHead>
             </TableRow>
           </TableHeader>
@@ -59,8 +60,9 @@ const PedidoDetalhesModal = ({ pedido, onClose }) => {
                     'N/A'
                   )}
                 </TableCell>
+                <TableCell>{item.m2 ? `${item.m2.toFixed(2)}m²` : 'N/A'}</TableCell>
                 <TableCell>
-                  R$ {(item.quantity * item.unit_price + 
+                  R$ {(item.quantity * item.unit_price * (item.m2 || 1) + 
                     item.extras.reduce((sum, extra) => sum + extra.extra_option.price, 0)).toFixed(2)}
                 </TableCell>
               </TableRow>
