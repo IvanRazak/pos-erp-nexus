@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useOrders, useUpdateOrder } from '../integrations/supabase';
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { DatePicker } from "@/components/ui/date-picker";
+import { format, isWithinInterval, parseISO } from 'date-fns';
 
 const GerenciamentoPedidos = () => {
   const [filtroCliente, setFiltroCliente] = useState('');
@@ -13,35 +14,29 @@ const GerenciamentoPedidos = () => {
   const [filtroValorMinimo, setFiltroValorMinimo] = useState('');
   const [filtroValorMaximo, setFiltroValorMaximo] = useState('');
 
-  const { data: pedidos, isLoading } = useQuery({
-    queryKey: ['pedidos'],
-    queryFn: async () => {
-      // Simular uma chamada à API
-      return [
-        { id: 1, data: '2023-05-01', hora: '14:30', cliente: 'Cliente 1', valor: 150.00, dataEntrega: '2023-05-05', status: 'Em Produção' },
-        { id: 2, data: '2023-05-02', hora: '10:15', cliente: 'Cliente 2', valor: 200.00, dataEntrega: '2023-05-06', status: 'Aguardando Aprovação' },
-      ];
-    },
-  });
+  const { data: pedidos, isLoading, error } = useOrders();
+  const updateOrder = useUpdateOrder();
 
   const filtrarPedidos = () => {
     if (!pedidos) return [];
     return pedidos.filter(pedido => {
-      const matchCliente = pedido.cliente.toLowerCase().includes(filtroCliente.toLowerCase());
-      const matchData = (!filtroDataInicio || new Date(pedido.data) >= filtroDataInicio) &&
-                        (!filtroDataFim || new Date(pedido.data) <= filtroDataFim);
-      const matchValor = (!filtroValorMinimo || pedido.valor >= parseFloat(filtroValorMinimo)) &&
-                         (!filtroValorMaximo || pedido.valor <= parseFloat(filtroValorMaximo));
+      const matchCliente = pedido.customer_name?.toLowerCase().includes(filtroCliente.toLowerCase());
+      const matchData = (!filtroDataInicio || !filtroDataFim || isWithinInterval(parseISO(pedido.created_at), {
+        start: filtroDataInicio,
+        end: filtroDataFim
+      }));
+      const matchValor = (!filtroValorMinimo || pedido.total_amount >= parseFloat(filtroValorMinimo)) &&
+                         (!filtroValorMaximo || pedido.total_amount <= parseFloat(filtroValorMaximo));
       return matchCliente && matchData && matchValor;
     });
   };
 
   const atualizarStatus = (pedidoId, novoStatus) => {
-    // Implementar lógica para atualizar o status do pedido
-    console.log(`Atualizando status do pedido ${pedidoId} para ${novoStatus}`);
+    updateOrder.mutate({ id: pedidoId, status: novoStatus });
   };
 
   if (isLoading) return <div>Carregando...</div>;
+  if (error) return <div>Erro ao carregar pedidos: {error.message}</div>;
 
   return (
     <div className="container mx-auto p-4">
@@ -93,10 +88,10 @@ const GerenciamentoPedidos = () => {
           {filtrarPedidos().map((pedido) => (
             <TableRow key={pedido.id}>
               <TableCell>{pedido.id}</TableCell>
-              <TableCell>{`${pedido.data} ${pedido.hora}`}</TableCell>
-              <TableCell>{pedido.cliente}</TableCell>
-              <TableCell>R$ {pedido.valor.toFixed(2)}</TableCell>
-              <TableCell>{pedido.dataEntrega}</TableCell>
+              <TableCell>{format(parseISO(pedido.created_at), 'dd/MM/yyyy HH:mm')}</TableCell>
+              <TableCell>{pedido.customer_name || 'N/A'}</TableCell>
+              <TableCell>R$ {pedido.total_amount.toFixed(2)}</TableCell>
+              <TableCell>{pedido.delivery_date ? format(parseISO(pedido.delivery_date), 'dd/MM/yyyy') : 'N/A'}</TableCell>
               <TableCell>{pedido.status}</TableCell>
               <TableCell>
                 <Select onValueChange={(value) => atualizarStatus(pedido.id, value)}>
@@ -104,9 +99,10 @@ const GerenciamentoPedidos = () => {
                     <SelectValue placeholder="Atualizar Status" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="emProducao">Em Produção</SelectItem>
-                    <SelectItem value="aguardandoAprovacao">Aguardando Aprovação</SelectItem>
-                    <SelectItem value="prontoParaRetirada">Pronto para Retirada</SelectItem>
+                    <SelectItem value="in_production">Em Produção</SelectItem>
+                    <SelectItem value="awaiting_approval">Aguardando Aprovação</SelectItem>
+                    <SelectItem value="ready_for_pickup">Pronto para Retirada</SelectItem>
+                    <SelectItem value="delivered">Entregue</SelectItem>
                   </SelectContent>
                 </Select>
               </TableCell>
