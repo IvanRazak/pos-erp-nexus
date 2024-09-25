@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { useOrders, useUpdateOrder } from '../integrations/supabase';
+import React, { useState, useEffect } from 'react';
+import { useOrders, useUpdateOrder, useCustomers } from '../integrations/supabase';
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -13,13 +13,21 @@ const GerenciamentoPedidos = () => {
   const [filtroDataFim, setFiltroDataFim] = useState(null);
   const [filtroValorMinimo, setFiltroValorMinimo] = useState('');
   const [filtroValorMaximo, setFiltroValorMaximo] = useState('');
+  const [pedidosFiltrados, setPedidosFiltrados] = useState([]);
 
-  const { data: pedidos, isLoading, error } = useOrders();
+  const { data: pedidos, isLoading: isLoadingPedidos, error: errorPedidos } = useOrders();
+  const { data: clientes, isLoading: isLoadingClientes } = useCustomers();
   const updateOrder = useUpdateOrder();
 
+  useEffect(() => {
+    if (pedidos) {
+      filtrarPedidos();
+    }
+  }, [pedidos, filtroCliente, filtroDataInicio, filtroDataFim, filtroValorMinimo, filtroValorMaximo]);
+
   const filtrarPedidos = () => {
-    if (!pedidos) return [];
-    return pedidos.filter(pedido => {
+    if (!pedidos) return;
+    const filtered = pedidos.filter(pedido => {
       const matchCliente = pedido.customer_name?.toLowerCase().includes(filtroCliente.toLowerCase());
       const matchData = (!filtroDataInicio || !filtroDataFim || isWithinInterval(parseISO(pedido.created_at), {
         start: startOfDay(filtroDataInicio),
@@ -29,24 +37,34 @@ const GerenciamentoPedidos = () => {
                          (!filtroValorMaximo || pedido.total_amount <= parseFloat(filtroValorMaximo));
       return matchCliente && matchData && matchValor;
     });
+    setPedidosFiltrados(filtered);
   };
 
   const atualizarStatus = (pedidoId, novoStatus) => {
     updateOrder.mutate({ id: pedidoId, status: novoStatus });
   };
 
-  if (isLoading) return <div>Carregando pedidos...</div>;
-  if (error) return <div>Erro ao carregar pedidos: {error.message}</div>;
+  if (isLoadingPedidos || isLoadingClientes) return <div>Carregando...</div>;
+  if (errorPedidos) return <div>Erro ao carregar pedidos: {errorPedidos.message}</div>;
 
   return (
     <div className="container mx-auto p-4">
       <h2 className="text-2xl font-bold mb-4">Gerenciamento de Pedidos</h2>
       <div className="grid grid-cols-2 gap-4 mb-4">
-        <Input
-          placeholder="Filtrar por cliente"
+        <Select
+          onValueChange={(value) => setFiltroCliente(value)}
           value={filtroCliente}
-          onChange={(e) => setFiltroCliente(e.target.value)}
-        />
+        >
+          <SelectTrigger>
+            <SelectValue placeholder="Filtrar por cliente" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="">Todos os clientes</SelectItem>
+            {clientes?.map((cliente) => (
+              <SelectItem key={cliente.id} value={cliente.name}>{cliente.name}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
         <div className="flex space-x-2">
           <DatePicker
             selected={filtroDataInicio}
@@ -85,7 +103,7 @@ const GerenciamentoPedidos = () => {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {filtrarPedidos().map((pedido) => (
+          {pedidosFiltrados.map((pedido) => (
             <TableRow key={pedido.id}>
               <TableCell>{pedido.id}</TableCell>
               <TableCell>{format(parseISO(pedido.created_at), 'dd/MM/yyyy HH:mm')}</TableCell>

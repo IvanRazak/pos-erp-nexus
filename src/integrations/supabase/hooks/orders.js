@@ -14,14 +14,13 @@ export const useOrder = (id) => useQuery({
 
 export const useOrders = () => useQuery({
   queryKey: ['orders'],
-  queryFn: () => fromSupabase(supabase.from('orders').select('*')),
+  queryFn: () => fromSupabase(supabase.from('orders').select('*, customers(name)').order('created_at', { ascending: false })),
 });
 
 export const useAddOrder = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (newOrder) => {
-      // Primeiro, insira o pedido principal
       const { data: order, error: orderError } = await supabase
         .from('orders')
         .insert([{
@@ -35,7 +34,6 @@ export const useAddOrder = () => {
 
       if (orderError) throw orderError;
 
-      // Em seguida, insira os itens do pedido
       const orderItems = newOrder.items.map(item => ({
         order_id: order.id,
         product_id: item.product_id,
@@ -49,13 +47,12 @@ export const useAddOrder = () => {
 
       if (itemsError) throw itemsError;
 
-      // Por fim, insira o pagamento
       const { error: paymentError } = await supabase
         .from('payments')
         .insert([{
           order_id: order.id,
           amount: newOrder.total_amount,
-          payment_option: newOrder.payment_option.toLowerCase(), // Convertendo para minúsculas para garantir compatibilidade
+          payment_option: newOrder.payment_option.toLowerCase(),
         }]);
 
       if (paymentError) throw paymentError;
