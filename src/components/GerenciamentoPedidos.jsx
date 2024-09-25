@@ -28,7 +28,7 @@ const GerenciamentoPedidos = () => {
   const filtrarPedidos = () => {
     if (!pedidos) return;
     const filtered = pedidos.filter(pedido => {
-      const matchCliente = pedido.customer_name?.toLowerCase().includes(filtroCliente.toLowerCase());
+      const matchCliente = pedido.customer_id === filtroCliente || filtroCliente === '';
       const matchData = (!filtroDataInicio || !filtroDataFim || isWithinInterval(parseISO(pedido.created_at), {
         start: startOfDay(filtroDataInicio),
         end: endOfDay(filtroDataFim)
@@ -61,7 +61,7 @@ const GerenciamentoPedidos = () => {
           <SelectContent>
             <SelectItem value="">Todos os clientes</SelectItem>
             {clientes?.map((cliente) => (
-              <SelectItem key={cliente.id} value={cliente.name}>{cliente.name}</SelectItem>
+              <SelectItem key={cliente.id} value={cliente.id}>{cliente.name}</SelectItem>
             ))}
           </SelectContent>
         </Select>
@@ -107,7 +107,7 @@ const GerenciamentoPedidos = () => {
             <TableRow key={pedido.id}>
               <TableCell>{pedido.id}</TableCell>
               <TableCell>{format(parseISO(pedido.created_at), 'dd/MM/yyyy HH:mm')}</TableCell>
-              <TableCell>{pedido.customer_name || 'N/A'}</TableCell>
+              <TableCell>{clientes?.find(c => c.id === pedido.customer_id)?.name || 'N/A'}</TableCell>
               <TableCell>R$ {pedido.total_amount.toFixed(2)}</TableCell>
               <TableCell>{pedido.delivery_date ? format(parseISO(pedido.delivery_date), 'dd/MM/yyyy') : 'N/A'}</TableCell>
               <TableCell>{pedido.status}</TableCell>

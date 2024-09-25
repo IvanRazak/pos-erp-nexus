@@ -14,7 +14,7 @@ export const useOrder = (id) => useQuery({
 
 export const useOrders = () => useQuery({
   queryKey: ['orders'],
-  queryFn: () => fromSupabase(supabase.from('orders').select('*, customers(name)').order('created_at', { ascending: false })),
+  queryFn: () => fromSupabase(supabase.from('orders').select('*').order('created_at', { ascending: false })),
 });
 
 export const useAddOrder = () => {
