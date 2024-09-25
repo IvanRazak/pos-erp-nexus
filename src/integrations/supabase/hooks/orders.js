@@ -14,7 +14,7 @@ export const useOrder = (id) => useQuery({
 
 export const useOrders = () => useQuery({
   queryKey: ['orders'],
-  queryFn: () => fromSupabase(supabase.from('orders').select('*, customer_id').order('created_at', { ascending: false })),
+  queryFn: () => fromSupabase(supabase.from('orders').select('*').order('created_at', { ascending: false })),
 });
 
 export const useAddOrder = () => {
@@ -26,11 +26,8 @@ export const useAddOrder = () => {
         .insert([{
           customer_id: newOrder.customer_id,
           total_amount: newOrder.total_amount,
-          paid_amount: newOrder.paid_amount,
-          remaining_balance: newOrder.remaining_balance,
           status: newOrder.status,
           delivery_date: newOrder.delivery_date,
-          payment_option: newOrder.payment_option,
         }])
         .select()
         .single();
@@ -73,7 +70,7 @@ export const useAddOrder = () => {
         .from('payments')
         .insert([{
           order_id: order.id,
-          amount: newOrder.paid_amount,
+          amount: newOrder.total_amount,
           payment_option: newOrder.payment_option,
         }]);
 
