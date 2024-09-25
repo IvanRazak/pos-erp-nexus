@@ -45,6 +45,8 @@ const Venda = () => {
     const novoItem = {
       ...produtoSelecionado,
       quantidade: quantidadeTotal,
+      largura: largura,
+      altura: altura,
       total: produtoSelecionado.sale_price * quantidadeTotal,
       extras: extrasEscolhidas,
     };
@@ -90,6 +92,8 @@ const Venda = () => {
         quantity: item.quantidade,
         unit_price: item.sale_price,
         extras: item.extras,
+        width: item.largura,
+        height: item.altura,
       })),
     };
 
@@ -171,6 +175,7 @@ const Venda = () => {
             <TableRow>
               <TableHead>Produto</TableHead>
               <TableHead>Quantidade</TableHead>
+              <TableHead>Dimensões</TableHead>
               <TableHead>Preço Unitário</TableHead>
               <TableHead>Extras</TableHead>
               <TableHead>Total</TableHead>
@@ -181,6 +186,9 @@ const Venda = () => {
               <TableRow key={index}>
                 <TableCell>{item.name}</TableCell>
                 <TableCell>{item.quantidade}</TableCell>
+                <TableCell>
+                  {item.largura && item.altura ? `${item.largura}m x ${item.altura}m` : 'N/A'}
+                </TableCell>
                 <TableCell>R$ {item.sale_price.toFixed(2)}</TableCell>
                 <TableCell>
                   {item.extras.map((extra, i) => (

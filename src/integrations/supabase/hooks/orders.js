@@ -39,13 +39,31 @@ export const useAddOrder = () => {
         product_id: item.product_id,
         quantity: item.quantity,
         unit_price: item.unit_price,
+        width: item.width,
+        height: item.height,
       }));
 
-      const { error: itemsError } = await supabase
+      const { data: insertedItems, error: itemsError } = await supabase
         .from('order_items')
-        .insert(orderItems);
+        .insert(orderItems)
+        .select();
 
       if (itemsError) throw itemsError;
+
+      const extraOptions = newOrder.items.flatMap(item => 
+        item.extras.map(extra => ({
+          order_item_id: insertedItems.find(i => i.product_id === item.product_id).id,
+          extra_option_id: extra.id,
+        }))
+      );
+
+      if (extraOptions.length > 0) {
+        const { error: extrasError } = await supabase
+          .from('order_item_extras')
+          .insert(extraOptions);
+
+        if (extrasError) throw extrasError;
+      }
 
       const { error: paymentError } = await supabase
         .from('payments')

@@ -53,7 +53,7 @@ const PedidoDetalhesModal = ({ pedido, onClose }) => {
                   ))}
                 </TableCell>
                 <TableCell>
-                  {item.product.unit_type === 'square_meter' ? (
+                  {item.width && item.height ? (
                     `${item.width}m x ${item.height}m`
                   ) : (
                     'N/A'
