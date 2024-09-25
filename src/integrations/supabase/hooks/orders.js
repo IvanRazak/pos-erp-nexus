@@ -66,16 +66,19 @@ export const useAddOrder = () => {
         if (extrasError) throw extrasError;
       }
 
-      // Map the payment option to the correct enum value
+      // Mapeamento atualizado das opções de pagamento
       const paymentOptionMap = {
         'dinheiro': 'cash',
         'cartão de crédito': 'credit_card',
+        'cartao de credito': 'credit_card',
         'cartão de débito': 'debit_card',
+        'cartao de debito': 'debit_card',
         'transferência bancária': 'bank_transfer',
+        'transferencia bancaria': 'bank_transfer',
         'pix': 'pix'
       };
 
-      const mappedPaymentOption = paymentOptionMap[newOrder.payment_option] || newOrder.payment_option;
+      const mappedPaymentOption = paymentOptionMap[newOrder.payment_option.toLowerCase()] || newOrder.payment_option;
 
       const { error: paymentError } = await supabase
         .from('payments')
