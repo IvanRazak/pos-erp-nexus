@@ -112,7 +112,7 @@ const Financeiro = () => {
                     }
                   }}
                 />
-                <Button onClick={() => {
+                <Button onClick={(e) => {
                   const input = e.target.previousSibling;
                   const valor = parseFloat(input.value);
                   if (valor > 0) {
