@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { DatePicker } from "@/components/ui/date-picker";
-import { format, isWithinInterval, parseISO } from 'date-fns';
+import { format, isWithinInterval, parseISO, startOfDay, endOfDay } from "date-fns";
 
 const GerenciamentoPedidos = () => {
   const [filtroCliente, setFiltroCliente] = useState('');
@@ -22,8 +22,8 @@ const GerenciamentoPedidos = () => {
     return pedidos.filter(pedido => {
       const matchCliente = pedido.customer_name?.toLowerCase().includes(filtroCliente.toLowerCase());
       const matchData = (!filtroDataInicio || !filtroDataFim || isWithinInterval(parseISO(pedido.created_at), {
-        start: filtroDataInicio,
-        end: filtroDataFim
+        start: startOfDay(filtroDataInicio),
+        end: endOfDay(filtroDataFim)
       }));
       const matchValor = (!filtroValorMinimo || pedido.total_amount >= parseFloat(filtroValorMinimo)) &&
                          (!filtroValorMaximo || pedido.total_amount <= parseFloat(filtroValorMaximo));
@@ -35,7 +35,7 @@ const GerenciamentoPedidos = () => {
     updateOrder.mutate({ id: pedidoId, status: novoStatus });
   };
 
-  if (isLoading) return <div>Carregando...</div>;
+  if (isLoading) return <div>Carregando pedidos...</div>;
   if (error) return <div>Erro ao carregar pedidos: {error.message}</div>;
 
   return (
