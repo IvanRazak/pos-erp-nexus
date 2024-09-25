@@ -28,6 +28,7 @@ const Venda = () => {
   const [opcaoPagamento, setOpcaoPagamento] = useState('');
   const [isNewClientDialogOpen, setIsNewClientDialogOpen] = useState(false);
   const [isExtraOptionsModalOpen, setIsExtraOptionsModalOpen] = useState(false);
+  const [valorPago, setValorPago] = useState(0);
 
   const { data: produtos } = useProducts();
   const { data: clientes, refetch: refetchClientes } = useCustomers();
@@ -84,12 +85,17 @@ const Venda = () => {
       return;
     }
 
+    const totalVenda = calcularTotal();
+    const saldoRestante = totalVenda - valorPago;
+
     const novaVenda = {
       customer_id: clienteSelecionado,
-      total_amount: calcularTotal(),
-      status: 'in_production',
+      total_amount: totalVenda,
+      paid_amount: valorPago,
+      remaining_balance: saldoRestante,
+      status: saldoRestante > 0 ? 'partial_payment' : 'in_production',
       delivery_date: format(dataEntrega, 'yyyy-MM-dd'),
-      payment_option: opcaoPagamento.toLowerCase(),
+      payment_option: opcaoPagamento,
       items: carrinho.map(item => ({
         product_id: item.id,
         quantity: item.quantidade,
@@ -112,6 +118,7 @@ const Venda = () => {
       setDataEntrega(null);
       setOpcaoPagamento('');
       setDesconto(0);
+      setValorPago(0);
     } catch (error) {
       toast({
         title: "Erro ao finalizar venda",
@@ -249,7 +256,15 @@ const Venda = () => {
             ))}
           </SelectContent>
         </Select>
+        <Input
+          type="number"
+          placeholder="Valor Pago"
+          value={valorPago}
+          onChange={(e) => setValorPago(parseFloat(e.target.value))}
+          className="mt-2"
+        />
         <p className="mt-2 text-xl font-bold">Total: R$ {calcularTotal().toFixed(2)}</p>
+        <p className="mt-2 text-xl font-bold">Saldo Restante: R$ {(calcularTotal() - valorPago).toFixed(2)}</p>
         <Button className="mt-2" onClick={finalizarVenda}>Finalizar Venda</Button>
       </div>
       {isExtraOptionsModalOpen && (
