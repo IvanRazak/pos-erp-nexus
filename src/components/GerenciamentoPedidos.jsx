@@ -71,7 +71,7 @@ const GerenciamentoPedidos = () => {
           <SelectContent>
             <SelectItem value="">Todos os clientes</SelectItem>
             {clientes?.map((cliente) => (
-              <SelectItem key={cliente.id} value={cliente.id}>{cliente.name}</SelectItem>
+              <SelectItem key={cliente.id} value={cliente.id.toString()}>{cliente.name}</SelectItem>
             ))}
           </SelectContent>
         </Select>

@@ -63,18 +63,17 @@ const Financeiro = () => {
           onChange={setFiltroDataFim}
           placeholderText="Data Fim"
         />
-        
-        <Select onValueChange={setFiltroOpcaoPagamento} value={filtroOpcaoPagamento}>
-          <SelectTrigger>
-            <SelectValue placeholder="Opção de Pagamento" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Todas</SelectItem>
-            {paymentOptions?.map((option) => (
-              <SelectItem key={option.id} value={option.name}>{option.name}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+      <Select onValueChange={setFiltroOpcaoPagamento} value={filtroOpcaoPagamento}>
+        <SelectTrigger>
+          <SelectValue placeholder="Opção de Pagamento" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="all">Todas</SelectItem>
+          {paymentOptions?.map((option) => (
+            <SelectItem key={option.id} value={option.name}>{option.name}</SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
       </div>
       <Table>
         <TableHeader>
