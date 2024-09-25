@@ -79,9 +79,6 @@ const Produtos = () => {
     <div className="container mx-auto p-4">
       <h2 className="text-2xl font-bold mb-4">Produtos</h2>
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogTrigger asChild>
-          <Button>Cadastrar Novo Produto</Button>
-        </DialogTrigger>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Cadastro de Produto</DialogTitle>
