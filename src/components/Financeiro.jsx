@@ -5,38 +5,53 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { DatePicker } from "@/components/ui/date-picker";
+import { useOrders, usePaymentOptions, useAddPayment } from '../integrations/supabase';
+import { toast } from "@/components/ui/use-toast";
 
 const Financeiro = () => {
   const [filtroDataInicio, setFiltroDataInicio] = useState(null);
   const [filtroDataFim, setFiltroDataFim] = useState(null);
   const [filtroOpcaoPagamento, setFiltroOpcaoPagamento] = useState('');
 
-  const { data: contasReceber, isLoading } = useQuery({
-    queryKey: ['contasReceber'],
-    queryFn: async () => {
-      // Simular uma chamada à API
-      return [
-        { id: 1, numeroPedido: '001', cliente: 'Cliente 1', valor: 150.00, dataVencimento: '2023-05-10', opcaoPagamento: 'Cartão' },
-        { id: 2, numeroPedido: '002', cliente: 'Cliente 2', valor: 200.00, dataVencimento: '2023-05-15', opcaoPagamento: 'Dinheiro' },
-      ];
-    },
-  });
+  const { data: orders, isLoading: isLoadingOrders } = useOrders();
+  const { data: paymentOptions, isLoading: isLoadingPaymentOptions } = usePaymentOptions();
+  const addPayment = useAddPayment();
 
-  const filtrarContasReceber = () => {
-    if (!contasReceber) return [];
-    return contasReceber.filter(conta => {
-      const matchData = (!filtroDataInicio || new Date(conta.dataVencimento) >= filtroDataInicio) &&
-                        (!filtroDataFim || new Date(conta.dataVencimento) <= filtroDataFim);
-      const matchOpcaoPagamento = !filtroOpcaoPagamento || conta.opcaoPagamento === filtroOpcaoPagamento;
-      return matchData && matchOpcaoPagamento;
+  const filtrarOrdens = () => {
+    if (!orders) return [];
+    return orders.filter(order => {
+      const matchData = (!filtroDataInicio || new Date(order.created_at) >= filtroDataInicio) &&
+                        (!filtroDataFim || new Date(order.created_at) <= filtroDataFim);
+      const matchOpcaoPagamento = !filtroOpcaoPagamento || order.payment_option === filtroOpcaoPagamento;
+      return matchData && matchOpcaoPagamento && order.remaining_balance > 0;
     });
   };
 
-  if (isLoading) return <div>Carregando...</div>;
+  const handlePayment = async (orderId, remainingBalance) => {
+    try {
+      await addPayment.mutateAsync({
+        order_id: orderId,
+        amount: remainingBalance,
+        payment_option: 'Pagamento do saldo restante',
+      });
+      toast({
+        title: "Pagamento registrado com sucesso!",
+        description: `Saldo de R$ ${remainingBalance.toFixed(2)} quitado.`,
+      });
+    } catch (error) {
+      toast({
+        title: "Erro ao registrar pagamento",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  };
+
+  if (isLoadingOrders || isLoadingPaymentOptions) return <div>Carregando...</div>;
 
   return (
     <div className="container mx-auto p-4">
-      <h2 className="text-2xl font-bold mb-4">Contas a Receber</h2>
+      <h2 className="text-2xl font-bold mb-4">Financeiro</h2>
       <div className="grid grid-cols-3 gap-4 mb-4">
         <DatePicker
           selected={filtroDataInicio}
@@ -54,9 +69,10 @@ const Financeiro = () => {
             <SelectValue placeholder="Opção de Pagamento" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">Todas</SelectItem>
-            <SelectItem value="Cartão">Cartão</SelectItem>
-            <SelectItem value="Dinheiro">Dinheiro</SelectItem>
+            <SelectItem value="">Todas</SelectItem>
+            {paymentOptions?.map((option) => (
+              <SelectItem key={option.id} value={option.name}>{option.name}</SelectItem>
+            ))}
           </SelectContent>
         </Select>
       </div>
@@ -65,25 +81,26 @@ const Financeiro = () => {
           <TableRow>
             <TableHead>Número do Pedido</TableHead>
             <TableHead>Cliente</TableHead>
-            <TableHead>Valor</TableHead>
-            <TableHead>Data de Vencimento</TableHead>
+            <TableHead>Valor Total</TableHead>
+            <TableHead>Valor Pago</TableHead>
+            <TableHead>Saldo Restante</TableHead>
+            <TableHead>Data do Pedido</TableHead>
             <TableHead>Opção de Pagamento</TableHead>
             <TableHead>Ações</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
-          {filtrarContasReceber().map((conta) => (
-            <TableRow key={conta.id}>
-              <TableCell>{conta.numeroPedido}</TableCell>
-              <TableCell>{conta.cliente}</TableCell>
-              <TableCell>R$ {conta.valor.toFixed(2)}</TableCell>
-              <TableCell>{conta.dataVencimento}</TableCell>
-              <TableCell>{conta.opcaoPagamento}</TableCell>
+          {filtrarOrdens().map((order) => (
+            <TableRow key={order.id}>
+              <TableCell>{order.id}</TableCell>
+              <TableCell>{order.customer_name}</TableCell>
+              <TableCell>R$ {order.total_amount.toFixed(2)}</TableCell>
+              <TableCell>R$ {order.paid_amount.toFixed(2)}</TableCell>
+              <TableCell>R$ {order.remaining_balance.toFixed(2)}</TableCell>
+              <TableCell>{new Date(order.created_at).toLocaleDateString()}</TableCell>
+              <TableCell>{order.payment_option}</TableCell>
               <TableCell>
-                <Button onClick={() => {
-                  // Implementar lógica para registrar pagamento
-                  console.log(`Registrando pagamento da conta ${conta.id}`);
-                }}>
+                <Button onClick={() => handlePayment(order.id, order.remaining_balance)}>
                   Registrar Pagamento
                 </Button>
               </TableCell>

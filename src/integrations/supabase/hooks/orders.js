@@ -26,6 +26,8 @@ export const useAddOrder = () => {
         .insert([{
           customer_id: newOrder.customer_id,
           total_amount: newOrder.total_amount,
+          paid_amount: newOrder.paid_amount,
+          remaining_balance: newOrder.remaining_balance,
           status: newOrder.status,
           delivery_date: newOrder.delivery_date,
         }])
@@ -70,7 +72,7 @@ export const useAddOrder = () => {
         .from('payments')
         .insert([{
           order_id: order.id,
-          amount: newOrder.total_amount,
+          amount: newOrder.paid_amount,
           payment_option: newOrder.payment_option,
         }]);
 
