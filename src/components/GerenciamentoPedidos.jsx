@@ -6,7 +6,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { DatePicker } from "@/components/ui/date-picker";
 import { format, isWithinInterval, parseISO, startOfDay, endOfDay } from "date-fns";
-import PedidoDetalhesModal from './PedidoDetalhesModal';
 
 const GerenciamentoPedidos = () => {
   const [filtroCliente, setFiltroCliente] = useState('');
@@ -15,7 +14,6 @@ const GerenciamentoPedidos = () => {
   const [filtroValorMinimo, setFiltroValorMinimo] = useState('');
   const [filtroValorMaximo, setFiltroValorMaximo] = useState('');
   const [pedidosFiltrados, setPedidosFiltrados] = useState([]);
-  const [pedidoSelecionado, setPedidoSelecionado] = useState(null);
 
   const { data: pedidos, isLoading: isLoadingPedidos, error: errorPedidos } = useOrders();
   const { data: clientes, isLoading: isLoadingClientes } = useCustomers();
@@ -46,10 +44,6 @@ const GerenciamentoPedidos = () => {
     updateOrder.mutate({ id: pedidoId, status: novoStatus });
   };
 
-  const abrirModalDetalhes = (pedido) => {
-    setPedidoSelecionado(pedido);
-  };
-
   if (isLoadingPedidos || isLoadingClientes) return <div>Carregando...</div>;
   if (errorPedidos) return <div>Erro ao carregar pedidos: {errorPedidos.message}</div>;
 
@@ -65,7 +59,7 @@ const GerenciamentoPedidos = () => {
             <SelectValue placeholder="Filtrar por cliente" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">Todos os clientes</SelectItem>
+            <SelectItem value="all">Todos os clientes</SelectItem>
             {clientes?.map((cliente) => (
               <SelectItem key={cliente.id} value={cliente.id}>{cliente.name}</SelectItem>
             ))}
@@ -129,20 +123,11 @@ const GerenciamentoPedidos = () => {
                     <SelectItem value="delivered">Entregue</SelectItem>
                   </SelectContent>
                 </Select>
-                <Button onClick={() => abrirModalDetalhes(pedido)} className="ml-2">
-                  Ver Detalhes
-                </Button>
               </TableCell>
             </TableRow>
           ))}
         </TableBody>
       </Table>
-      {pedidoSelecionado && (
-        <PedidoDetalhesModal
-          pedido={pedidoSelecionado}
-          onClose={() => setPedidoSelecionado(null)}
-        />
-      )}
     </div>
   );
 };
