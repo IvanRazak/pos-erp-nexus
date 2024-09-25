@@ -69,7 +69,7 @@ const GerenciamentoPedidos = () => {
             <SelectValue placeholder="Filtrar por cliente" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">Todos os clientes</SelectItem>
+            <SelectItem value="all">Todos os clientes</SelectItem>
             {clientes?.map((cliente) => (
               <SelectItem key={cliente.id} value={cliente.id}>{cliente.name}</SelectItem>
             ))}
@@ -131,7 +131,6 @@ const GerenciamentoPedidos = () => {
                     <SelectItem value="awaiting_approval">Aguardando Aprovação</SelectItem>
                     <SelectItem value="ready_for_pickup">Pronto para Retirada</SelectItem>
                     <SelectItem value="delivered">Entregue</SelectItem>
-                    <SelectItem value="paid">Pago</SelectItem>
                   </SelectContent>
                 </Select>
                 <Button onClick={() => abrirModalDetalhes(pedido)} className="ml-2">
