@@ -6,7 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { DatePicker } from "@/components/ui/date-picker";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { useOrders, usePaymentOptions, useUpdateOrder } from '../integrations/supabase';
+import { useOrders, usePaymentOptions, useUpdateOrder, useAddPayment } from '../integrations/supabase';
 import { toast } from "@/components/ui/use-toast";
 
 const Financeiro = () => {
@@ -21,6 +21,7 @@ const Financeiro = () => {
   const { data: pedidos, isLoading: isLoadingPedidos } = useOrders();
   const { data: opcoesPagamento, isLoading: isLoadingOpcoesPagamento } = usePaymentOptions();
   const updateOrder = useUpdateOrder();
+  const addPayment = useAddPayment();
 
   const filtrarPedidos = () => {
     if (!pedidos) return [];
@@ -53,6 +54,13 @@ const Financeiro = () => {
         status: novoSaldoRestante <= 0 ? 'paid' : 'partial_payment',
       });
 
+      // Adicionar o pagamento à tabela de transações
+      await addPayment.mutateAsync({
+        order_id: pedidoSelecionado.id,
+        amount: valorPagamento,
+        payment_option: opcaoPagamento,
+      });
+
       toast({
         title: "Pagamento processado com sucesso!",
         description: `Novo saldo restante: R$ ${novoSaldoRestante.toFixed(2)}`,
@@ -62,6 +70,7 @@ const Financeiro = () => {
       setValorPagamento(0);
       setOpcaoPagamento('');
       queryClient.invalidateQueries(['orders']);
+      queryClient.invalidateQueries(['payments']);
     } catch (error) {
       toast({
         title: "Erro ao processar pagamento",
