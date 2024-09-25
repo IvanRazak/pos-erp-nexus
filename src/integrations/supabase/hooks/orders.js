@@ -66,12 +66,23 @@ export const useAddOrder = () => {
         if (extrasError) throw extrasError;
       }
 
+      // Map the payment option to the correct enum value
+      const paymentOptionMap = {
+        'dinheiro': 'cash',
+        'cartão de crédito': 'credit_card',
+        'cartão de débito': 'debit_card',
+        'transferência bancária': 'bank_transfer',
+        'pix': 'pix'
+      };
+
+      const mappedPaymentOption = paymentOptionMap[newOrder.payment_option] || newOrder.payment_option;
+
       const { error: paymentError } = await supabase
         .from('payments')
         .insert([{
           order_id: order.id,
           amount: newOrder.total_amount,
-          payment_option: newOrder.payment_option.toLowerCase(),
+          payment_option: mappedPaymentOption,
         }]);
 
       if (paymentError) throw paymentError;
