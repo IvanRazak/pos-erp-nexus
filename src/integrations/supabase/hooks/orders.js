@@ -39,8 +39,8 @@ export const useAddOrder = () => {
         product_id: item.product_id,
         quantity: item.quantity,
         unit_price: item.unit_price,
-        width: item.width,
-        height: item.height,
+        width: item.width || null,
+        height: item.height || null,
       }));
 
       const { data: insertedItems, error: itemsError } = await supabase
