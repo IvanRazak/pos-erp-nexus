@@ -28,8 +28,6 @@ const Venda = () => {
   const [opcaoPagamento, setOpcaoPagamento] = useState('');
   const [isNewClientDialogOpen, setIsNewClientDialogOpen] = useState(false);
   const [isExtraOptionsModalOpen, setIsExtraOptionsModalOpen] = useState(false);
-  const [valorPagoParcial, setValorPagoParcial] = useState(0);
-  const [isPagamentoParcial, setIsPagamentoParcial] = useState(false);
 
   const { data: produtos } = useProducts();
   const { data: clientes, refetch: refetchClientes } = useCustomers();
@@ -86,27 +84,12 @@ const Venda = () => {
       return;
     }
 
-    const totalVenda = calcularTotal();
-    const valorPago = isPagamentoParcial ? parseFloat(valorPagoParcial) : totalVenda;
-    const saldoRestante = totalVenda - valorPago;
-
-    if (isPagamentoParcial && (valorPago <= 0 || valorPago >= totalVenda)) {
-      toast({
-        title: "Erro no pagamento parcial",
-        description: "O valor do pagamento parcial deve ser maior que zero e menor que o total da venda.",
-        variant: "destructive",
-      });
-      return;
-    }
-
     const novaVenda = {
       customer_id: clienteSelecionado,
-      total_amount: totalVenda,
-      paid_amount: valorPago,
-      remaining_balance: saldoRestante,
-      status: saldoRestante > 0 ? 'partial_payment' : 'paid',
+      total_amount: calcularTotal(),
+      status: 'in_production',
       delivery_date: format(dataEntrega, 'yyyy-MM-dd'),
-      payment_option: opcaoPagamento,
+      payment_option: opcaoPagamento.toLowerCase(),
       items: carrinho.map(item => ({
         product_id: item.id,
         quantity: item.quantidade,
@@ -122,17 +105,13 @@ const Venda = () => {
       await addOrder.mutateAsync(novaVenda);
       toast({
         title: "Venda finalizada com sucesso!",
-        description: isPagamentoParcial
-          ? `Venda registrada com pagamento parcial de R$ ${valorPago.toFixed(2)}. Saldo restante: R$ ${saldoRestante.toFixed(2)}.`
-          : "A nova venda foi registrada no sistema.",
+        description: "A nova venda foi registrada no sistema.",
       });
       setCarrinho([]);
       setClienteSelecionado(null);
       setDataEntrega(null);
       setOpcaoPagamento('');
       setDesconto(0);
-      setValorPagoParcial(0);
-      setIsPagamentoParcial(false);
     } catch (error) {
       toast({
         title: "Erro ao finalizar venda",
@@ -270,25 +249,6 @@ const Venda = () => {
             ))}
           </SelectContent>
         </Select>
-        <div className="flex items-center mt-2">
-          <input
-            type="checkbox"
-            id="pagamentoParcial"
-            checked={isPagamentoParcial}
-            onChange={(e) => setIsPagamentoParcial(e.target.checked)}
-            className="mr-2"
-          />
-          <label htmlFor="pagamentoParcial">Pagamento Parcial</label>
-        </div>
-        {isPagamentoParcial && (
-          <Input
-            type="number"
-            placeholder="Valor do Pagamento Parcial"
-            value={valorPagoParcial}
-            onChange={(e) => setValorPagoParcial(parseFloat(e.target.value))}
-            className="mt-2"
-          />
-        )}
         <p className="mt-2 text-xl font-bold">Total: R$ {calcularTotal().toFixed(2)}</p>
         <Button className="mt-2" onClick={finalizarVenda}>Finalizar Venda</Button>
       </div>
