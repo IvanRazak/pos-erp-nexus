@@ -109,7 +109,7 @@ const GerenciamentoPedidos = () => {
             <TableHead>Valor</TableHead>
             <TableHead>Data de Entrega</TableHead>
             <TableHead>Status</TableHead>
-            <TableHead>Açõess</TableHead>
+            <TableHead>Ações</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
