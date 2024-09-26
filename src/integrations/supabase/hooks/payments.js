@@ -7,6 +7,23 @@ const fromSupabase = async (query) => {
   return data;
 };
 
+/*
+### payments
+
+| name           | type                    | format                    | required |
+|----------------|-------------------------|---------------------------|----------|
+| id             | uuid                    | uuid                      | true     |
+| order_id       | uuid                    | uuid                      | false    |
+| amount         | numeric                 | number                    | true     |
+| payment_option | public.payment_option   | string                    | true     |
+| payment_date   | timestamp with time zone| string                    | false    |
+| created_at     | timestamp with time zone| string                    | false    |
+| updated_at     | timestamp with time zone| string                    | false    |
+
+Foreign Key Relationships:
+- order_id references orders.id
+*/
+
 export const usePayment = (id) => useQuery({
   queryKey: ['payments', id],
   queryFn: () => fromSupabase(supabase.from('payments').select('*').eq('id', id).single()),
@@ -49,15 +66,5 @@ export const useDeletePayment = () => {
 
 export const useTransactions = () => useQuery({
   queryKey: ['transactions'],
-  queryFn: () => fromSupabase(supabase
-    .from('payments')
-    .select(`
-      *,
-      orders:order_id (
-        order_number,
-        customers:customer_id (name)
-      )
-    `)
-    .order('payment_date', { ascending: false })
-  ),
+  queryFn: () => fromSupabase(supabase.from('payments').select('*')),
 });

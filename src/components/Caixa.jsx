@@ -7,7 +7,6 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { DatePicker } from "@/components/ui/date-picker";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { usePaymentOptions, useTransactions } from '../integrations/supabase';
-import { format, isWithinInterval, parseISO, startOfDay, endOfDay } from "date-fns";
 
 const Caixa = () => {
   const [filtroDataInicio, setFiltroDataInicio] = useState(null);
@@ -21,11 +20,11 @@ const Caixa = () => {
   const filtrarTransacoes = () => {
     if (!transacoes) return [];
     return transacoes.filter(transacao => {
-      const matchData = (!filtroDataInicio || new Date(transacao.payment_date) >= startOfDay(filtroDataInicio)) &&
-                        (!filtroDataFim || new Date(transacao.payment_date) <= endOfDay(filtroDataFim));
+      const matchData = (!filtroDataInicio || new Date(transacao.payment_date) >= filtroDataInicio) &&
+                        (!filtroDataFim || new Date(transacao.payment_date) <= filtroDataFim);
       const matchOpcaoPagamento = !filtroOpcaoPagamento || transacao.payment_option === filtroOpcaoPagamento;
       return matchData && matchOpcaoPagamento;
-    }).sort((a, b) => new Date(b.payment_date) - new Date(a.payment_date)); // Ordenação decrescente por data
+    });
   };
 
   const gerarRelatorio = () => {
@@ -64,7 +63,7 @@ const Caixa = () => {
             <SelectValue placeholder="Opção de Pagamento" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">Todas</SelectItem>
+            <SelectItem value="all">Todas</SelectItem>
             {paymentOptions?.map((option) => (
               <SelectItem key={option.id} value={option.name}>{option.name}</SelectItem>
             ))}
@@ -85,10 +84,10 @@ const Caixa = () => {
         <TableBody>
           {filtrarTransacoes().map((transacao) => (
             <TableRow key={transacao.id}>
-              <TableCell>{transacao.order_number || 'N/A'}</TableCell>
+              <TableCell>{transacao.order_id || 'N/A'}</TableCell>
               <TableCell>{transacao.customer_name || 'N/A'}</TableCell>
               <TableCell>{transacao.payment_option || 'N/A'}</TableCell>
-              <TableCell>{transacao.payment_date ? format(parseISO(transacao.payment_date), 'dd/MM/yyyy HH:mm') : 'N/A'}</TableCell>
+              <TableCell>{transacao.payment_date ? new Date(transacao.payment_date).toLocaleDateString() : 'N/A'}</TableCell>
               <TableCell>
                 <Input
                   defaultValue={transacao.description || ''}
