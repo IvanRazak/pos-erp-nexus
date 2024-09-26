@@ -124,7 +124,7 @@ const Financeiro = () => {
         <TableBody>
           {filtrarPedidos().map((pedido) => (
             <TableRow key={pedido.id}>
-              <TableCell>{pedido.id}</TableCell>
+              <TableCell>{pedido.order_number}</TableCell>
               <TableCell>{pedido.customer?.name || 'N/A'}</TableCell>
               <TableCell>R$ {pedido.total_amount.toFixed(2)}</TableCell>
               <TableCell>R$ {pedido.paid_amount.toFixed(2)}</TableCell>

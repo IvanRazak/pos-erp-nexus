@@ -84,7 +84,7 @@ const Caixa = () => {
         <TableBody>
           {filtrarTransacoes().map((transacao) => (
             <TableRow key={transacao.id}>
-              <TableCell>{transacao.order_id || 'N/A'}</TableCell>
+              <TableCell>{transacao.order_number || 'N/A'}</TableCell>
               <TableCell>{transacao.customer_name || 'N/A'}</TableCell>
               <TableCell>{transacao.payment_option || 'N/A'}</TableCell>
               <TableCell>{transacao.payment_date ? new Date(transacao.payment_date).toLocaleDateString() : 'N/A'}</TableCell>
