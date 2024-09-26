@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -29,7 +29,6 @@ const Venda = () => {
   const [isNewClientDialogOpen, setIsNewClientDialogOpen] = useState(false);
   const [isExtraOptionsModalOpen, setIsExtraOptionsModalOpen] = useState(false);
   const [valorPago, setValorPago] = useState(0);
-  const [orderNumber, setOrderNumber] = useState(null);
 
   const { data: produtos } = useProducts();
   const { data: clientes, refetch: refetchClientes } = useCustomers();
@@ -109,11 +108,10 @@ const Venda = () => {
     };
 
     try {
-      const result = await addOrder.mutateAsync(novaVenda);
-      setOrderNumber(result.order_number);
+      await addOrder.mutateAsync(novaVenda);
       toast({
         title: "Venda finalizada com sucesso!",
-        description: `A nova venda foi registrada no sistema. Número do pedido: ${result.order_number}`,
+        description: "A nova venda foi registrada no sistema.",
       });
       setCarrinho([]);
       setClienteSelecionado(null);
@@ -133,11 +131,6 @@ const Venda = () => {
   return (
     <div className="container mx-auto p-4">
       <h2 className="text-2xl font-bold mb-4">Venda</h2>
-      {orderNumber && (
-        <div className="mb-4 p-4 bg-green-100 text-green-800 rounded-md">
-          Pedido criado com sucesso! Número do pedido: {orderNumber}
-        </div>
-      )}
       <div className="grid grid-cols-2 gap-4">
         <div>
           <h3 className="text-xl font-semibold mb-2">Selecionar Produto</h3>

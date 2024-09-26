@@ -69,7 +69,7 @@ const GerenciamentoPedidos = () => {
             <SelectValue placeholder="Filtrar por cliente" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">Todos os clientes</SelectItem>
+            <SelectItem value="all">Todos os clientes</SelectItem>
             {clientes?.map((cliente) => (
               <SelectItem key={cliente.id} value={cliente.id}>{cliente.name}</SelectItem>
             ))}
@@ -115,7 +115,7 @@ const GerenciamentoPedidos = () => {
         <TableBody>
           {pedidosFiltrados.map((pedido) => (
             <TableRow key={pedido.id}>
-              <TableCell>{pedido.order_number || 'N/A'}</TableCell>
+              <TableCell>{pedido.id}</TableCell>
               <TableCell>{format(parseISO(pedido.created_at), 'dd/MM/yyyy HH:mm')}</TableCell>
               <TableCell>{clientes?.find(c => c.id === pedido.customer_id)?.name || 'N/A'}</TableCell>
               <TableCell>R$ {pedido.total_amount.toFixed(2)}</TableCell>
