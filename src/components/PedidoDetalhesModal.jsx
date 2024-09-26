@@ -28,7 +28,7 @@ const PedidoDetalhesModal = ({ pedido, onClose }) => {
     <Dialog open={true} onOpenChange={onClose}>
       <DialogContent className="max-w-4xl">
         <DialogHeader>
-          <DialogTitle>Detalhes do Pedido #{pedido.id}</DialogTitle>
+          <DialogTitle>Detalhes do Pedido #{pedido.order_number || pedido.id}</DialogTitle>
         </DialogHeader>
         <Table>
           <TableHeader>

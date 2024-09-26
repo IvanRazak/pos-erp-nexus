@@ -54,7 +54,6 @@ const Financeiro = () => {
         status: novoSaldoRestante <= 0 ? 'paid' : 'partial_payment',
       });
 
-      // Adicionar o pagamento à tabela de transações
       await addPayment.mutateAsync({
         order_id: pedidoSelecionado.id,
         amount: valorPagamento,
@@ -102,7 +101,7 @@ const Financeiro = () => {
             <SelectValue placeholder="Opção de Pagamento" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">Todas</SelectItem>
+            <SelectItem value="">Todas</SelectItem>
             {opcoesPagamento?.map((option) => (
               <SelectItem key={option.id} value={option.name}>{option.name}</SelectItem>
             ))}
@@ -124,7 +123,7 @@ const Financeiro = () => {
         <TableBody>
           {filtrarPedidos().map((pedido) => (
             <TableRow key={pedido.id}>
-              <TableCell>{pedido.id}</TableCell>
+              <TableCell>{pedido.order_number || 'N/A'}</TableCell>
               <TableCell>{pedido.customer?.name || 'N/A'}</TableCell>
               <TableCell>R$ {pedido.total_amount.toFixed(2)}</TableCell>
               <TableCell>R$ {pedido.paid_amount.toFixed(2)}</TableCell>
