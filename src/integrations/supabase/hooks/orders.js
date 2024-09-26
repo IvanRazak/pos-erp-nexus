@@ -21,16 +21,17 @@ export const useAddOrder = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (newOrder) => {
+      // Obter o próximo número de pedido
+      const { data: nextOrderNumber, error: orderNumberError } = await supabase
+        .rpc('get_next_order_number');
+      
+      if (orderNumberError) throw orderNumberError;
+
       const { data: order, error: orderError } = await supabase
         .from('orders')
         .insert([{
-          customer_id: newOrder.customer_id,
-          total_amount: newOrder.total_amount,
-          paid_amount: newOrder.paid_amount,
-          remaining_balance: newOrder.remaining_balance,
-          status: newOrder.status,
-          delivery_date: newOrder.delivery_date,
-          payment_option: newOrder.payment_option,
+          ...newOrder,
+          order_number: nextOrderNumber,
         }])
         .select()
         .single();
