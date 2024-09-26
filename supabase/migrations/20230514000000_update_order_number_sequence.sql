@@ -23,7 +23,7 @@ BEGIN
     NEW.order_number := get_next_order_number();
   END IF;
   RETURN NEW;
-END;
+end;
 $$ LANGUAGE plpgsql;
 
 CREATE TRIGGER set_order_number_trigger

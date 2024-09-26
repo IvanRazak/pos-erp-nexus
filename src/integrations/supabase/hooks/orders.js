@@ -9,12 +9,12 @@ const fromSupabase = async (query) => {
 
 export const useOrder = (id) => useQuery({
   queryKey: ['orders', id],
-  queryFn: () => fromSupabase(supabase.from('orders').select('*, customer:customers(name)').eq('id', id).single()),
+  queryFn: () => fromSupabase(supabase.from('orders').select('*, customer:customers(name), order_number').eq('id', id).single()),
 });
 
 export const useOrders = () => useQuery({
   queryKey: ['orders'],
-  queryFn: () => fromSupabase(supabase.from('orders').select('*, customer:customers(name)').order('created_at', { ascending: false })),
+  queryFn: () => fromSupabase(supabase.from('orders').select('*, customer:customers(name), order_number').order('created_at', { ascending: false })),
 });
 
 export const useAddOrder = () => {
