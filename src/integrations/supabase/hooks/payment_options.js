@@ -49,5 +49,12 @@ export const useDeletePaymentOption = () => {
 
 export const useTransactions = () => useQuery({
   queryKey: ['transactions'],
-  queryFn: () => fromSupabase(supabase.from('payments').select('*')),
+  queryFn: () => fromSupabase(supabase
+    .from('payments')
+    .select(`
+      *,
+      order:orders(order_number, customer:customers(name))
+    `)
+    .order('payment_date', { ascending: false })
+  ),
 });
