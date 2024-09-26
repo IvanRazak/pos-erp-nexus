@@ -63,7 +63,7 @@ const Caixa = () => {
             <SelectValue placeholder="Opção de Pagamento" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">Todas</SelectItem>
+            <SelectItem value="all">Todas</SelectItem>
             {paymentOptions?.map((option) => (
               <SelectItem key={option.id} value={option.name}>{option.name}</SelectItem>
             ))}
@@ -84,8 +84,8 @@ const Caixa = () => {
         <TableBody>
           {filtrarTransacoes().map((transacao) => (
             <TableRow key={transacao.id}>
-              <TableCell>{transacao.order_number || 'N/A'}</TableCell>
-              <TableCell>{transacao.customer_name || 'N/A'}</TableCell>
+              <TableCell>{transacao.order?.order_number || 'N/A'}</TableCell>
+              <TableCell>{transacao.order?.customer?.name || 'N/A'}</TableCell>
               <TableCell>{transacao.payment_option || 'N/A'}</TableCell>
               <TableCell>{transacao.payment_date ? new Date(transacao.payment_date).toLocaleDateString() : 'N/A'}</TableCell>
               <TableCell>

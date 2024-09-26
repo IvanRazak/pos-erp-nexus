@@ -54,7 +54,6 @@ const Financeiro = () => {
         status: novoSaldoRestante <= 0 ? 'paid' : 'partial_payment',
       });
 
-      // Adicionar o pagamento à tabela de transações
       await addPayment.mutateAsync({
         order_id: pedidoSelecionado.id,
         amount: valorPagamento,
