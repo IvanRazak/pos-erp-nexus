@@ -33,14 +33,14 @@ const GerenciamentoPedidos = () => {
     if (!pedidos) return;
     const filtered = pedidos.filter(pedido => {
       const cliente = clientes?.find(c => c.id === pedido.customer_id);
-      const matchCliente = cliente && cliente.name.toLowerCase().includes(filtroCliente.toLowerCase());
-      const matchNumeroPedido = pedido.order_number.toString().includes(filtroNumeroPedido);
-      const matchData = (!filtroDataInicio || !filtroDataFim || isWithinInterval(parseISO(pedido.created_at), {
+      const matchCliente = !filtroCliente || (cliente && cliente.name && cliente.name.toLowerCase().includes(filtroCliente.toLowerCase()));
+      const matchNumeroPedido = !filtroNumeroPedido || (pedido.order_number && pedido.order_number.toString().includes(filtroNumeroPedido));
+      const matchData = (!filtroDataInicio || !filtroDataFim || (pedido.created_at && isWithinInterval(parseISO(pedido.created_at), {
         start: startOfDay(filtroDataInicio),
         end: endOfDay(filtroDataFim)
-      }));
-      const matchValor = (!filtroValorMinimo || pedido.total_amount >= parseFloat(filtroValorMinimo)) &&
-                         (!filtroValorMaximo || pedido.total_amount <= parseFloat(filtroValorMaximo));
+      })));
+      const matchValor = (!filtroValorMinimo || (pedido.total_amount && pedido.total_amount >= parseFloat(filtroValorMinimo))) &&
+                         (!filtroValorMaximo || (pedido.total_amount && pedido.total_amount <= parseFloat(filtroValorMaximo)));
       return matchCliente && matchNumeroPedido && matchData && matchValor;
     });
     setPedidosFiltrados(filtered);
@@ -120,9 +120,9 @@ const GerenciamentoPedidos = () => {
           {pedidosFiltrados.map((pedido) => (
             <TableRow key={pedido.id}>
               <TableCell>{pedido.order_number}</TableCell>
-              <TableCell>{format(parseISO(pedido.created_at), 'dd/MM/yyyy HH:mm', { locale: ptBR })}</TableCell>
+              <TableCell>{pedido.created_at ? format(parseISO(pedido.created_at), 'dd/MM/yyyy HH:mm', { locale: ptBR }) : 'N/A'}</TableCell>
               <TableCell>{clientes?.find(c => c.id === pedido.customer_id)?.name || 'N/A'}</TableCell>
-              <TableCell>R$ {pedido.total_amount.toFixed(2)}</TableCell>
+              <TableCell>R$ {pedido.total_amount?.toFixed(2) || 'N/A'}</TableCell>
               <TableCell>{pedido.delivery_date ? format(parseISO(pedido.delivery_date), 'dd/MM/yyyy', { locale: ptBR }) : 'N/A'}</TableCell>
               <TableCell>{pedido.status}</TableCell>
               <TableCell>
