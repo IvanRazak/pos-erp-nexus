@@ -1,2 +1,6 @@
 [build]
   command = "npm install --legacy-peer-deps && npm run build --force"
+  [[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
