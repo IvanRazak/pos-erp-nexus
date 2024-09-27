@@ -3,7 +3,7 @@ import { supabase } from '../supabase';
 
 const fromSupabase = async (query) => {
   const { data, error } = await query;
-  if (error) throw new Error(error.message);
+  if (error) throw error;
   return data;
 };
 
@@ -22,13 +22,16 @@ export const useAddCustomer = () => {
   return useMutation({
     mutationFn: async (newCustomer) => {
       // Check if a customer with the same email already exists
-      const { data: existingCustomer } = await supabase
+      const { data: existingCustomers, error: checkError } = await supabase
         .from('customers')
         .select('id')
-        .eq('email', newCustomer.email)
-        .single();
+        .eq('email', newCustomer.email);
 
-      if (existingCustomer) {
+      if (checkError) {
+        throw new Error('Error checking for existing customer: ' + checkError.message);
+      }
+
+      if (existingCustomers && existingCustomers.length > 0) {
         throw new Error('A customer with this email already exists.');
       }
 
