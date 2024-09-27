@@ -11,6 +11,7 @@ import PedidoDetalhesModal from './PedidoDetalhesModal';
 
 const GerenciamentoPedidos = () => {
   const [filtroCliente, setFiltroCliente] = useState('');
+  const [filtroNumeroPedido, setFiltroNumeroPedido] = useState('');
   const [filtroDataInicio, setFiltroDataInicio] = useState(null);
   const [filtroDataFim, setFiltroDataFim] = useState(null);
   const [filtroValorMinimo, setFiltroValorMinimo] = useState('');
@@ -26,19 +27,21 @@ const GerenciamentoPedidos = () => {
     if (pedidos) {
       filtrarPedidos();
     }
-  }, [pedidos, filtroCliente, filtroDataInicio, filtroDataFim, filtroValorMinimo, filtroValorMaximo]);
+  }, [pedidos, filtroCliente, filtroNumeroPedido, filtroDataInicio, filtroDataFim, filtroValorMinimo, filtroValorMaximo]);
 
   const filtrarPedidos = () => {
     if (!pedidos) return;
     const filtered = pedidos.filter(pedido => {
-      const matchCliente = pedido.customer_id === filtroCliente || filtroCliente === 'all';
+      const cliente = clientes?.find(c => c.id === pedido.customer_id);
+      const matchCliente = cliente && cliente.name.toLowerCase().includes(filtroCliente.toLowerCase());
+      const matchNumeroPedido = pedido.order_number.toString().includes(filtroNumeroPedido);
       const matchData = (!filtroDataInicio || !filtroDataFim || isWithinInterval(parseISO(pedido.created_at), {
         start: startOfDay(filtroDataInicio),
         end: endOfDay(filtroDataFim)
       }));
       const matchValor = (!filtroValorMinimo || pedido.total_amount >= parseFloat(filtroValorMinimo)) &&
                          (!filtroValorMaximo || pedido.total_amount <= parseFloat(filtroValorMaximo));
-      return matchCliente && matchData && matchValor;
+      return matchCliente && matchNumeroPedido && matchData && matchValor;
     });
     setPedidosFiltrados(filtered);
   };
@@ -62,20 +65,16 @@ const GerenciamentoPedidos = () => {
     <div className="container mx-auto p-4">
       <h2 className="text-2xl font-bold mb-4">Gerenciamento de Pedidos</h2>
       <div className="grid grid-cols-2 gap-4 mb-4">
-        <Select
-          onValueChange={(value) => setFiltroCliente(value)}
+        <Input
+          placeholder="Filtrar por nome do cliente"
           value={filtroCliente}
-        >
-          <SelectTrigger>
-            <SelectValue placeholder="Filtrar por cliente" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Todos os clientes</SelectItem>
-            {clientes?.map((cliente) => (
-              <SelectItem key={cliente.id} value={cliente.id}>{cliente.name}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+          onChange={(e) => setFiltroCliente(e.target.value)}
+        />
+        <Input
+          placeholder="Filtrar por número do pedido"
+          value={filtroNumeroPedido}
+          onChange={(e) => setFiltroNumeroPedido(e.target.value)}
+        />
         <div className="flex space-x-2">
           <DatePicker
             selected={filtroDataInicio}
