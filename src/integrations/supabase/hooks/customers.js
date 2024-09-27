@@ -7,21 +7,6 @@ const fromSupabase = async (query) => {
   return data;
 };
 
-/*
-### customers
-
-| name          | type                    | format                    | required |
-|---------------|-------------------------|---------------------------|----------|
-| id            | uuid                    | uuid                      | true     |
-| name          | text                    | string                    | true     |
-| email         | text                    | string                    | false    |
-| phone         | text                    | string                    | false    |
-| address       | text                    | string                    | false    |
-| customer_type | text                    | string                    | false    |
-| created_at    | timestamp with time zone| string                    | false    |
-| updated_at    | timestamp with time zone| string                    | false    |
-*/
-
 export const useCustomer = (id) => useQuery({
   queryKey: ['customers', id],
   queryFn: () => fromSupabase(supabase.from('customers').select('*').eq('id', id).single()),
@@ -35,7 +20,21 @@ export const useCustomers = () => useQuery({
 export const useAddCustomer = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (newCustomer) => fromSupabase(supabase.from('customers').insert([newCustomer])),
+    mutationFn: async (newCustomer) => {
+      // Check if a customer with the same email already exists
+      const { data: existingCustomer } = await supabase
+        .from('customers')
+        .select('id')
+        .eq('email', newCustomer.email)
+        .single();
+
+      if (existingCustomer) {
+        throw new Error('A customer with this email already exists.');
+      }
+
+      // If no existing customer, proceed with insertion
+      return fromSupabase(supabase.from('customers').insert([newCustomer]));
+    },
     onSuccess: () => {
       queryClient.invalidateQueries(['customers']);
     },
