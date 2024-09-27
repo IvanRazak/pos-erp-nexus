@@ -8,6 +8,8 @@ import { DatePicker } from "@/components/ui/date-picker";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useOrders, usePaymentOptions, useUpdateOrder, useAddPayment } from '../integrations/supabase';
 import { toast } from "@/components/ui/use-toast";
+import { format, isWithinInterval, parseISO, startOfDay, endOfDay } from "date-fns";
+import { ptBR } from 'date-fns/locale';
 
 const Financeiro = () => {
   const [filtroDataInicio, setFiltroDataInicio] = useState(null);
@@ -26,8 +28,11 @@ const Financeiro = () => {
   const filtrarPedidos = () => {
     if (!pedidos) return [];
     return pedidos.filter(pedido => {
-      const matchData = (!filtroDataInicio || new Date(pedido.created_at) >= filtroDataInicio) &&
-                        (!filtroDataFim || new Date(pedido.created_at) <= filtroDataFim);
+      const pedidoDate = parseISO(pedido.created_at);
+      const matchData = (!filtroDataInicio || !filtroDataFim || isWithinInterval(pedidoDate, {
+        start: startOfDay(filtroDataInicio),
+        end: endOfDay(filtroDataFim)
+      }));
       const matchOpcaoPagamento = !filtroOpcaoPagamento || pedido.payment_option === filtroOpcaoPagamento;
       return matchData && matchOpcaoPagamento && pedido.remaining_balance > 0;
     });
@@ -89,11 +94,15 @@ const Financeiro = () => {
           selected={filtroDataInicio}
           onChange={setFiltroDataInicio}
           placeholderText="Data Início"
+          locale={ptBR}
+          dateFormat="dd/MM/yyyy"
         />
         <DatePicker
           selected={filtroDataFim}
           onChange={setFiltroDataFim}
           placeholderText="Data Fim"
+          locale={ptBR}
+          dateFormat="dd/MM/yyyy"
         />
         
         <Select onValueChange={setFiltroOpcaoPagamento} value={filtroOpcaoPagamento}>
@@ -101,7 +110,7 @@ const Financeiro = () => {
             <SelectValue placeholder="Opção de Pagamento" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">Todas</SelectItem>
+            <SelectItem value="">Todas</SelectItem>
             {opcoesPagamento?.map((option) => (
               <SelectItem key={option.id} value={option.name}>{option.name}</SelectItem>
             ))}
@@ -128,7 +137,7 @@ const Financeiro = () => {
               <TableCell>R$ {pedido.total_amount.toFixed(2)}</TableCell>
               <TableCell>R$ {pedido.paid_amount.toFixed(2)}</TableCell>
               <TableCell>R$ {pedido.remaining_balance.toFixed(2)}</TableCell>
-              <TableCell>{new Date(pedido.created_at).toLocaleDateString()}</TableCell>
+              <TableCell>{format(parseISO(pedido.created_at), 'dd/MM/yyyy', { locale: ptBR })}</TableCell>
               <TableCell>
                 <Dialog>
                   <DialogTrigger asChild>

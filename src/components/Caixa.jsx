@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -7,6 +7,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { DatePicker } from "@/components/ui/date-picker";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { usePaymentOptions, useTransactions } from '../integrations/supabase';
+import { format, isWithinInterval, parseISO, startOfDay, endOfDay } from "date-fns";
+import { ptBR } from 'date-fns/locale';
 
 const Caixa = () => {
   const [filtroDataInicio, setFiltroDataInicio] = useState(null);
@@ -20,8 +22,11 @@ const Caixa = () => {
   const filtrarTransacoes = () => {
     if (!transacoes) return [];
     return transacoes.filter(transacao => {
-      const matchData = (!filtroDataInicio || new Date(transacao.payment_date) >= filtroDataInicio) &&
-                        (!filtroDataFim || new Date(transacao.payment_date) <= filtroDataFim);
+      const transacaoDate = parseISO(transacao.payment_date);
+      const matchData = (!filtroDataInicio || !filtroDataFim || isWithinInterval(transacaoDate, {
+        start: startOfDay(filtroDataInicio),
+        end: endOfDay(filtroDataFim)
+      }));
       const matchOpcaoPagamento = !filtroOpcaoPagamento || transacao.payment_option === filtroOpcaoPagamento;
       return matchData && matchOpcaoPagamento;
     });
@@ -51,11 +56,15 @@ const Caixa = () => {
           selected={filtroDataInicio}
           onChange={setFiltroDataInicio}
           placeholderText="Data Início"
+          locale={ptBR}
+          dateFormat="dd/MM/yyyy"
         />
         <DatePicker
           selected={filtroDataFim}
           onChange={setFiltroDataFim}
           placeholderText="Data Fim"
+          locale={ptBR}
+          dateFormat="dd/MM/yyyy"
         />
         
         <Select onValueChange={setFiltroOpcaoPagamento} value={filtroOpcaoPagamento}>
@@ -63,7 +72,7 @@ const Caixa = () => {
             <SelectValue placeholder="Opção de Pagamento" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">Todas</SelectItem>
+            <SelectItem value="">Todas</SelectItem>
             {paymentOptions?.map((option) => (
               <SelectItem key={option.id} value={option.name}>{option.name}</SelectItem>
             ))}
@@ -87,7 +96,7 @@ const Caixa = () => {
               <TableCell>{transacao.order?.order_number || 'N/A'}</TableCell>
               <TableCell>{transacao.order?.customer?.name || 'N/A'}</TableCell>
               <TableCell>{transacao.payment_option || 'N/A'}</TableCell>
-              <TableCell>{transacao.payment_date ? new Date(transacao.payment_date).toLocaleDateString() : 'N/A'}</TableCell>
+              <TableCell>{transacao.payment_date ? format(parseISO(transacao.payment_date), 'dd/MM/yyyy', { locale: ptBR }) : 'N/A'}</TableCell>
               <TableCell>
                 <Input
                   defaultValue={transacao.description || ''}
