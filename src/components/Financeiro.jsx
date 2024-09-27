@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -6,7 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { DatePicker } from "@/components/ui/date-picker";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { useOrders, usePaymentOptions, useUpdateOrder, useAddPayment } from '../integrations/supabase';
+import { useOrders, usePaymentOptions, useUpdateOrder, useAddPayment, useCustomers } from '../integrations/supabase';
 import { toast } from "@/components/ui/use-toast";
 import { format, isWithinInterval, parseISO, startOfDay, endOfDay } from "date-fns";
 import { ptBR } from 'date-fns/locale';
@@ -18,14 +18,17 @@ const Financeiro = () => {
   const [pedidoSelecionado, setPedidoSelecionado] = useState(null);
   const [valorPagamento, setValorPagamento] = useState(0);
   const [opcaoPagamento, setOpcaoPagamento] = useState('');
+  const [filtroCliente, setFiltroCliente] = useState('');
+  const [filtroNumeroPedido, setFiltroNumeroPedido] = useState('');
 
   const queryClient = useQueryClient();
   const { data: pedidos, isLoading: isLoadingPedidos } = useOrders();
   const { data: opcoesPagamento, isLoading: isLoadingOpcoesPagamento } = usePaymentOptions();
+  const { data: clientes, isLoading: isLoadingClientes } = useCustomers();
   const updateOrder = useUpdateOrder();
   const addPayment = useAddPayment();
 
-  const filtrarPedidos = () => {
+  const pedidosFiltrados = useMemo(() => {
     if (!pedidos) return [];
     return pedidos.filter(pedido => {
       const pedidoDate = parseISO(pedido.created_at);
@@ -34,9 +37,11 @@ const Financeiro = () => {
         end: endOfDay(filtroDataFim)
       }));
       const matchOpcaoPagamento = !filtroOpcaoPagamento || pedido.payment_option === filtroOpcaoPagamento;
-      return matchData && matchOpcaoPagamento && pedido.remaining_balance > 0;
+      const matchCliente = !filtroCliente || (pedido.customer?.name && pedido.customer.name.toLowerCase().includes(filtroCliente.toLowerCase()));
+      const matchNumeroPedido = !filtroNumeroPedido || pedido.order_number?.toString().includes(filtroNumeroPedido);
+      return matchData && matchOpcaoPagamento && matchCliente && matchNumeroPedido && pedido.remaining_balance > 0;
     });
-  };
+  }, [pedidos, filtroDataInicio, filtroDataFim, filtroOpcaoPagamento, filtroCliente, filtroNumeroPedido]);
 
   const handlePagamento = async () => {
     if (!pedidoSelecionado || valorPagamento <= 0 || !opcaoPagamento) {
@@ -84,7 +89,7 @@ const Financeiro = () => {
     }
   };
 
-  if (isLoadingPedidos || isLoadingOpcoesPagamento) return <div>Carregando...</div>;
+  if (isLoadingPedidos || isLoadingOpcoesPagamento || isLoadingClientes) return <div>Carregando...</div>;
 
   return (
     <div className="container mx-auto p-4">
@@ -104,7 +109,6 @@ const Financeiro = () => {
           locale={ptBR}
           dateFormat="dd/MM/yyyy"
         />
-        
         <Select onValueChange={setFiltroOpcaoPagamento} value={filtroOpcaoPagamento}>
           <SelectTrigger>
             <SelectValue placeholder="Opção de Pagamento" />
@@ -116,6 +120,16 @@ const Financeiro = () => {
             ))}
           </SelectContent>
         </Select>
+        <Input
+          placeholder="Filtrar por nome do cliente"
+          value={filtroCliente}
+          onChange={(e) => setFiltroCliente(e.target.value)}
+        />
+        <Input
+          placeholder="Filtrar por número do pedido"
+          value={filtroNumeroPedido}
+          onChange={(e) => setFiltroNumeroPedido(e.target.value)}
+        />
       </div>
       <Table>
         <TableHeader>
@@ -130,7 +144,7 @@ const Financeiro = () => {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {filtrarPedidos().map((pedido) => (
+          {pedidosFiltrados.map((pedido) => (
             <TableRow key={pedido.id}>
               <TableCell>{pedido.order_number}</TableCell>
               <TableCell>{pedido.customer?.name || 'N/A'}</TableCell>
