@@ -2,6 +2,7 @@ import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { supabase } from '../lib/supabase';
 
 const PedidoDetalhesModal = ({ pedido, onClose }) => {
@@ -26,49 +27,51 @@ const PedidoDetalhesModal = ({ pedido, onClose }) => {
 
   return (
     <Dialog open={true} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl">
+      <DialogContent className="max-w-4xl max-h-[80vh] overflow-hidden flex flex-col">
         <DialogHeader>
-          <DialogTitle>Detalhes do Pedido #{pedido.id}</DialogTitle>
+          <DialogTitle>Detalhes do Pedido #{pedido.order_number}</DialogTitle>
         </DialogHeader>
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Produto</TableHead>
-              <TableHead>Quantidade</TableHead>
-              <TableHead>Valor Unitário</TableHead>
-              <TableHead>Opções Extras</TableHead>
-              <TableHead>Dimensões</TableHead>
-              <TableHead>M²</TableHead>
-              <TableHead>Subtotal</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {itensPedido?.map((item) => (
-              <TableRow key={item.id}>
-                <TableCell>{item.product.name}</TableCell>
-                <TableCell>{item.quantity}</TableCell>
-                <TableCell>R$ {item.unit_price.toFixed(2)}</TableCell>
-                <TableCell>
-                  {item.extras.map((extra) => (
-                    <div key={extra.id}>{extra.extra_option.name}: R$ {extra.extra_option.price.toFixed(2)}</div>
-                  ))}
-                </TableCell>
-                <TableCell>
-                  {item.width && item.height ? (
-                    `${item.width}m x ${item.height}m`
-                  ) : (
-                    'N/A'
-                  )}
-                </TableCell>
-                <TableCell>{item.m2 ? `${item.m2.toFixed(2)}m²` : 'N/A'}</TableCell>
-                <TableCell>
-                  R$ {(item.quantity * item.unit_price * (item.m2 || 1) + 
-                    item.extras.reduce((sum, extra) => sum + extra.extra_option.price, 0)).toFixed(2)}
-                </TableCell>
+        <ScrollArea className="flex-grow">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Produto</TableHead>
+                <TableHead>Quantidade</TableHead>
+                <TableHead>Valor Unitário</TableHead>
+                <TableHead>Opções Extras</TableHead>
+                <TableHead>Dimensões</TableHead>
+                <TableHead>M²</TableHead>
+                <TableHead>Subtotal</TableHead>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+            </TableHeader>
+            <TableBody>
+              {itensPedido?.map((item) => (
+                <TableRow key={item.id}>
+                  <TableCell>{item.product.name}</TableCell>
+                  <TableCell>{item.quantity}</TableCell>
+                  <TableCell>R$ {item.unit_price.toFixed(2)}</TableCell>
+                  <TableCell>
+                    {item.extras.map((extra) => (
+                      <div key={extra.id}>{extra.extra_option.name}: R$ {extra.extra_option.price.toFixed(2)}</div>
+                    ))}
+                  </TableCell>
+                  <TableCell>
+                    {item.width && item.height ? (
+                      `${item.width}m x ${item.height}m`
+                    ) : (
+                      'N/A'
+                    )}
+                  </TableCell>
+                  <TableCell>{item.m2 ? `${item.m2.toFixed(2)}m²` : 'N/A'}</TableCell>
+                  <TableCell>
+                    R$ {(item.quantity * item.unit_price * (item.m2 || 1) + 
+                      item.extras.reduce((sum, extra) => sum + extra.extra_option.price, 0)).toFixed(2)}
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </ScrollArea>
       </DialogContent>
     </Dialog>
   );
