@@ -6,6 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { DatePicker } from "@/components/ui/date-picker";
 import { format, isWithinInterval, parseISO, startOfDay, endOfDay } from "date-fns";
+import { ptBR } from 'date-fns/locale';
 import PedidoDetalhesModal from './PedidoDetalhesModal';
 
 const GerenciamentoPedidos = () => {
@@ -30,7 +31,7 @@ const GerenciamentoPedidos = () => {
   const filtrarPedidos = () => {
     if (!pedidos) return;
     const filtered = pedidos.filter(pedido => {
-      const matchCliente = pedido.customer_id === filtroCliente || filtroCliente === '';
+      const matchCliente = pedido.customer_id === filtroCliente || filtroCliente === 'all';
       const matchData = (!filtroDataInicio || !filtroDataFim || isWithinInterval(parseISO(pedido.created_at), {
         start: startOfDay(filtroDataInicio),
         end: endOfDay(filtroDataFim)
@@ -80,11 +81,15 @@ const GerenciamentoPedidos = () => {
             selected={filtroDataInicio}
             onChange={setFiltroDataInicio}
             placeholderText="Data Início"
+            locale={ptBR}
+            dateFormat="dd/MM/yyyy"
           />
           <DatePicker
             selected={filtroDataFim}
             onChange={setFiltroDataFim}
             placeholderText="Data Fim"
+            locale={ptBR}
+            dateFormat="dd/MM/yyyy"
           />
         </div>
         <Input
@@ -116,10 +121,10 @@ const GerenciamentoPedidos = () => {
           {pedidosFiltrados.map((pedido) => (
             <TableRow key={pedido.id}>
               <TableCell>{pedido.order_number}</TableCell>
-              <TableCell>{format(parseISO(pedido.created_at), 'dd/MM/yyyy HH:mm')}</TableCell>
+              <TableCell>{format(parseISO(pedido.created_at), 'dd/MM/yyyy HH:mm', { locale: ptBR })}</TableCell>
               <TableCell>{clientes?.find(c => c.id === pedido.customer_id)?.name || 'N/A'}</TableCell>
               <TableCell>R$ {pedido.total_amount.toFixed(2)}</TableCell>
-              <TableCell>{pedido.delivery_date ? format(parseISO(pedido.delivery_date), 'dd/MM/yyyy') : 'N/A'}</TableCell>
+              <TableCell>{pedido.delivery_date ? format(parseISO(pedido.delivery_date), 'dd/MM/yyyy', { locale: ptBR }) : 'N/A'}</TableCell>
               <TableCell>{pedido.status}</TableCell>
               <TableCell>
                 <Select onValueChange={(value) => atualizarStatus(pedido.id, value)}>
