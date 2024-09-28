@@ -14,8 +14,6 @@ const Caixa = () => {
   const [filtroDataInicio, setFiltroDataInicio] = useState(null);
   const [filtroDataFim, setFiltroDataFim] = useState(null);
   const [filtroOpcaoPagamento, setFiltroOpcaoPagamento] = useState('');
-  const [filtroCliente, setFiltroCliente] = useState('');
-  const [filtroNumeroPedido, setFiltroNumeroPedido] = useState('');
   const [isRelatorioOpen, setIsRelatorioOpen] = useState(false);
 
   const { data: paymentOptions, isLoading: isLoadingPaymentOptions } = usePaymentOptions();
@@ -30,9 +28,7 @@ const Caixa = () => {
         end: endOfDay(filtroDataFim)
       }));
       const matchOpcaoPagamento = !filtroOpcaoPagamento || transacao.payment_option === filtroOpcaoPagamento;
-      const matchCliente = !filtroCliente || (transacao.order?.customer?.name && transacao.order.customer.name.toLowerCase().includes(filtroCliente.toLowerCase()));
-      const matchNumeroPedido = !filtroNumeroPedido || (transacao.order?.order_number && transacao.order.order_number.toString().includes(filtroNumeroPedido));
-      return matchData && matchOpcaoPagamento && matchCliente && matchNumeroPedido;
+      return matchData && matchOpcaoPagamento;
     });
   };
 
@@ -82,16 +78,6 @@ const Caixa = () => {
             ))}
           </SelectContent>
         </Select>
-        <Input
-          placeholder="Buscar por nome do cliente"
-          value={filtroCliente}
-          onChange={(e) => setFiltroCliente(e.target.value)}
-        />
-        <Input
-          placeholder="Buscar por número do pedido"
-          value={filtroNumeroPedido}
-          onChange={(e) => setFiltroNumeroPedido(e.target.value)}
-        />
       </div>
       <Table>
         <TableHeader>

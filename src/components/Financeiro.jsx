@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -114,7 +114,7 @@ const Financeiro = () => {
             <SelectValue placeholder="Opção de Pagamento" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">Todas</SelectItem>
+            <SelectItem value="all">Todas</SelectItem>
             {opcoesPagamento?.map((option) => (
               <SelectItem key={option.id} value={option.name}>{option.name}</SelectItem>
             ))}
