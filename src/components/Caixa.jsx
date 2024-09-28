@@ -6,7 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { DatePicker } from "@/components/ui/date-picker";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { usePaymentOptions, useTransactions, useCustomers } from '../integrations/supabase';
+import { usePaymentOptions, useTransactions } from '../integrations/supabase';
 import { format, isWithinInterval, parseISO, startOfDay, endOfDay } from "date-fns";
 import { ptBR } from 'date-fns/locale';
 
@@ -15,11 +15,9 @@ const Caixa = () => {
   const [filtroDataFim, setFiltroDataFim] = useState(null);
   const [filtroOpcaoPagamento, setFiltroOpcaoPagamento] = useState('');
   const [isRelatorioOpen, setIsRelatorioOpen] = useState(false);
-  const [filtroCliente, setFiltroCliente] = useState('');
 
   const { data: paymentOptions, isLoading: isLoadingPaymentOptions } = usePaymentOptions();
   const { data: transacoes, isLoading: isLoadingTransactions } = useTransactions();
-  const { data: clientes, isLoading: isLoadingClientes } = useCustomers();
 
   const filtrarTransacoes = () => {
     if (!transacoes) return [];
@@ -30,10 +28,7 @@ const Caixa = () => {
         end: endOfDay(filtroDataFim)
       }));
       const matchOpcaoPagamento = !filtroOpcaoPagamento || transacao.payment_option === filtroOpcaoPagamento;
-      const matchCliente = !filtroCliente || 
-        (transacao.order?.customer?.name && 
-         transacao.order.customer.name.toLowerCase().includes(filtroCliente.toLowerCase()));
-      return matchData && matchOpcaoPagamento && matchCliente;
+      return matchData && matchOpcaoPagamento;
     });
   };
 
@@ -51,7 +46,7 @@ const Caixa = () => {
     };
   };
 
-  if (isLoadingTransactions || isLoadingPaymentOptions || isLoadingClientes) return <div>Carregando...</div>;
+  if (isLoadingTransactions || isLoadingPaymentOptions) return <div>Carregando...</div>;
 
   return (
     <div className="container mx-auto p-4">
@@ -77,18 +72,12 @@ const Caixa = () => {
             <SelectValue placeholder="Opção de Pagamento" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">Todas</SelectItem>
+            <SelectItem value="all">Todas</SelectItem>
             {paymentOptions?.map((option) => (
               <SelectItem key={option.id} value={option.name}>{option.name}</SelectItem>
             ))}
           </SelectContent>
         </Select>
-
-        <Input
-          placeholder="Filtrar por nome do cliente"
-          value={filtroCliente}
-          onChange={(e) => setFiltroCliente(e.target.value)}
-        />
       </div>
       <Table>
         <TableHeader>
