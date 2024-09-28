@@ -14,6 +14,8 @@ const Caixa = () => {
   const [filtroDataInicio, setFiltroDataInicio] = useState(null);
   const [filtroDataFim, setFiltroDataFim] = useState(null);
   const [filtroOpcaoPagamento, setFiltroOpcaoPagamento] = useState('');
+  const [filtroCliente, setFiltroCliente] = useState('');
+  const [filtroNumeroPedido, setFiltroNumeroPedido] = useState('');
   const [isRelatorioOpen, setIsRelatorioOpen] = useState(false);
 
   const { data: paymentOptions, isLoading: isLoadingPaymentOptions } = usePaymentOptions();
@@ -28,7 +30,9 @@ const Caixa = () => {
         end: endOfDay(filtroDataFim)
       }));
       const matchOpcaoPagamento = !filtroOpcaoPagamento || transacao.payment_option === filtroOpcaoPagamento;
-      return matchData && matchOpcaoPagamento;
+      const matchCliente = !filtroCliente || (transacao.order?.customer?.name && transacao.order.customer.name.toLowerCase().includes(filtroCliente.toLowerCase()));
+      const matchNumeroPedido = !filtroNumeroPedido || (transacao.order?.order_number && transacao.order.order_number.toString().includes(filtroNumeroPedido));
+      return matchData && matchOpcaoPagamento && matchCliente && matchNumeroPedido;
     });
   };
 
@@ -72,12 +76,23 @@ const Caixa = () => {
             <SelectValue placeholder="Opção de Pagamento" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">Todas</SelectItem>
+            <SelectItem value="">Todas</SelectItem>
             {paymentOptions?.map((option) => (
               <SelectItem key={option.id} value={option.name}>{option.name}</SelectItem>
             ))}
           </SelectContent>
         </Select>
+
+        <Input
+          placeholder="Filtrar por nome do cliente"
+          value={filtroCliente}
+          onChange={(e) => setFiltroCliente(e.target.value)}
+        />
+        <Input
+          placeholder="Filtrar por número do pedido"
+          value={filtroNumeroPedido}
+          onChange={(e) => setFiltroNumeroPedido(e.target.value)}
+        />
       </div>
       <Table>
         <TableHeader>
