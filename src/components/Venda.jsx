@@ -76,7 +76,7 @@ const Venda = () => {
   };
 
   const finalizarVenda = async () => {
-    if (!clienteSelecionado || carrinho.length === 0 || !dataEntrega || !opcaoPagamento || valorPago =0) {
+    if (!clienteSelecionado || carrinho.length === 0 || !dataEntrega || !opcaoPagamento || valorPago === 0) {
       toast({
         title: "Erro ao finalizar venda",
         description: "Por favor, preencha todos os campos obrigatórios.",
