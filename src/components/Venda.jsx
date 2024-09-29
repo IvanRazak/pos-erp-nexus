@@ -20,8 +20,8 @@ const Venda = () => {
   const [clienteSelecionado, setClienteSelecionado] = useState(null);
   const [produtoSelecionado, setProdutoSelecionado] = useState(null);
   const [quantidade, setQuantidade] = useState(1);
-  const [largura, setLargura] = useState(0);
-  const [altura, setAltura] = useState(0);
+  const [largura, setLargura] = useState('');
+  const [altura, setAltura] = useState('');
   const [m2, setM2] = useState(0);
   const [desconto, setDesconto] = useState(0);
   const [dataEntrega, setDataEntrega] = useState(null);
