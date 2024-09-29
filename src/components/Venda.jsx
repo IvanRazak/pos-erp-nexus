@@ -46,20 +46,24 @@ const Venda = () => {
     const m2Total = produtoSelecionado.unit_type === 'square_meter' ? largura * altura : 1;
     const novoItem = {
       ...produtoSelecionado,
-      quantidade: quantidade,
-      largura: largura,
-      altura: altura,
+      quantidade,
+      largura,
+      altura,
       m2: m2Total,
       total: produtoSelecionado.sale_price * m2Total * quantidade,
       extras: extrasEscolhidas,
     };
     setCarrinho([...carrinho, novoItem]);
+    resetProduto();
+    setIsExtraOptionsModalOpen(false);
+  };
+
+  const resetProduto = () => {
     setProdutoSelecionado(null);
     setQuantidade(1);
     setLargura(0);
     setAltura(0);
     setM2(0);
-    setIsExtraOptionsModalOpen(false);
   };
 
   const calcularTotal = () => {
@@ -76,7 +80,7 @@ const Venda = () => {
   };
 
   const finalizarVenda = async () => {
-    if (!clienteSelecionado || carrinho.length === 0 || !dataEntrega || !opcaoPagamento || valorPago === 0) {
+    if (!clienteSelecionado || carrinho.length === 0 || !dataEntrega || !opcaoPagamento || valorPago <= 0) {
       toast({
         title: "Erro ao finalizar venda",
         description: "Por favor, preencha todos os campos obrigatórios.",
@@ -113,12 +117,7 @@ const Venda = () => {
         title: "Venda finalizada com sucesso!",
         description: "A nova venda foi registrada no sistema.",
       });
-      setCarrinho([]);
-      setClienteSelecionado(null);
-      setDataEntrega(null);
-      setOpcaoPagamento('');
-      setDesconto(0);
-      setValorPago(0);
+      resetCarrinho();
     } catch (error) {
       toast({
         title: "Erro ao finalizar venda",
@@ -126,6 +125,15 @@ const Venda = () => {
         variant: "destructive",
       });
     }
+  };
+
+  const resetCarrinho = () => {
+    setCarrinho([]);
+    setClienteSelecionado(null);
+    setDataEntrega(null);
+    setOpcaoPagamento('');
+    setDesconto(0);
+    setValorPago(0);
   };
 
   return (
@@ -144,7 +152,7 @@ const Venda = () => {
               ))}
             </SelectContent>
           </Select>
-          <Input type="number" placeholder="Quantidade" value={quantidade} onChange={(e) => setQuantidade(parseInt(e.target.value))} className="mt-2" />
+          <Input type="number" placeholder="Quantidade" value={quantidade} onChange={(e) => setQuantidade(parseInt(e.target.value) || 1)} className="mt-2" />
           {produtoSelecionado?.unit_type === 'square_meter' && (
             <>
               <Input type="number" placeholder="Largura" value={largura} onChange={(e) => {
@@ -206,16 +214,10 @@ const Venda = () => {
               <TableRow key={index}>
                 <TableCell>{item.name}</TableCell>
                 <TableCell>{item.quantidade}</TableCell>
-                <TableCell>
-                  {item.largura && item.altura ? `${item.largura}m x ${item.altura}m` : 'N/A'}
-                </TableCell>
+                <TableCell>{item.largura && item.altura ? `${item.largura}m x ${item.altura}m` : 'N/A'}</TableCell>
                 <TableCell>{item.m2 ? `${item.m2.toFixed(2)}m²` : 'N/A'}</TableCell>
                 <TableCell>R$ {item.sale_price.toFixed(2)}</TableCell>
-                <TableCell>
-                  {item.extras.map((extra, i) => (
-                    <div key={i}>{extra.name}: R$ {extra.price.toFixed(2)}</div>
-                  ))}
-                </TableCell>
+                <TableCell>{item.extras.map((extra, i) => <div key={i}>{extra.name}: R$ {extra.price.toFixed(2)}</div>)}</TableCell>
                 <TableCell>R$ {item.total.toFixed(2)}</TableCell>
               </TableRow>
             ))}
@@ -226,24 +228,13 @@ const Venda = () => {
         <Input type="number" placeholder="Desconto" value={desconto} onChange={(e) => setDesconto(parseFloat(e.target.value))} />
         <Popover>
           <PopoverTrigger asChild>
-            <Button
-              variant={"outline"}
-              className={cn(
-                "w-[280px] justify-start text-left font-normal",
-                !dataEntrega && "text-muted-foreground"
-              )}
-            >
+            <Button variant={"outline"} className={cn("w-[280px] justify-start text-left font-normal", !dataEntrega && "text-muted-foreground")}>
               <CalendarIcon className="mr-2 h-4 w-4" />
               {dataEntrega ? format(dataEntrega, "PPP") : <span>Selecione a data de entrega</span>}
             </Button>
           </PopoverTrigger>
           <PopoverContent className="w-auto p-0">
-            <Calendar
-              mode="single"
-              selected={dataEntrega}
-              onSelect={setDataEntrega}
-              initialFocus
-            />
+            <Calendar mode="single" selected={dataEntrega} onSelect={setDataEntrega} initialFocus />
           </PopoverContent>
         </Popover>
         <Select onValueChange={setOpcaoPagamento} value={opcaoPagamento}>
@@ -256,13 +247,7 @@ const Venda = () => {
             ))}
           </SelectContent>
         </Select>
-        <Input
-          type="number"
-          placeholder="Valor Pago"
-          value={valorPago}
-          onChange={(e) => setValorPago(parseFloat(e.target.value))}
-          className="mt-2"
-        />
+        <Input type="number" placeholder="Valor Pago" value={valorPago} onChange={(e) => setValorPago(parseFloat(e.target.value))} className="mt-2" />
         <p className="mt-2 text-xl font-bold">Total: R$ {calcularTotal().toFixed(2)}</p>
         <p className="mt-2 text-xl font-bold">Saldo Restante: R$ {(calcularTotal() - valorPago).toFixed(2)}</p>
         <Button className="mt-2" onClick={finalizarVenda}>Finalizar Venda</Button>
