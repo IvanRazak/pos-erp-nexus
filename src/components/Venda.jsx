@@ -23,7 +23,7 @@ const Venda = () => {
   const [largura, setLargura] = useState('');
   const [altura, setAltura] = useState('');
   const [m2, setM2] = useState(0);
-  const [desconto, setDesconto] = useState(0);
+  const [desconto, setDesconto] = useState('');
   const [dataEntrega, setDataEntrega] = useState(null);
   const [opcaoPagamento, setOpcaoPagamento] = useState('');
   const [isNewClientDialogOpen, setIsNewClientDialogOpen] = useState(false);
