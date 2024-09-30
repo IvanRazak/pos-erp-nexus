@@ -80,10 +80,18 @@ const Venda = () => {
   };
 
   const finalizarVenda = async () => {
-    if (!clienteSelecionado || carrinho.length === 0 || !dataEntrega || !opcaoPagamento || valorPago <= 0) {
-      alert("Por favor, insira um valor pago maior que zero.");
-      return;
-    }
+  const erros = [];
+  
+  if (!clienteSelecionado) erros.push("Selecione um cliente");
+  if (carrinho.length === 0) erros.push("O carrinho está vazio");
+  if (!dataEntrega) erros.push("Defina uma data de entrega");
+  if (!opcaoPagamento) erros.push("Selecione uma opção de pagamento");
+  if (valorPago <= 0) erros.push("Insira um valor pago maior que zero");
+
+  if (erros.length > 0) {
+    alert("Não foi possível finalizar a venda:\n\n" + erros.join("\n"));
+    return;
+  }
 
     const totalVenda = calcularTotal();
     const saldoRestante = totalVenda - valorPago;
