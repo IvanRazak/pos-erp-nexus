@@ -7,6 +7,20 @@ const fromSupabase = async (query) => {
   return data;
 };
 
+/*
+### users
+
+| name         | type                    | format                    | required |
+|--------------|-------------------------|---------------------------|----------|
+| id           | uuid                    | uuid                      | true     |
+| username     | text                    | string                    | true     |
+| email        | text                    | string                    | true     |
+| password_hash| text                    | string                    | true     |
+| role         | public.user_role        | string                    | true     |
+| created_at   | timestamp with time zone| string                    | false    |
+| updated_at   | timestamp with time zone| string                    | false    |
+*/
+
 export const useUser = (id) => useQuery({
   queryKey: ['users', id],
   queryFn: () => fromSupabase(supabase.from('users').select('*').eq('id', id).single()),
@@ -45,15 +59,4 @@ export const useDeleteUser = () => {
       queryClient.invalidateQueries(['users']);
     },
   });
-};
-
-export const getUserByUsername = async (username) => {
-  const { data, error } = await supabase
-    .from('users')
-    .select('*')
-    .eq('username', username)
-    .maybeSingle();
-
-  if (error) throw new Error(error.message);
-  return data; // This will be null if no user is found
 };
