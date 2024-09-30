@@ -4,9 +4,11 @@ import ClienteForm from './ClienteForm';
 import ClienteList from './ClienteList';
 import { useCustomers, useAddCustomer, useUpdateCustomer, useDeleteCustomer } from '../integrations/supabase';
 import { useSupabaseAuth } from '../integrations/supabase/auth';
+import { toast } from "@/components/ui/use-toast";
 
 const Clientes = () => {
   const [activeTab, setActiveTab] = useState("lista");
+  const [clienteEmEdicao, setClienteEmEdicao] = useState(null);
   const { data: clientes, isLoading, error, refetch } = useCustomers();
   const addCustomer = useAddCustomer();
   const updateCustomer = useUpdateCustomer();
@@ -16,6 +18,54 @@ const Clientes = () => {
   const handleSuccess = () => {
     refetch();
     setActiveTab("lista");
+    setClienteEmEdicao(null);
+  };
+
+  const handleEdit = (cliente) => {
+    setClienteEmEdicao(cliente);
+    setActiveTab("cadastro");
+  };
+
+  const handleSave = async (clienteData) => {
+    try {
+      if (clienteEmEdicao) {
+        await updateCustomer.mutateAsync({ id: clienteEmEdicao.id, ...clienteData });
+        toast({
+          title: "Cliente atualizado com sucesso!",
+          description: "As informações do cliente foram atualizadas.",
+        });
+      } else {
+        await addCustomer.mutateAsync(clienteData);
+        toast({
+          title: "Cliente cadastrado com sucesso!",
+          description: "O novo cliente foi adicionado à lista.",
+        });
+      }
+      handleSuccess();
+    } catch (error) {
+      toast({
+        title: clienteEmEdicao ? "Erro ao atualizar cliente" : "Erro ao cadastrar cliente",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleDelete = async (id) => {
+    try {
+      await deleteCustomer.mutateAsync(id);
+      toast({
+        title: "Cliente excluído com sucesso!",
+        description: "O cliente foi removido da lista.",
+      });
+      refetch();
+    } catch (error) {
+      toast({
+        title: "Erro ao excluir cliente",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
   };
 
   const isAdmin = session?.user?.role === 'admin';
@@ -29,18 +79,24 @@ const Clientes = () => {
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList>
           <TabsTrigger value="lista">Lista de Clientes</TabsTrigger>
-          <TabsTrigger value="cadastro">Cadastro de Cliente</TabsTrigger>
+          <TabsTrigger value="cadastro">
+            {clienteEmEdicao ? 'Editar Cliente' : 'Cadastro de Cliente'}
+          </TabsTrigger>
         </TabsList>
         <TabsContent value="lista">
           <ClienteList 
             clientes={clientes} 
-            onDelete={deleteCustomer.mutate}
-            onUpdate={updateCustomer.mutate}
+            onDelete={handleDelete}
+            onEdit={handleEdit}
             isAdmin={isAdmin}
           />
         </TabsContent>
         <TabsContent value="cadastro">
-          <ClienteForm onSuccess={handleSuccess} />
+          <ClienteForm 
+            onSuccess={handleSuccess} 
+            clienteInicial={clienteEmEdicao}
+            onSave={handleSave}
+          />
         </TabsContent>
       </Tabs>
     </div>
