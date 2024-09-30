@@ -21,7 +21,6 @@ export const useAddCustomer = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (newCustomer) => {
-      // Check if a customer with the same email already exists
       const { data: existingCustomers, error: checkError } = await supabase
         .from('customers')
         .select('id')
@@ -35,7 +34,6 @@ export const useAddCustomer = () => {
         throw new Error('A customer with this email already exists.');
       }
 
-      // If no existing customer, proceed with insertion
       return fromSupabase(supabase.from('customers').insert([newCustomer]));
     },
     onSuccess: () => {
