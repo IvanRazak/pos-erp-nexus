@@ -1,5 +1,5 @@
 import React from 'react';
-import { Outlet, useNavigate, useLocation } from 'react-router-dom';
+import { Outlet, useNavigate } from 'react-router-dom';
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import AdminMenu from '../components/AdminMenu';
 import { useAuth } from '../hooks/useAuth';
@@ -7,7 +7,6 @@ import { Button } from "@/components/ui/button"
 
 const Dashboard = () => {
   const navigate = useNavigate();
-  const location = useLocation();
   const { user, logout } = useAuth();
 
   const tabs = [

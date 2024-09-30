@@ -13,6 +13,7 @@ import GerenciamentoPedidos from "./components/GerenciamentoPedidos";
 import Caixa from "./components/Caixa";
 import Financeiro from "./components/Financeiro";
 import Relatorios from "./components/Relatorios";
+import ProtectedRoute from "./components/ProtectedRoute";
 
 const queryClient = new QueryClient();
 
@@ -25,16 +26,18 @@ const App = () => (
           <BrowserRouter>
             <Routes>
               <Route path="/login" element={<Login />} />
-              <Route path="/dashboard" element={<Dashboard />}>
-                <Route path="clientes" element={<Clientes />} />
-                <Route path="produtos" element={<Produtos />} />
-                <Route path="venda" element={<Venda />} />
-                <Route path="pedidos" element={<GerenciamentoPedidos />} />
-                <Route path="caixa" element={<Caixa />} />
-                <Route path="financeiro" element={<Financeiro />} />
-                <Route path="relatorios" element={<Relatorios />} />
+              <Route element={<ProtectedRoute />}>
+                <Route path="/dashboard" element={<Dashboard />}>
+                  <Route path="clientes" element={<Clientes />} />
+                  <Route path="produtos" element={<Produtos />} />
+                  <Route path="venda" element={<Venda />} />
+                  <Route path="pedidos" element={<GerenciamentoPedidos />} />
+                  <Route path="caixa" element={<Caixa />} />
+                  <Route path="financeiro" element={<Financeiro />} />
+                  <Route path="relatorios" element={<Relatorios />} />
+                </Route>
               </Route>
-              <Route path="/" element={<Navigate to="/login" replace />} />
+              <Route path="/" element={<Navigate to="/dashboard" replace />} />
             </Routes>
           </BrowserRouter>
         </TooltipProvider>
