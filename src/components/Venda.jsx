@@ -15,7 +15,6 @@ import ClienteForm from './ClienteForm';
 import { toast } from "@/components/ui/use-toast";
 import ProdutoExtraOptionsModal from './ProdutoExtraOptionsModal';
 import { ToastContainer } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
 
 const Venda = () => {
   const [carrinho, setCarrinho] = useState([]);
