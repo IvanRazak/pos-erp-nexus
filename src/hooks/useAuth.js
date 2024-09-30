@@ -1,8 +1,16 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 
 export const useAuth = () => {
   const [error, setError] = useState(null);
+  const [user, setUser] = useState(null);
+
+  useEffect(() => {
+    const storedUser = localStorage.getItem('user');
+    if (storedUser) {
+      setUser(JSON.parse(storedUser));
+    }
+  }, []);
 
   const login = async (username, password) => {
     try {
@@ -15,8 +23,9 @@ export const useAuth = () => {
       if (error) throw error;
 
       if (data && data.password_hash === password) {
-        // In a real-world scenario, you should use proper password hashing
-        localStorage.setItem('user', JSON.stringify({ username, isAdmin: data.role === 'admin' }));
+        const userData = { username, isAdmin: data.role === 'admin' };
+        localStorage.setItem('user', JSON.stringify(userData));
+        setUser(userData);
         return true;
       } else {
         setError('Invalid username or password');
@@ -31,7 +40,8 @@ export const useAuth = () => {
 
   const logout = () => {
     localStorage.removeItem('user');
+    setUser(null);
   };
 
-  return { login, logout, error };
+  return { login, logout, error, user };
 };
