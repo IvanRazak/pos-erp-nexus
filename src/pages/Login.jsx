@@ -3,19 +3,57 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { supabase } from '../lib/supabase';
+import { useToast } from "@/components/ui/use-toast"
+import { getUserByUsername } from '../integrations/supabase/hooks/users';
 
 const Login = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
   const navigate = useNavigate();
+  const { toast } = useToast();
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
-    if (username === 'admin' && password === '1107') {
-      localStorage.setItem('user', JSON.stringify({ username, isAdmin: true }));
-      navigate('/dashboard');
-    } else {
-      alert('Credenciais inválidas');
+    setIsLoading(true);
+    setError('');
+
+    try {
+      const user = await getUserByUsername(username);
+      
+      if (!user) {
+        throw new Error('Usuário não encontrado');
+      }
+
+      // Use Supabase's signInWithPassword method
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: user.email,
+        password: password,
+      });
+
+      if (error) throw error;
+
+      if (data.user) {
+        toast({
+          title: "Login bem-sucedido",
+          description: "Você foi autenticado com sucesso.",
+        });
+        navigate('/dashboard');
+      } else {
+        throw new Error('Falha no login: Nenhum dado de usuário recebido');
+      }
+    } catch (error) {
+      console.error('Erro de login:', error);
+      setError(error.message);
+      toast({
+        title: "Falha no login",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -28,7 +66,7 @@ const Login = () => {
         <CardContent>
           <form onSubmit={handleLogin} className="space-y-4">
             <div className="space-y-2">
-              <label htmlFor="username" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">Usuário</label>
+              <label htmlFor="username" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">Nome de Usuário</label>
               <Input
                 type="text"
                 id="username"
@@ -47,7 +85,10 @@ const Login = () => {
                 required
               />
             </div>
-            <Button type="submit" className="w-full">Entrar</Button>
+            {error && <p className="text-red-500 text-sm">{error}</p>}
+            <Button type="submit" className="w-full" disabled={isLoading}>
+              {isLoading ? 'Entrando...' : 'Entrar'}
+            </Button>
           </form>
         </CardContent>
       </Card>
