@@ -10,19 +10,26 @@ const Login = () => {
   const [password, setPassword] = useState('');
   const navigate = useNavigate();
   const location = useLocation();
-  const { login, error, user } = useAuth();
+  const { login, error, user, loading } = useAuth();
 
   useEffect(() => {
-    if (user) {
+    if (user && !loading) {
       const from = location.state?.from?.pathname || '/dashboard';
       navigate(from, { replace: true });
     }
-  }, [user, navigate, location]);
+  }, [user, loading, navigate, location]);
 
   const handleLogin = async (e) => {
     e.preventDefault();
-    await login(username, password);
+    const success = await login(username, password);
+    if (success) {
+      navigate('/dashboard', { replace: true });
+    }
   };
+
+  if (loading) {
+    return <div>Loading...</div>;
+  }
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-100">
