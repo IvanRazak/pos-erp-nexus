@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -7,13 +7,21 @@ import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { validateCPF, validateCNPJ, validatePhone } from '../utils/validations';
 import { fetchAddressByCEP } from '../utils/api';
-import { useCustomerTypes, useAddCustomer } from '../integrations/supabase';
-import { toast } from "@/components/ui/use-toast";
+import { useCustomerTypes } from '../integrations/supabase';
 
-const ClienteForm = ({ onSuccess }) => {
-  const { register, handleSubmit, setValue, watch, formState: { errors } } = useForm();
+const ClienteForm = ({ onSave, clienteInicial }) => {
+  const { register, handleSubmit, setValue, watch, reset, formState: { errors } } = useForm({
+    defaultValues: clienteInicial || {}
+  });
   const { data: customerTypes, isLoading: isLoadingCustomerTypes } = useCustomerTypes();
-  const addCustomer = useAddCustomer();
+
+  useEffect(() => {
+    if (clienteInicial) {
+      Object.keys(clienteInicial).forEach(key => {
+        setValue(key, clienteInicial[key]);
+      });
+    }
+  }, [clienteInicial, setValue]);
 
   const handleCEPBlur = async (e) => {
     const cep = e.target.value.replace(/\D/g, '');
@@ -29,20 +37,8 @@ const ClienteForm = ({ onSuccess }) => {
   };
 
   const onSubmit = async (data) => {
-    try {
-      await addCustomer.mutateAsync(data);
-      toast({
-        title: "Cliente cadastrado com sucesso!",
-        description: "O novo cliente foi adicionado à lista.",
-      });
-      if (onSuccess) onSuccess();
-    } catch (error) {
-      toast({
-        title: "Erro ao cadastrar cliente",
-        description: error.message,
-        variant: "destructive",
-      });
-    }
+    await onSave(data);
+    reset();
   };
 
   return (
@@ -98,7 +94,7 @@ const ClienteForm = ({ onSuccess }) => {
       <Input {...register("cidade")} placeholder="Cidade" />
       <Input {...register("estado")} placeholder="Estado" />
 
-      <Select onValueChange={(value) => setValue("documento", value)}>
+      <Select onValueChange={(value) => setValue("documento", value)} defaultValue={watch("documento")}>
         <SelectTrigger>
           <SelectValue placeholder="Tipo de Documento" />
         </SelectTrigger>
@@ -135,7 +131,7 @@ const ClienteForm = ({ onSuccess }) => {
         <label htmlFor="bloqueado">Bloquear cliente</label>
       </div>
 
-      <Select {...register("customer_type_id")} defaultValue="">
+      <Select {...register("customer_type_id")} defaultValue={watch("customer_type_id")}>
         <SelectTrigger>
           <SelectValue placeholder="Tipo de Cliente" />
         </SelectTrigger>
@@ -150,7 +146,7 @@ const ClienteForm = ({ onSuccess }) => {
         </SelectContent>
       </Select>
 
-      <Button type="submit">Salvar Cliente</Button>
+      <Button type="submit">{clienteInicial ? 'Atualizar Cliente' : 'Salvar Cliente'}</Button>
     </form>
   );
 };
