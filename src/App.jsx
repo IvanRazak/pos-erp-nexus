@@ -4,6 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { SupabaseAuthProvider } from './integrations/supabase/auth';
+import ProtectedRoute from './components/ProtectedRoute';
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import Clientes from "./components/Clientes";
@@ -25,14 +26,16 @@ const App = () => (
           <BrowserRouter>
             <Routes>
               <Route path="/login" element={<Login />} />
-              <Route path="/dashboard" element={<Dashboard />}>
-                <Route path="clientes" element={<Clientes />} />
-                <Route path="produtos" element={<Produtos />} />
-                <Route path="venda" element={<Venda />} />
-                <Route path="pedidos" element={<GerenciamentoPedidos />} />
-                <Route path="caixa" element={<Caixa />} />
-                <Route path="financeiro" element={<Financeiro />} />
-                <Route path="relatorios" element={<Relatorios />} />
+              <Route element={<ProtectedRoute />}>
+                <Route path="/dashboard" element={<Dashboard />}>
+                  <Route path="clientes" element={<Clientes />} />
+                  <Route path="produtos" element={<Produtos />} />
+                  <Route path="venda" element={<Venda />} />
+                  <Route path="pedidos" element={<GerenciamentoPedidos />} />
+                  <Route path="caixa" element={<Caixa />} />
+                  <Route path="financeiro" element={<Financeiro />} />
+                  <Route path="relatorios" element={<Relatorios />} />
+                </Route>
               </Route>
               <Route path="/" element={<Navigate to="/login" replace />} />
             </Routes>
