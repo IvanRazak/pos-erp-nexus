@@ -3,12 +3,12 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import ClienteModal from './ClienteModal';
-import EditClienteModal from './EditClienteModal';
+import { useCustomerTypes } from '../integrations/supabase';
 
-const ClienteList = ({ clientes, onDelete, onUpdate, isAdmin }) => {
+const ClienteList = ({ clientes, onDelete, onEdit, isAdmin }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCliente, setSelectedCliente] = useState(null);
-  const [editingCliente, setEditingCliente] = useState(null);
+  const { data: customerTypes } = useCustomerTypes();
 
   const filteredClientes = clientes?.filter(cliente =>
     cliente.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -16,20 +16,13 @@ const ClienteList = ({ clientes, onDelete, onUpdate, isAdmin }) => {
     cliente.email?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const handleOpenModal = (cliente) => {
+  const handleVerPedidos = (cliente) => {
     setSelectedCliente(cliente);
   };
 
-  const handleCloseModal = () => {
-    setSelectedCliente(null);
-  };
-
-  const handleOpenEditModal = (cliente) => {
-    setEditingCliente(cliente);
-  };
-
-  const handleCloseEditModal = () => {
-    setEditingCliente(null);
+  const getCustomerTypeName = (typeId) => {
+    const customerType = customerTypes?.find(type => type.id === typeId);
+    return customerType ? customerType.name : 'N/A';
   };
 
   return (
@@ -47,7 +40,7 @@ const ClienteList = ({ clientes, onDelete, onUpdate, isAdmin }) => {
             <TableHead>Nome</TableHead>
             <TableHead>Telefone</TableHead>
             <TableHead>E-mail</TableHead>
-            <TableHead>Tipo</TableHead>
+            <TableHead>Tipo de Cliente</TableHead>
             <TableHead>Ações</TableHead>
           </TableRow>
         </TableHeader>
@@ -57,23 +50,23 @@ const ClienteList = ({ clientes, onDelete, onUpdate, isAdmin }) => {
               <TableCell>{cliente.name}</TableCell>
               <TableCell>{cliente.phone}</TableCell>
               <TableCell>{cliente.email}</TableCell>
-              <TableCell>{cliente.customer_type?.name || 'N/A'}</TableCell>
+              <TableCell>{getCustomerTypeName(cliente.customer_type_id)}</TableCell>
               <TableCell>
-                <Button onClick={() => handleOpenModal(cliente)}>Ver Pedidos</Button>
+                <Button onClick={() => onEdit(cliente)} className="mr-2">Editar</Button>
+                <Button onClick={() => handleVerPedidos(cliente)} className="mr-2">Ver Pedidos</Button>
                 {isAdmin && (
-                  <Button onClick={() => handleOpenEditModal(cliente)} className="ml-2">Editar</Button>
+                  <Button onClick={() => onDelete(cliente.id)} variant="destructive">Excluir</Button>
                 )}
-                <Button onClick={() => onDelete(cliente.id)} variant="destructive" className="ml-2">Excluir</Button>
               </TableCell>
             </TableRow>
           ))}
         </TableBody>
       </Table>
       {selectedCliente && (
-        <ClienteModal cliente={selectedCliente} onClose={handleCloseModal} onUpdate={onUpdate} />
-      )}
-      {editingCliente && (
-        <EditClienteModal cliente={editingCliente} onClose={handleCloseEditModal} onUpdate={onUpdate} />
+        <ClienteModal
+          cliente={selectedCliente}
+          onClose={() => setSelectedCliente(null)}
+        />
       )}
     </div>
   );
