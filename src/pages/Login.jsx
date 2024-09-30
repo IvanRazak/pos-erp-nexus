@@ -3,19 +3,19 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { useAuth } from '@/hooks/useAuth';
 
 const Login = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const navigate = useNavigate();
+  const { login, error } = useAuth();
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
-    if (username === 'admin' && password === '1107') {
-      localStorage.setItem('user', JSON.stringify({ username, isAdmin: true }));
+    const success = await login(username, password);
+    if (success) {
       navigate('/dashboard');
-    } else {
-      alert('Credenciais inválidas');
     }
   };
 
@@ -47,6 +47,7 @@ const Login = () => {
                 required
               />
             </div>
+            {error && <p className="text-red-500 text-sm">{error}</p>}
             <Button type="submit" className="w-full">Entrar</Button>
           </form>
         </CardContent>
