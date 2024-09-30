@@ -30,7 +30,7 @@ const Dashboard = () => {
       <div className="flex justify-between items-center mb-4">
         <h1 className="text-2xl font-bold">Dashboard</h1>
         <div className="flex items-center">
-          {user && <span className="mr-4">Welcome, {user.username}</span>}
+          {user && <span className="mr-4">Olá, {user.username}</span>}
           <Button onClick={handleLogout}>Logout</Button>
         </div>
       </div>
