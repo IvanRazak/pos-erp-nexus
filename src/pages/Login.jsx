@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { supabase } from '../lib/supabase';
-import { useToast } from "@/components/ui/use-toast"
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useToast } from "@/components/ui/use-toast";
 import { getUserByUsername } from '../integrations/supabase/hooks/users';
+import bcrypt from 'bcryptjs';
 
 const Login = () => {
   const [username, setUsername] = useState('');
@@ -21,29 +21,34 @@ const Login = () => {
     setError('');
 
     try {
+      // Buscar o usuário pelo nome de usuário
       const user = await getUserByUsername(username);
       
       if (!user) {
         throw new Error('Usuário não encontrado');
       }
 
-      // Use Supabase's signInWithPassword method
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email: user.email,
-        password: password,
-      });
+      // Log para debug
+      console.log('Senha fornecida:', password);
+      console.log('Hash armazenado:', user.password_hash);
 
-      if (error) throw error;
+      // Comparar a senha fornecida com o hash armazenado no banco de dados
+      const isPasswordValid = await bcrypt.compare(password, user.password_hash);
 
-      if (data.user) {
-        toast({
-          title: "Login bem-sucedido",
-          description: "Você foi autenticado com sucesso.",
-        });
-        navigate('/dashboard');
-      } else {
-        throw new Error('Falha no login: Nenhum dado de usuário recebido');
+      // Log para debug
+      console.log('Resultado da comparação:', isPasswordValid);
+
+      if (!isPasswordValid) {
+        throw new Error('Senha inválida');
       }
+
+      // Senha válida, redirecionar para o dashboard
+      toast({
+        title: "Login bem-sucedido",
+        description: "Você foi autenticado com sucesso.",
+      });
+      navigate('/dashboard');
+
     } catch (error) {
       console.error('Erro de login:', error);
       setError(error.message);
@@ -66,7 +71,7 @@ const Login = () => {
         <CardContent>
           <form onSubmit={handleLogin} className="space-y-4">
             <div className="space-y-2">
-              <label htmlFor="username" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">Nome de Usuário</label>
+              <label htmlFor="username" className="text-sm font-medium leading-none">Nome de Usuário</label>
               <Input
                 type="text"
                 id="username"
@@ -76,7 +81,7 @@ const Login = () => {
               />
             </div>
             <div className="space-y-2">
-              <label htmlFor="password" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">Senha</label>
+              <label htmlFor="password" className="text-sm font-medium leading-none">Senha</label>
               <Input
                 type="password"
                 id="password"
