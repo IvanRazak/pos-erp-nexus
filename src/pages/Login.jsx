@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { supabase } from '../lib/supabase';
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/components/ui/use-toast"
 
 const Login = () => {
   const [email, setEmail] = useState('');
@@ -14,40 +14,36 @@ const Login = () => {
   const { toast } = useToast();
 
   const handleLogin = async (e) => {
-  e.preventDefault();
-  setIsLoading(true);
-  try {
-    console.log("Logging in with:", { email, password }); // Adicionado log
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
-
-    if (error) {
-      console.error('Login error:', error);
-      throw new Error(error.message);
-    }
-
-    if (data.user) {
-      toast({
-        title: "Login successful",
-        description: "You have been logged in successfully.",
+    e.preventDefault();
+    setIsLoading(true);
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
       });
-      navigate('/dashboard');
-    } else {
-      throw new Error('Login failed: No user data received');
+
+      if (error) throw error;
+
+      if (data.user) {
+        toast({
+          title: "Login successful",
+          description: "You have been logged in successfully.",
+        });
+        navigate('/dashboard');
+      } else {
+        throw new Error('Login failed: No user data received');
+      }
+    } catch (error) {
+      console.error('Login error:', error);
+      toast({
+        title: "Login failed",
+        description: error.message || "Invalid login credentials. Please check your email and password.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
     }
-  } catch (error) {
-    console.error('Login error:', error);
-    toast({
-      title: "Login failed",
-      description: error.message || "Invalid login credentials. Please check your email and password.",
-      variant: "destructive",
-    });
-  } finally {
-    setIsLoading(false);
-  }
-};
+  };
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-100">
@@ -58,7 +54,7 @@ const Login = () => {
         <CardContent>
           <form onSubmit={handleLogin} className="space-y-4">
             <div className="space-y-2">
-              <label htmlFor="email" className="text-sm font-medium leading-none">Email</label>
+              <label htmlFor="email" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">Email</label>
               <Input
                 type="email"
                 id="email"
@@ -68,7 +64,7 @@ const Login = () => {
               />
             </div>
             <div className="space-y-2">
-              <label htmlFor="password" className="text-sm font-medium leading-none">Senha</label>
+              <label htmlFor="password" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">Senha</label>
               <Input
                 type="password"
                 id="password"
