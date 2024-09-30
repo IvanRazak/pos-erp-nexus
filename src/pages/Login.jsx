@@ -14,39 +14,40 @@ const Login = () => {
   const { toast } = useToast();
 
   const handleLogin = async (e) => {
-    e.preventDefault();
-    setIsLoading(true);
-    try {
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
+  e.preventDefault();
+  setIsLoading(true);
+  try {
+    console.log("Logging in with:", { email, password }); // Adicionado log
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
 
-      if (error) {
-        console.error('Login error:', error);
-        throw new Error(error.message);
-      }
-
-      if (data.user) {
-        toast({
-          title: "Login successful",
-          description: "You have been logged in successfully.",
-        });
-        navigate('/dashboard');
-      } else {
-        throw new Error('Login failed: No user data received');
-      }
-    } catch (error) {
+    if (error) {
       console.error('Login error:', error);
-      toast({
-        title: "Login failed",
-        description: error.message || "Invalid login credentials. Please check your email and password.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
+      throw new Error(error.message);
     }
-  };
+
+    if (data.user) {
+      toast({
+        title: "Login successful",
+        description: "You have been logged in successfully.",
+      });
+      navigate('/dashboard');
+    } else {
+      throw new Error('Login failed: No user data received');
+    }
+  } catch (error) {
+    console.error('Login error:', error);
+    toast({
+      title: "Login failed",
+      description: error.message || "Invalid login credentials. Please check your email and password.",
+      variant: "destructive",
+    });
+  } finally {
+    setIsLoading(false);
+  }
+};
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-100">
