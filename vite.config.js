@@ -10,11 +10,6 @@ export default defineConfig({
     port: "8080",
   },
   plugins: [react()],
-  build: {
-    rollupOptions: {
-      external: ['react-toastify'],  // Adicionando react-toastify como externo
-    },
-  },
   resolve: {
     alias: [
       {

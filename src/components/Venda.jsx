@@ -14,7 +14,6 @@ import { useProducts, useCustomers, useExtraOptions, usePaymentOptions, useAddOr
 import ClienteForm from './ClienteForm';
 import { toast } from "@/components/ui/use-toast";
 import ProdutoExtraOptionsModal from './ProdutoExtraOptionsModal';
-import { ToastContainer } from "react-toastify";
 
 const Venda = () => {
   const [carrinho, setCarrinho] = useState([]);
@@ -38,12 +37,10 @@ const Venda = () => {
   const addOrder = useAddOrder();
 
   const adicionarAoCarrinho = () => {
-  if (!produtoSelecionado) {
-    toast.error("Selecione um produto antes de adicionar ao carrinho.");
-    return;
-  }
-  setIsExtraOptionsModalOpen(true);
-};
+    if (produtoSelecionado) {
+      setIsExtraOptionsModalOpen(true);
+    }
+  };
 
   const handleAdicionarAoCarrinhoComExtras = (extrasEscolhidas) => {
     const m2Total = produtoSelecionado.unit_type === 'square_meter' ? largura * altura : 1;
@@ -83,42 +80,52 @@ const Venda = () => {
   };
 
   const finalizarVenda = async () => {
-  if (!clienteSelecionado || carrinho.length === 0 || !dataEntrega || !opcaoPagamento || valorPago <= 0) {
-    toast.error("Por favor, preencha todos os campos obrigatórios.");
-    return;
-  }
+    if (!clienteSelecionado || carrinho.length === 0 || !dataEntrega || !opcaoPagamento || valorPago <= 0) {
+      toast({
+        title: "Erro ao finalizar venda",
+        description: "Por favor, preencha todos os campos obrigatórios.",
+        variant: "destructive",
+      });
+      return;
+    }
 
-  const totalVenda = calcularTotal();
-  const saldoRestante = totalVenda - valorPago;
+    const totalVenda = calcularTotal();
+    const saldoRestante = totalVenda - valorPago;
 
-  const novaVenda = {
-    customer_id: clienteSelecionado,
-    total_amount: totalVenda,
-    paid_amount: valorPago,
-    remaining_balance: saldoRestante,
-    status: saldoRestante > 0 ? 'partial_payment' : 'in_production',
-    delivery_date: format(dataEntrega, 'yyyy-MM-dd'),
-    payment_option: opcaoPagamento,
-    items: carrinho.map(item => ({
-      product_id: item.id,
-      quantity: item.quantidade,
-      unit_price: item.sale_price,
-      extras: item.extras,
-      width: item.largura,
-      height: item.altura,
-      m2: item.m2,
-    })),
+    const novaVenda = {
+      customer_id: clienteSelecionado,
+      total_amount: totalVenda,
+      paid_amount: valorPago,
+      remaining_balance: saldoRestante,
+      status: saldoRestante > 0 ? 'partial_payment' : 'in_production',
+      delivery_date: format(dataEntrega, 'yyyy-MM-dd'),
+      payment_option: opcaoPagamento,
+      items: carrinho.map(item => ({
+        product_id: item.id,
+        quantity: item.quantidade,
+        unit_price: item.sale_price,
+        extras: item.extras,
+        width: item.largura,
+        height: item.altura,
+        m2: item.m2,
+      })),
+    };
+
+    try {
+      await addOrder.mutateAsync(novaVenda);
+      toast({
+        title: "Venda finalizada com sucesso!",
+        description: "A nova venda foi registrada no sistema.",
+      });
+      resetCarrinho();
+    } catch (error) {
+      toast({
+        title: "Erro ao finalizar venda",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
   };
-
-  try {
-    await addOrder.mutateAsync(novaVenda);
-    toast.success("Venda finalizada com sucesso!");
-    resetCarrinho();
-  } catch (error) {
-    toast.error(`Erro ao finalizar venda: ${error.message}`);
-  }
-};
-
 
   const resetCarrinho = () => {
     setCarrinho([]);
