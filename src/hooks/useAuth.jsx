@@ -2,51 +2,39 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 
 export const useAuth = () => {
-  const [error, setError] = useState(null);
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const storedUser = localStorage.getItem('user');
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));
+    const session = JSON.parse(localStorage.getItem('session'));
+    if (session) {
+      setUser(session.user);
     }
     setLoading(false);
   }, []);
 
-  const login = async (username, password) => {
+  const login = async (email, password) => {
     try {
-      setLoading(true);
-      const { data, error } = await supabase
-        .from('users')
-        .select('*')
-        .eq('username', username)
-        .single();
-
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) throw error;
-
-      if (data && data.password_hash === password) {
-        const userData = { username, isAdmin: data.role === 'admin' };
-        localStorage.setItem('user', JSON.stringify(userData));
-        setUser(userData);
-        return true;
-      } else {
-        setError('Invalid username or password');
-        return false;
-      }
+      localStorage.setItem('session', JSON.stringify(data.session));
+      setUser(data.user);
+      return true;
     } catch (error) {
-      setError('An error occurred during login');
-      console.error('Login error:', error);
+      console.error('Error logging in:', error.message);
       return false;
-    } finally {
-      setLoading(false);
     }
   };
 
-  const logout = () => {
-    localStorage.removeItem('user');
-    setUser(null);
+  const logout = async () => {
+    try {
+      await supabase.auth.signOut();
+      localStorage.removeItem('session');
+      setUser(null);
+    } catch (error) {
+      console.error('Error logging out:', error.message);
+    }
   };
 
-  return { login, logout, error, user, loading };
+  return { user, loading, login, logout };
 };
