@@ -147,9 +147,7 @@ const Produtos = () => {
               <TableCell>{produto.print_type}</TableCell>
               <TableCell>{produto.unit_type}</TableCell>
               <TableCell>
-                {isAdminOrOperator && (
                 <Button onClick={() => handleOpenEditModal(produto)} className="mr-2">Editar</Button>
-              )}
                 {isAdminOrOperator && (
                   <Button onClick={() => handleDeleteProduct(produto.id)} variant="destructive">Excluir</Button>
                 )}
