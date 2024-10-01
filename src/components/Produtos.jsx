@@ -16,9 +16,9 @@ const Produtos = () => {
   const [editingProduto, setEditingProduto] = useState(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const { session } = useSupabaseAuth();
+  const { session } = useSupabaseAuth() || {};
 
-  const isAdminOrOperator = session?.user?.user_metadata?.role === 'admin' || session?.user?.user_metadata?.role === 'operator';
+  const isAdmin = session?.user?.role === 'admin';
 
   const { data: produtos, isLoading } = useProducts();
   const addProduct = useAddProduct();
@@ -56,23 +56,21 @@ const Produtos = () => {
   };
 
   const handleDeleteProduct = (id) => {
-    if (window.confirm("Tem certeza que deseja excluir este produto?")) {
-      deleteProduct.mutate(id, {
-        onSuccess: () => {
-          toast({
-            title: "Produto excluído com sucesso!",
-            description: "O produto foi removido da lista.",
-          });
-        },
-        onError: (error) => {
-          toast({
-            title: "Erro ao excluir produto",
-            description: error.message,
-            variant: "destructive",
-          });
-        }
-      });
-    }
+    deleteProduct.mutate(id, {
+      onSuccess: () => {
+        toast({
+          title: "Produto excluído com sucesso!",
+          description: "O produto foi removido da lista.",
+        });
+      },
+      onError: (error) => {
+        toast({
+          title: "Erro ao excluir produto",
+          description: error.message,
+          variant: "destructive",
+        });
+      }
+    });
   };
 
   if (isLoading) return <div>Carregando...</div>;
@@ -147,9 +145,9 @@ const Produtos = () => {
               <TableCell>{produto.print_type}</TableCell>
               <TableCell>{produto.unit_type}</TableCell>
               <TableCell>
-                <Button onClick={() => handleOpenEditModal(produto)} className="mr-2">Editar</Button>
-                {isAdminOrOperator && (
-                  <Button onClick={() => handleDeleteProduct(produto.id)} variant="destructive">Excluir</Button>
+                <Button onClick={() => handleOpenEditModal(produto)}>Editar</Button>
+                {isAdmin && (
+                  <Button onClick={() => handleDeleteProduct(produto.id)} variant="destructive" className="ml-2">Excluir</Button>
                 )}
               </TableCell>
             </TableRow>
