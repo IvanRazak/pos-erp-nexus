@@ -8,18 +8,14 @@ import { useAuth } from '@/hooks/useAuth';
 const Login = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
   const navigate = useNavigate();
-  const { login } = useAuth();
+  const { login, error } = useAuth();
 
   const handleLogin = async (e) => {
     e.preventDefault();
-    setError('');
     const success = await login(username, password);
     if (success) {
       navigate('/dashboard');
-    } else {
-      setError('Falha no login. Verifique suas credenciais.');
     }
   };
 
@@ -32,7 +28,7 @@ const Login = () => {
         <CardContent>
           <form onSubmit={handleLogin} className="space-y-4">
             <div className="space-y-2">
-              <label htmlFor="username" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">Nome de usuário</label>
+              <label htmlFor="username" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">Usuário</label>
               <Input
                 type="text"
                 id="username"

@@ -28,12 +28,12 @@ export const useAuth = () => {
         setUser(userData);
         return true;
       } else {
-        setError('Nome de usuário ou senha inválidos');
+        setError('Invalid username or password');
         return false;
       }
     } catch (error) {
-      setError('Ocorreu um erro durante o login');
-      console.error('Erro de login:', error);
+      setError('An error occurred during login');
+      console.error('Login error:', error);
       return false;
     }
   };
