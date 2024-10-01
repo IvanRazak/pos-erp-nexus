@@ -56,21 +56,23 @@ const Produtos = () => {
   };
 
   const handleDeleteProduct = (id) => {
-    deleteProduct.mutate(id, {
-      onSuccess: () => {
-        toast({
-          title: "Produto excluído com sucesso!",
-          description: "O produto foi removido da lista.",
-        });
-      },
-      onError: (error) => {
-        toast({
-          title: "Erro ao excluir produto",
-          description: error.message,
-          variant: "destructive",
-        });
-      }
-    });
+    if (window.confirm("Tem certeza que deseja excluir este produto?")) {
+      deleteProduct.mutate(id, {
+        onSuccess: () => {
+          toast({
+            title: "Produto excluído com sucesso!",
+            description: "O produto foi removido da lista.",
+          });
+        },
+        onError: (error) => {
+          toast({
+            title: "Erro ao excluir produto",
+            description: error.message,
+            variant: "destructive",
+          });
+        }
+      });
+    }
   };
 
   if (isLoading) return <div>Carregando...</div>;
@@ -145,9 +147,9 @@ const Produtos = () => {
               <TableCell>{produto.print_type}</TableCell>
               <TableCell>{produto.unit_type}</TableCell>
               <TableCell>
-                <Button onClick={() => handleOpenEditModal(produto)}>Editar</Button>
+                <Button onClick={() => handleOpenEditModal(produto)} className="mr-2">Editar</Button>
                 {isAdmin && (
-                  <Button onClick={() => handleDeleteProduct(produto.id)} variant="destructive" className="ml-2">Excluir</Button>
+                  <Button onClick={() => handleDeleteProduct(produto.id)} variant="destructive">Excluir</Button>
                 )}
               </TableCell>
             </TableRow>
