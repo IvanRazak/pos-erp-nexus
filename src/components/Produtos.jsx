@@ -18,7 +18,7 @@ const Produtos = () => {
   const queryClient = useQueryClient();
   const { session } = useSupabaseAuth() || {};
 
-  const isAdmin = session?.user?.role === 'admin';
+  const isAdminOrOperator = session?.user?.role === 'admin' || session?.user?.role === 'operator';
 
   const { data: produtos, isLoading } = useProducts();
   const addProduct = useAddProduct();
@@ -148,7 +148,7 @@ const Produtos = () => {
               <TableCell>{produto.unit_type}</TableCell>
               <TableCell>
                 <Button onClick={() => handleOpenEditModal(produto)} className="mr-2">Editar</Button>
-                {isAdmin && (
+                {isAdminOrOperator && (
                   <Button onClick={() => handleDeleteProduct(produto.id)} variant="destructive">Excluir</Button>
                 )}
               </TableCell>
