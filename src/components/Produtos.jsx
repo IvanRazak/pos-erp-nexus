@@ -16,9 +16,9 @@ const Produtos = () => {
   const [editingProduto, setEditingProduto] = useState(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const { session } = useSupabaseAuth() || {};
+  const { session } = useSupabaseAuth();
 
-  const isAdminOrOperator = session?.user?.role === 'admin' || session?.user?.role === 'operator';
+  const isAdminOrOperator = session?.user?.user_metadata?.role === 'admin' || session?.user?.user_metadata?.role === 'operator';
 
   const { data: produtos, isLoading } = useProducts();
   const addProduct = useAddProduct();
