@@ -7,53 +7,45 @@ export const useAuth = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      setUser(session?.user ?? null);
-      setLoading(false);
-    };
-
-    fetchSession();
-
-    const { data: authListener } = supabase.auth.onAuthStateChange(async (event, session) => {
-      setUser(session?.user ?? null);
-      setLoading(false);
-    });
-
-    return () => {
-      authListener.subscription.unsubscribe();
-    };
+    const storedUser = localStorage.getItem('user');
+    if (storedUser) {
+      setUser(JSON.parse(storedUser));
+    }
+    setLoading(false);
   }, []);
 
-  const login = async (email, password) => {
+  const login = async (username, password) => {
     try {
       setLoading(true);
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
+      const { data, error } = await supabase
+        .from('users')
+        .select('*')
+        .eq('username', username)
+        .single();
 
       if (error) throw error;
-      setUser(data.user);
-      return true;
+
+      if (data && data.password_hash === password) {
+        const userData = { username, isAdmin: data.role === 'admin' };
+        localStorage.setItem('user', JSON.stringify(userData));
+        setUser(userData);
+        return true;
+      } else {
+        setError('Invalid username or password');
+        return false;
+      }
     } catch (error) {
-      setError(error.message);
+      setError('An error occurred during login');
+      console.error('Login error:', error);
       return false;
     } finally {
       setLoading(false);
     }
   };
 
-  const logout = async () => {
-    try {
-      setLoading(true);
-      await supabase.auth.signOut();
-      setUser(null);
-    } catch (error) {
-      setError(error.message);
-    } finally {
-      setLoading(false);
-    }
+  const logout = () => {
+    localStorage.removeItem('user');
+    setUser(null);
   };
 
   return { login, logout, error, user, loading };
