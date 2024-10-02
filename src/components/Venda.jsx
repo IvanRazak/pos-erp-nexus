@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -14,8 +15,11 @@ import { useProducts, useCustomers, useExtraOptions, usePaymentOptions, useAddOr
 import ClienteForm from './ClienteForm';
 import { toast } from "@/components/ui/use-toast";
 import ProdutoExtraOptionsModal from './ProdutoExtraOptionsModal';
+import { useAuth } from '../hooks/useAuth';
 
 const Venda = () => {
+  const navigate = useNavigate();
+  const { user } = useAuth();
   const [carrinho, setCarrinho] = useState([]);
   const [clienteSelecionado, setClienteSelecionado] = useState(null);
   const [produtoSelecionado, setProdutoSelecionado] = useState(null);
@@ -30,11 +34,15 @@ const Venda = () => {
   const [isExtraOptionsModalOpen, setIsExtraOptionsModalOpen] = useState(false);
   const [valorPago, setValorPago] = useState(0);
 
-  const { data: produtos } = useProducts();
-  const { data: clientes, refetch: refetchClientes } = useCustomers();
-  const { data: opcoesExtras } = useExtraOptions();
-  const { data: opcoesPagamento } = usePaymentOptions();
-  const addOrder = useAddOrder();
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (!user) {
+        navigate('/login');
+      }
+    }, 1000);
+
+    return () => clearTimeout(timer);
+  }, [user, navigate]);
 
   const adicionarAoCarrinho = () => {
     if (produtoSelecionado) {
@@ -80,18 +88,18 @@ const Venda = () => {
   };
 
   const finalizarVenda = async () => {
-  const erros = [];
-  
-  if (!clienteSelecionado) erros.push("Selecione um cliente");
-  if (carrinho.length === 0) erros.push("O carrinho está vazio");
-  if (!dataEntrega) erros.push("Defina uma data de entrega");
-  if (!opcaoPagamento) erros.push("Selecione uma opção de pagamento");
-  if (valorPago <= 0) erros.push("Insira um valor pago maior que zero");
+    const erros = [];
+    
+    if (!clienteSelecionado) erros.push("Selecione um cliente");
+    if (carrinho.length === 0) erros.push("O carrinho está vazio");
+    if (!dataEntrega) erros.push("Defina uma data de entrega");
+    if (!opcaoPagamento) erros.push("Selecione uma opção de pagamento");
+    if (valorPago <= 0) erros.push("Insira um valor pago maior que zero");
 
-  if (erros.length > 0) {
-    alert("Não foi possível finalizar a venda:\n\n" + erros.join("\n"));
-    return;
-  }
+    if (erros.length > 0) {
+      alert("Não foi possível finalizar a venda:\n\n" + erros.join("\n"));
+      return;
+    }
 
     const totalVenda = calcularTotal();
     const saldoRestante = totalVenda - valorPago;
