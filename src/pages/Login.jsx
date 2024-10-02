@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -9,28 +9,13 @@ const Login = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const navigate = useNavigate();
-  const location = useLocation();
-  const { login, error, user } = useAuth();
-
-  useEffect(() => {
-    console.log('Login: Component mounted');
-    if (user) {
-      console.log('Login: User already logged in, redirecting');
-      const from = location.state?.from?.pathname || "/dashboard";
-      navigate(from, { replace: true });
-    }
-  }, [user, navigate, location]);
+  const { login, error } = useAuth();
 
   const handleLogin = async (e) => {
     e.preventDefault();
-    console.log('Login: Attempting login');
     const success = await login(username, password);
     if (success) {
-      console.log('Login: Login successful, redirecting');
-      const from = location.state?.from?.pathname || "/dashboard";
-      navigate(from, { replace: true });
-    } else {
-      console.log('Login: Login failed');
+      navigate('/dashboard');
     }
   };
 

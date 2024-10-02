@@ -7,22 +7,16 @@ export const useAuth = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    console.log('useAuth: Checking for stored user');
     const storedUser = localStorage.getItem('user');
     if (storedUser) {
-      console.log('useAuth: Found stored user', JSON.parse(storedUser));
       setUser(JSON.parse(storedUser));
-    } else {
-      console.log('useAuth: No stored user found');
     }
     setLoading(false);
   }, []);
 
   const login = async (username, password) => {
-    console.log('useAuth: Attempting login', { username });
     try {
       setLoading(true);
-      setError(null);
       const { data, error } = await supabase
         .from('users')
         .select('*')
@@ -32,19 +26,17 @@ export const useAuth = () => {
       if (error) throw error;
 
       if (data && data.password_hash === password) {
-        console.log('useAuth: Login successful', { username });
         const userData = { username, isAdmin: data.role === 'admin' };
         localStorage.setItem('user', JSON.stringify(userData));
         setUser(userData);
         return true;
       } else {
-        console.log('useAuth: Invalid credentials');
-        setError('Usuário ou senha inválidos');
+        setError('Invalid username or password');
         return false;
       }
     } catch (error) {
-      console.error('useAuth: Login error', error);
-      setError('Ocorreu um erro durante o login');
+      setError('An error occurred during login');
+      console.error('Login error:', error);
       return false;
     } finally {
       setLoading(false);
@@ -52,7 +44,6 @@ export const useAuth = () => {
   };
 
   const logout = () => {
-    console.log('useAuth: Logging out');
     localStorage.removeItem('user');
     setUser(null);
   };
