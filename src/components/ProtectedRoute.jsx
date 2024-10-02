@@ -1,17 +1,20 @@
 import React from 'react';
-import { Navigate, Outlet, useLocation } from 'react-router-dom';
+import { Navigate, Outlet } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 
 const ProtectedRoute = () => {
   const { user, loading } = useAuth();
-  const location = useLocation();
+  
+  console.log('ProtectedRoute - User:', user);
+  console.log('ProtectedRoute - Loading:', loading);
 
   if (loading) {
     return <div>Carregando...</div>;
   }
 
   if (!user) {
-    return <Navigate to="/login" state={{ from: location }} replace />;
+    console.log('ProtectedRoute - Redirecting to login');
+    return <Navigate to="/login" replace />;
   }
 
   return <Outlet />;

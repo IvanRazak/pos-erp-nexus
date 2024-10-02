@@ -17,6 +17,7 @@ export const useAuth = () => {
   const login = async (username, password) => {
     try {
       setLoading(true);
+      console.log('Login - Attempting login:', username);
       const { data, error } = await supabase
         .from('users')
         .select('*')
@@ -29,9 +30,11 @@ export const useAuth = () => {
         const userData = { username, isAdmin: data.role === 'admin' };
         localStorage.setItem('user', JSON.stringify(userData));
         setUser(userData);
+        console.log('Login - Successful:', userData);
         return true;
       } else {
         setError('Invalid username or password');
+        console.log('Login - Failed: Invalid credentials');
         return false;
       }
     } catch (error) {
@@ -46,6 +49,7 @@ export const useAuth = () => {
   const logout = () => {
     localStorage.removeItem('user');
     setUser(null);
+    console.log('Logout - User logged out');
   };
 
   return { login, logout, error, user, loading };

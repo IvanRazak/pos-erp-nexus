@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -9,13 +9,24 @@ const Login = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const navigate = useNavigate();
-  const { login, error } = useAuth();
+  const { login, error, user } = useAuth();
+
+  useEffect(() => {
+    if (user) {
+      console.log('Login - User already logged in, redirecting to dashboard');
+      navigate('/dashboard');
+    }
+  }, [user, navigate]);
 
   const handleLogin = async (e) => {
     e.preventDefault();
+    console.log('Login - Attempting login');
     const success = await login(username, password);
     if (success) {
+      console.log('Login - Successful, redirecting to dashboard');
       navigate('/dashboard');
+    } else {
+      console.log('Login - Failed');
     }
   };
 
