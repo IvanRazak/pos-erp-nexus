@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import AdminMenu from '../components/AdminMenu';
 import { useAuth } from '../hooks/useAuth';
 import { Button } from "@/components/ui/button"
+import { debounce } from 'lodash';
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -25,6 +26,14 @@ const Dashboard = () => {
     navigate('/login');
   };
 
+  // Debounce the navigation function
+  const debouncedNavigate = useCallback(
+    debounce((path) => {
+      navigate(path);
+    }, 300),
+    [navigate]
+  );
+
   return (
     <div className="container mx-auto p-4">
       <div className="flex justify-between items-center mb-4">
@@ -42,7 +51,7 @@ const Dashboard = () => {
                 <TabsTrigger
                   key={tab.value}
                   value={tab.value}
-                  onClick={() => navigate(`/dashboard/${tab.value}`)}
+                  onClick={() => debouncedNavigate(`/dashboard/${tab.value}`)}
                 >
                   {tab.label}
                 </TabsTrigger>
