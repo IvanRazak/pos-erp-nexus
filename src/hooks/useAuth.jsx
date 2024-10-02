@@ -7,9 +7,12 @@ export const useAuth = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const storedUser = localStorage.getItem('user');
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));
+    const isAuthenticated = localStorage.getItem('isAuthenticated') === 'true';
+    if (isAuthenticated) {
+      const storedUser = localStorage.getItem('user');
+      if (storedUser) {
+        setUser(JSON.parse(storedUser));
+      }
     }
     setLoading(false);
   }, []);
@@ -28,6 +31,7 @@ export const useAuth = () => {
       if (data && data.password_hash === password) {
         const userData = { username, isAdmin: data.role === 'admin' };
         localStorage.setItem('user', JSON.stringify(userData));
+        localStorage.setItem('isAuthenticated', 'true');
         setUser(userData);
         return true;
       } else {
@@ -45,6 +49,7 @@ export const useAuth = () => {
 
   const logout = () => {
     localStorage.removeItem('user');
+    localStorage.removeItem('isAuthenticated');
     setUser(null);
   };
 
