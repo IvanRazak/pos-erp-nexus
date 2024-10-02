@@ -148,7 +148,7 @@ const Financeiro = () => {
           onChange={(e) => setFilters({...filters, numeroPedido: e.target.value})}
         />
       </div>
-      {user && user.isAdmin && (
+      {user && user.role === 'admin' && (
       <Table>
         <TableHeader>
           <TableRow>
