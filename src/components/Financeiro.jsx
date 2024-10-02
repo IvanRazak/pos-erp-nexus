@@ -149,7 +149,6 @@ const Financeiro = () => {
           onChange={(e) => setFilters({...filters, numeroPedido: e.target.value})}
         />
       </div>
-      )}
       <Table>
         <TableHeader>
           <TableRow>
@@ -208,6 +207,7 @@ const Financeiro = () => {
         </TableBody>
       </Table>
     </div>
+     )};
   );
   );
 
