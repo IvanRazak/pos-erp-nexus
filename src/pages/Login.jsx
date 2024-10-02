@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -9,13 +9,15 @@ const Login = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const navigate = useNavigate();
+  const location = useLocation();
   const { login, error } = useAuth();
 
   const handleLogin = async (e) => {
     e.preventDefault();
     const success = await login(username, password);
     if (success) {
-      navigate('/dashboard');
+      const from = location.state?.from?.pathname || "/dashboard";
+      navigate(from, { replace: true });
     }
   };
 

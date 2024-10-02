@@ -17,6 +17,7 @@ export const useAuth = () => {
   const login = async (username, password) => {
     try {
       setLoading(true);
+      setError(null);
       const { data, error } = await supabase
         .from('users')
         .select('*')
@@ -31,12 +32,12 @@ export const useAuth = () => {
         setUser(userData);
         return true;
       } else {
-        setError('Invalid username or password');
+        setError('Usuário ou senha inválidos');
         return false;
       }
     } catch (error) {
-      setError('An error occurred during login');
-      console.error('Login error:', error);
+      setError('Ocorreu um erro durante o login');
+      console.error('Erro de login:', error);
       return false;
     } finally {
       setLoading(false);
