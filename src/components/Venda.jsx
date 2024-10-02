@@ -34,6 +34,12 @@ const Venda = () => {
   const [isExtraOptionsModalOpen, setIsExtraOptionsModalOpen] = useState(false);
   const [valorPago, setValorPago] = useState(0);
 
+  const { data: produtos } = useProducts();
+  const { data: clientes } = useCustomers();
+  const { data: opcoesExtras } = useExtraOptions();
+  const { data: opcoesPagamento } = usePaymentOptions();
+  const addOrder = useAddOrder();
+
   useEffect(() => {
     const timer = setTimeout(() => {
       if (!user) {
@@ -154,7 +160,7 @@ const Venda = () => {
       <div className="grid grid-cols-2 gap-4">
         <div>
           <h3 className="text-xl font-semibold mb-2">Selecionar Produto</h3>
-          <Select onValueChange={(value) => setProdutoSelecionado(produtos.find(p => p.id === value))}>
+          <Select onValueChange={(value) => setProdutoSelecionado(produtos?.find(p => p.id === value))}>
             <SelectTrigger>
               <SelectValue placeholder="Selecione um produto" />
             </SelectTrigger>
