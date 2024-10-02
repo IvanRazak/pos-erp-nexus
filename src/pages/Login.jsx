@@ -9,26 +9,25 @@ const Login = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const navigate = useNavigate();
-  const { login, error, user } = useAuth();
+  const { login, error, user, loading } = useAuth();
 
   useEffect(() => {
     if (user) {
-      console.log('Login - User already logged in, redirecting to dashboard');
       navigate('/dashboard');
     }
   }, [user, navigate]);
 
   const handleLogin = async (e) => {
     e.preventDefault();
-    console.log('Login - Attempting login');
     const success = await login(username, password);
     if (success) {
-      console.log('Login - Successful, redirecting to dashboard');
       navigate('/dashboard');
-    } else {
-      console.log('Login - Failed');
     }
   };
+
+  if (loading) {
+    return <div>Carregando...</div>;
+  }
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-100">

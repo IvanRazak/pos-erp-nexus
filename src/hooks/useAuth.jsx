@@ -7,49 +7,49 @@ export const useAuth = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const storedUser = localStorage.getItem('user');
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));
-    }
+    const session = supabase.auth.getSession();
+    setUser(session?.user ?? null);
     setLoading(false);
+
+    const { data: authListener } = supabase.auth.onAuthStateChange(async (event, session) => {
+      setUser(session?.user ?? null);
+      setLoading(false);
+    });
+
+    return () => {
+      authListener.subscription.unsubscribe();
+    };
   }, []);
 
   const login = async (username, password) => {
     try {
       setLoading(true);
-      console.log('Login - Attempting login:', username);
-      const { data, error } = await supabase
-        .from('users')
-        .select('*')
-        .eq('username', username)
-        .single();
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: username,
+        password: password,
+      });
 
       if (error) throw error;
-
-      if (data && data.password_hash === password) {
-        const userData = { username, isAdmin: data.role === 'admin' };
-        localStorage.setItem('user', JSON.stringify(userData));
-        setUser(userData);
-        console.log('Login - Successful:', userData);
-        return true;
-      } else {
-        setError('Invalid username or password');
-        console.log('Login - Failed: Invalid credentials');
-        return false;
-      }
+      setUser(data.user);
+      return true;
     } catch (error) {
-      setError('An error occurred during login');
-      console.error('Login error:', error);
+      setError(error.message);
       return false;
     } finally {
       setLoading(false);
     }
   };
 
-  const logout = () => {
-    localStorage.removeItem('user');
-    setUser(null);
-    console.log('Logout - User logged out');
+  const logout = async () => {
+    try {
+      setLoading(true);
+      await supabase.auth.signOut();
+      setUser(null);
+    } catch (error) {
+      setError(error.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return { login, logout, error, user, loading };
