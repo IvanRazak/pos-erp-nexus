@@ -25,12 +25,12 @@ export const useAuth = () => {
     };
   }, []);
 
-  const login = async (username, password) => {
+  const login = async (email, password) => {
     try {
       setLoading(true);
       const { data, error } = await supabase.auth.signInWithPassword({
-        email: username,
-        password: password,
+        email,
+        password,
       });
 
       if (error) throw error;
