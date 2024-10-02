@@ -209,6 +209,6 @@ const Financeiro = () => {
     </div>
   );
   );
-};
+)};
 
 export default Financeiro;
