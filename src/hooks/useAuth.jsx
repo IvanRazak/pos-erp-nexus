@@ -30,7 +30,6 @@ export const useAuth = () => {
         const userData = { username, isAdmin: data.role === 'admin' };
         localStorage.setItem('user', JSON.stringify(userData));
         setUser(userData);
-        setError(null);
         console.log('Login - Successful:', userData);
         return true;
       } else {
@@ -50,8 +49,6 @@ export const useAuth = () => {
   const logout = () => {
     localStorage.removeItem('user');
     setUser(null);
-    setError(null);
-    setLoading(false);
     console.log('Logout - User logged out');
   };
 

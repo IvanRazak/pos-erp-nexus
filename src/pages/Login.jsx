@@ -9,7 +9,7 @@ const Login = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const navigate = useNavigate();
-  const { login, error, user, loading } = useAuth();
+  const { login, error, user } = useAuth();
 
   useEffect(() => {
     if (user) {
@@ -27,15 +27,8 @@ const Login = () => {
       navigate('/dashboard');
     } else {
       console.log('Login - Failed');
-      // Reset form fields after failed login attempt
-      setUsername('');
-      setPassword('');
     }
   };
-
-  if (loading) {
-    return <div>Loading...</div>;
-  }
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-100">
