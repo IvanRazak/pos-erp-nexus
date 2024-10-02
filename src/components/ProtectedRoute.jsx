@@ -1,16 +1,19 @@
 import React from 'react';
-import { Navigate, Outlet } from 'react-router-dom';
+import { Navigate, Outlet, useLocation } from 'react-router-dom';
+import { useAuth } from '../hooks/useAuth';
 
 const ProtectedRoute = () => {
-  const isAuthenticated = localStorage.getItem('isAuthenticated') === 'true';
-  console.log('ProtectedRoute - isAuthenticated:', isAuthenticated);
+  const { user, loading } = useAuth();
+  const location = useLocation();
 
-  if (!isAuthenticated) {
-    console.log('ProtectedRoute - User not authenticated, redirecting to login');
-    return <Navigate to="/login" replace />;
+  if (loading) {
+    return <div>Carregando...</div>;
   }
 
-  console.log('ProtectedRoute - User authenticated, allowing access');
+  if (!user) {
+    return <Navigate to="/login" state={{ from: location }} replace />;
+  }
+
   return <Outlet />;
 };
 

@@ -13,13 +13,9 @@ const Login = () => {
 
   const handleLogin = async (e) => {
     e.preventDefault();
-    console.log('Login - Attempting login with username:', username);
     const success = await login(username, password);
     if (success) {
-      console.log('Login - Login successful, redirecting to dashboard');
       navigate('/dashboard');
-    } else {
-      console.log('Login - Login failed');
     }
   };
 
