@@ -29,7 +29,7 @@ const Dashboard = () => {
     <div className="container mx-auto p-4">
       <div className="flex justify-between items-center mb-4">
         <h1 className="text-2xl font-bold">Dashboard</h1>
-        <div className="flex items-center">
+        <div id='uzu' className="flex items-center">
           {user && <span className="mr-4">Olá, {user.username}</span>}
           <Button onClick={handleLogout}>Logout</Button>
         </div>
