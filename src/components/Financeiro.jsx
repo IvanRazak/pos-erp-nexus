@@ -1,4 +1,5 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -10,6 +11,7 @@ import { useOrders, usePaymentOptions, useUpdateOrder, useAddPayment, useCustome
 import { toast } from "@/components/ui/use-toast";
 import { format, isWithinInterval, parseISO, startOfDay, endOfDay } from "date-fns";
 import { ptBR } from 'date-fns/locale';
+import { useAuth } from '../hooks/useAuth';
 
 const Financeiro = () => {
   const [filtroDataInicio, setFiltroDataInicio] = useState(null);
@@ -20,6 +22,8 @@ const Financeiro = () => {
   const [opcaoPagamento, setOpcaoPagamento] = useState('');
   const [filtroCliente, setFiltroCliente] = useState('');
   const [filtroNumeroPedido, setFiltroNumeroPedido] = useState('');
+  const navigate = useNavigate();
+  const { user } = useAuth();
 
   const queryClient = useQueryClient();
   const { data: pedidos, isLoading: isLoadingPedidos } = useOrders();
@@ -27,6 +31,16 @@ const Financeiro = () => {
   const { data: clientes, isLoading: isLoadingClientes } = useCustomers();
   const updateOrder = useUpdateOrder();
   const addPayment = useAddPayment();
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (!user) {
+        navigate('/login');
+      }
+    }, 200);
+
+    return () => clearTimeout(timer);
+  }, [user, navigate]);
 
   const pedidosFiltrados = useMemo(() => {
     if (!pedidos) return [];
@@ -188,6 +202,7 @@ const Financeiro = () => {
           ))}
         </TableBody>
       </Table>
+    </div>
     </div>
   );
 };

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useOrders, useUpdateOrder, useCustomers } from '../integrations/supabase';
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -8,6 +9,7 @@ import { DatePicker } from "@/components/ui/date-picker";
 import { format, isWithinInterval, parseISO, startOfDay, endOfDay } from "date-fns";
 import { ptBR } from 'date-fns/locale';
 import PedidoDetalhesModal from './PedidoDetalhesModal';
+import { useAuth } from '../hooks/useAuth';
 
 const GerenciamentoPedidos = () => {
   const [filtroCliente, setFiltroCliente] = useState('');
@@ -18,10 +20,22 @@ const GerenciamentoPedidos = () => {
   const [filtroValorMaximo, setFiltroValorMaximo] = useState('');
   const [pedidosFiltrados, setPedidosFiltrados] = useState([]);
   const [pedidoSelecionado, setPedidoSelecionado] = useState(null);
+  const navigate = useNavigate();
+  const { user } = useAuth();
 
   const { data: pedidos, isLoading: isLoadingPedidos, error: errorPedidos } = useOrders();
   const { data: clientes, isLoading: isLoadingClientes } = useCustomers();
   const updateOrder = useUpdateOrder();
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (!user) {
+        navigate('/login');
+      }
+    }, 200);
+
+    return () => clearTimeout(timer);
+  }, [user, navigate]);
 
   useEffect(() => {
     if (pedidos) {

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -9,6 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { usePaymentOptions, useTransactions } from '../integrations/supabase';
 import { format, isWithinInterval, parseISO, startOfDay, endOfDay } from "date-fns";
 import { ptBR } from 'date-fns/locale';
+import { useAuth } from '../hooks/useAuth';
 
 const Caixa = () => {
   const [filtroDataInicio, setFiltroDataInicio] = useState(null);
@@ -17,9 +19,21 @@ const Caixa = () => {
   const [filtroCliente, setFiltroCliente] = useState('');
   const [filtroNumeroPedido, setFiltroNumeroPedido] = useState('');
   const [isRelatorioOpen, setIsRelatorioOpen] = useState(false);
+  const navigate = useNavigate();
+  const { user } = useAuth();
 
   const { data: paymentOptions, isLoading: isLoadingPaymentOptions } = usePaymentOptions();
   const { data: transacoes, isLoading: isLoadingTransactions } = useTransactions();
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (!user) {
+        navigate('/login');
+      }
+    }, 200);
+
+    return () => clearTimeout(timer);
+  }, [user, navigate]);
 
   const filtrarTransacoes = () => {
     if (!transacoes) return [];

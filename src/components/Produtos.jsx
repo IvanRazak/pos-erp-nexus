@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -10,6 +11,7 @@ import { useSupabaseAuth } from '../integrations/supabase/auth';
 import { supabase } from '../lib/supabase';
 import EditProdutoModal from './EditProdutoModal';
 import { useProducts, useAddProduct, useUpdateProduct, useDeleteProduct } from '../integrations/supabase';
+import { useAuth } from '../hooks/useAuth';
 
 const Produtos = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -17,6 +19,18 @@ const Produtos = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { session } = useSupabaseAuth() || {};
+  const navigate = useNavigate();
+  const { user } = useAuth();
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (!user) {
+        navigate('/login');
+      }
+    }, 200);
+
+    return () => clearTimeout(timer);
+  }, [user, navigate]);
 
   const isAdmin = session?.user?.user_metadata?.role === 'admin';
 

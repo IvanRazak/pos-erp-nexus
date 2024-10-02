@@ -1,78 +1,140 @@
-import React from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../hooks/useAuth';
+import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { DatePicker } from "@/components/ui/date-picker";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { useOrders, useCustomers, useProducts } from '../integrations/supabase';
+import { format, parseISO, startOfDay, endOfDay, isWithinInterval } from "date-fns";
+import { ptBR } from 'date-fns/locale';
 
 const Relatorios = () => {
-  const { data: produtosMaisVendidos, isLoading: isLoadingProdutos } = useQuery({
-    queryKey: ['produtosMaisVendidos'],
-    queryFn: async () => {
-      // Simular uma chamada à API
-      return [
-        { nome: 'Produto A', quantidade: 100 },
-        { nome: 'Produto B', quantidade: 80 },
-        { nome: 'Produto C', quantidade: 60 },
-        { nome: 'Produto D', quantidade: 40 },
-        { nome: 'Produto E', quantidade: 20 },
-      ];
-    },
-  });
+  const navigate = useNavigate();
+  const { user } = useAuth();
+  const [tipoRelatorio, setTipoRelatorio] = useState('vendas');
+  const [dataInicio, setDataInicio] = useState(null);
+  const [dataFim, setDataFim] = useState(null);
+  const [dadosRelatorio, setDadosRelatorio] = useState([]);
 
-  const { data: vendasPorUsuario, isLoading: isLoadingVendas } = useQuery({
-    queryKey: ['vendasPorUsuario'],
-    queryFn: async () => {
-      // Simular uma chamada à API
-      return [
-        { nome: 'Usuário 1', vendas: 5000 },
-        { nome: 'Usuário 2', vendas: 4000 },
-        { nome: 'Usuário 3', vendas: 3000 },
-        { nome: 'Usuário 4', vendas: 2000 },
-        { nome: 'Usuário 5', vendas: 1000 },
-      ];
-    },
-  });
+  const { data: pedidos } = useOrders();
+  const { data: clientes } = useCustomers();
+  const { data: produtos } = useProducts();
 
-  if (isLoadingProdutos || isLoadingVendas) return <div>Carregando...</div>;
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (!user) {
+        navigate('/login');
+      }
+    }, 200);
+
+    return () => clearTimeout(timer);
+  }, [user, navigate]);
+
+  useEffect(() => {
+    if (tipoRelatorio && dataInicio && dataFim) {
+      gerarRelatorio();
+    }
+  }, [tipoRelatorio, dataInicio, dataFim]);
+
+  const gerarRelatorio = () => {
+    if (!pedidos || !clientes || !produtos) return;
+
+    const pedidosFiltrados = pedidos.filter(pedido => {
+      const dataPedido = parseISO(pedido.created_at);
+      return isWithinInterval(dataPedido, { start: startOfDay(dataInicio), end: endOfDay(dataFim) });
+    });
+
+    let dados = [];
+
+    switch (tipoRelatorio) {
+      case 'vendas':
+        dados = pedidosFiltrados.map(pedido => ({
+          data: format(parseISO(pedido.created_at), 'dd/MM/yyyy', { locale: ptBR }),
+          numeroPedido: pedido.order_number,
+          cliente: clientes.find(c => c.id === pedido.customer_id)?.name || 'N/A',
+          valor: pedido.total_amount.toFixed(2),
+        }));
+        break;
+      case 'produtos':
+        const produtosVendidos = pedidosFiltrados.flatMap(pedido => pedido.items || []);
+        dados = produtos.map(produto => {
+          const vendas = produtosVendidos.filter(item => item.product_id === produto.id);
+          const quantidade = vendas.reduce((sum, item) => sum + item.quantity, 0);
+          const valorTotal = vendas.reduce((sum, item) => sum + (item.quantity * item.unit_price), 0);
+          return {
+            produto: produto.name,
+            quantidade,
+            valorTotal: valorTotal.toFixed(2),
+          };
+        }).filter(item => item.quantidade > 0);
+        break;
+      case 'clientes':
+        dados = clientes.map(cliente => {
+          const pedidosCliente = pedidosFiltrados.filter(pedido => pedido.customer_id === cliente.id);
+          const valorTotal = pedidosCliente.reduce((sum, pedido) => sum + pedido.total_amount, 0);
+          return {
+            cliente: cliente.name,
+            quantidadePedidos: pedidosCliente.length,
+            valorTotal: valorTotal.toFixed(2),
+          };
+        }).filter(item => item.quantidadePedidos > 0);
+        break;
+    }
+
+    setDadosRelatorio(dados);
+  };
 
   return (
     <div className="container mx-auto p-4">
       <h2 className="text-2xl font-bold mb-4">Relatórios</h2>
-      <div className="grid grid-cols-2 gap-4">
-        <Card>
-          <CardHeader>
-            <CardTitle>Produtos Mais Vendidos</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={produtosMaisVendidos}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="nome" />
-                <YAxis />
-                <Tooltip />
-                <Legend />
-                <Bar dataKey="quantidade" fill="#8884d8" />
-              </BarChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle>Vendas por Usuário</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={vendasPorUsuario}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="nome" />
-                <YAxis />
-                <Tooltip />
-                <Legend />
-                <Bar dataKey="vendas" fill="#82ca9d" />
-              </BarChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
+      <div className="grid grid-cols-3 gap-4 mb-4">
+        <Select value={tipoRelatorio} onValueChange={setTipoRelatorio}>
+          <SelectTrigger>
+            <SelectValue placeholder="Tipo de Relatório" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="vendas">Relatório de Vendas</SelectItem>
+            <SelectItem value="produtos">Relatório de Produtos</SelectItem>
+            <SelectItem value="clientes">Relatório de Clientes</SelectItem>
+          </SelectContent>
+        </Select>
+        <DatePicker
+          selected={dataInicio}
+          onChange={setDataInicio}
+          placeholderText="Data Início"
+          locale={ptBR}
+          dateFormat="dd/MM/yyyy"
+        />
+        <DatePicker
+          selected={dataFim}
+          onChange={setDataFim}
+          placeholderText="Data Fim"
+          locale={ptBR}
+          dateFormat="dd/MM/yyyy"
+        />
       </div>
+      <Button onClick={gerarRelatorio}>Gerar Relatório</Button>
+      {dadosRelatorio.length > 0 && (
+        <Table className="mt-4">
+          <TableHeader>
+            <TableRow>
+              {Object.keys(dadosRelatorio[0]).map((key) => (
+                <TableHead key={key}>{key.charAt(0).toUpperCase() + key.slice(1)}</TableHead>
+              ))}
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {dadosRelatorio.map((item, index) => (
+              <TableRow key={index}>
+                {Object.values(item).map((value, valueIndex) => (
+                  <TableCell key={valueIndex}>{value}</TableCell>
+                ))}
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      )}
     </div>
   );
 };

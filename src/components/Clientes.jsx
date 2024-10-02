@@ -1,10 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import ClienteForm from './ClienteForm';
 import ClienteList from './ClienteList';
 import { useCustomers, useAddCustomer, useUpdateCustomer, useDeleteCustomer } from '../integrations/supabase';
 import { useSupabaseAuth } from '../integrations/supabase/auth';
 import { toast } from "@/components/ui/use-toast";
+import { useAuth } from '../hooks/useAuth';
 
 const Clientes = () => {
   const [activeTab, setActiveTab] = useState("lista");
@@ -14,6 +16,18 @@ const Clientes = () => {
   const updateCustomer = useUpdateCustomer();
   const deleteCustomer = useDeleteCustomer();
   const { session } = useSupabaseAuth() || {};
+  const navigate = useNavigate();
+  const { user } = useAuth();
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (!user) {
+        navigate('/login');
+      }
+    }, 200);
+
+    return () => clearTimeout(timer);
+  }, [user, navigate]);
 
   const handleSuccess = () => {
     refetch();
@@ -68,8 +82,6 @@ const Clientes = () => {
     }
   };
 
-  const isAdmin = session?.user?.role === 'admin';
-
   if (isLoading) return <div>Carregando...</div>;
   if (error) return <div>Erro ao carregar clientes: {error.message}</div>;
 
@@ -88,7 +100,7 @@ const Clientes = () => {
             clientes={clientes} 
             onDelete={handleDelete}
             onEdit={handleEdit}
-            isAdmin={isAdmin}
+            isAdmin={session?.user?.role === 'admin'}
           />
         </TabsContent>
         <TabsContent value="cadastro">
