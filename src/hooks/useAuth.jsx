@@ -2,9 +2,9 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 
 export const useAuth = () => {
+  const [error, setError] = useState(null);
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
 
   useEffect(() => {
     const session = supabase.auth.getSession();
@@ -21,10 +21,14 @@ export const useAuth = () => {
     };
   }, []);
 
-  const login = async (email, password) => {
+  const login = async (username, password) => {
     try {
       setLoading(true);
-      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: username,
+        password: password,
+      });
+
       if (error) throw error;
       setUser(data.user);
       return true;
@@ -48,5 +52,5 @@ export const useAuth = () => {
     }
   };
 
-  return { user, loading, error, login, logout };
+  return { login, logout, error, user, loading };
 };
