@@ -49,6 +49,7 @@ export const useAuth = () => {
   const logout = () => {
     localStorage.removeItem('user');
     setUser(null);
+    setError(null);
     console.log('Logout - User logged out');
   };
 
