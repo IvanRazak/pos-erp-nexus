@@ -207,7 +207,7 @@ const Financeiro = () => {
         </TableBody>
       </Table>
     </div>
-     )};
+     )}
   );
   );
 
