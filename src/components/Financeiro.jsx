@@ -12,6 +12,7 @@ import { toast } from "@/components/ui/use-toast";
 import { format, isWithinInterval, parseISO, startOfDay, endOfDay } from "date-fns";
 import { ptBR } from 'date-fns/locale';
 import { useAuth } from '../hooks/useAuth';
+import AdminMenu from '../components/AdminMenu';
 
 const Financeiro = () => {
   const [filters, setFilters] = useState({
@@ -108,6 +109,7 @@ const Financeiro = () => {
   if (isLoadingPedidos || isLoadingOpcoesPagamento || isLoadingClientes) return <div>Carregando...</div>;
 
   return (
+     {user && user.isAdmin && (
     <div className="container mx-auto p-4">
       <h2 className="text-2xl font-bold mb-4">Financeiro - Saldos Restantes</h2>
       <div className="grid grid-cols-3 gap-4 mb-4">
@@ -205,6 +207,7 @@ const Financeiro = () => {
         </TableBody>
       </Table>
     </div>
+  );
   );
 };
 
