@@ -16,9 +16,13 @@ const Dashboard = () => {
     { value: "venda", label: "Venda" },
     { value: "pedidos", label: "Gerenciamento de Pedidos" },
     { value: "caixa", label: "Caixa" },
-    { value: "financeiro", label: "Financeiro" },
     { value: "relatorios", label: "Relatórios" },
   ];
+
+  // Add Financeiro tab only if the user is not an operator
+  if (user && user.role !== 'operator') {
+    tabs.push({ value: "financeiro", label: "Financeiro" });
+  }
 
   const handleLogout = () => {
     logout();
