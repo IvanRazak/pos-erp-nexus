@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import AdminMenu from '../components/AdminMenu';
@@ -9,19 +9,6 @@ const Dashboard = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, logout } = useAuth();
-  const [showFinanceiro, setShowFinanceiro] = useState(true);
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      if (user && user.role === 'operator') {
-        setShowFinanceiro(false);
-      } else {
-        setShowFinanceiro(true);
-      }
-    }, 500);
-
-    return () => clearTimeout(timer);
-  }, [user]);
 
   const tabs = [
     { value: "clientes", label: "Clientes" },
@@ -29,7 +16,7 @@ const Dashboard = () => {
     { value: "venda", label: "Venda" },
     { value: "pedidos", label: "Gerenciamento de Pedidos" },
     { value: "caixa", label: "Caixa" },
-    ...(showFinanceiro ? [{ value: "financeiro", label: "Financeiro" }] : []),
+    { value: "financeiro", label: "Financeiro" },
     { value: "relatorios", label: "Relatórios" },
   ];
 
