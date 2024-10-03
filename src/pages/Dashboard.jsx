@@ -1,35 +1,49 @@
 import React from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import AdminMenu from '../components/AdminMenu';
 import { useAuth } from '../hooks/useAuth';
-import { Button } from "@/components/ui/button"
+import { Button } from "@/components/ui/button";
 
 const Dashboard = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, logout } = useAuth();
 
-  const tabs = [
+  // Definição das abas padrão
+  const defaultTabs = [
     { value: "clientes", label: "Clientes" },
     { value: "produtos", label: "Produtos" },
     { value: "venda", label: "Venda" },
     { value: "pedidos", label: "Gerenciamento de Pedidos" },
+    { value: "relatorios", label: "Relatórios" }
   ];
 
-  // Adiciona as abas Caixa, Relatórios e Financeiro apenas se o usuário não for um operador
-  if (user && user.role !== 'operator') {
-    tabs.push(
-      { value: "caixa", label: "Caixa" },
-      { value: "relatorios", label: "Relatórios" },
-      { value: "financeiro", label: "Financeiro" }
-    );
-  }
+  // Inicializa o array de abas com base no papel do usuário
+  let tabs = [];
 
-  // Se o usuário for do tipo 'producao', garante que a aba "clientes" está visível
-if (user && user.role === 'producao') {
-  tabs.push({ value: "pedidos", label: "Gerenciamento de Pedidos" });
-}
+  if (user) {
+    switch (user.role) {
+      case 'operator':
+        tabs = defaultTabs.filter(tab => 
+          tab.value !== 'relatorios' // Apenas "Clientes", "Produtos", "Venda", "Pedidos" e "Relatórios"
+        );
+        break;
+      case 'producao':
+        tabs = [{ value: "pedidos", label: "Gerenciamento de Pedidos" }]; // Apenas "Pedidos"
+        break;
+      case 'seller':
+        tabs = defaultTabs.filter(tab => 
+          tab.value !== 'relatorios' // "Clientes", "Produtos", "Venda" e "Pedidos"
+        );
+        break;
+      case 'admin':
+        tabs = defaultTabs; // Todas as abas
+        break;
+      default:
+        tabs = []; // Nenhuma aba para outros papéis
+    }
+  }
 
   const handleLogout = () => {
     logout();
