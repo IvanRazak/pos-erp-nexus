@@ -16,6 +16,8 @@ const Dashboard = () => {
     { value: "produtos", label: "Produtos" },
     { value: "venda", label: "Venda" },
     { value: "pedidos", label: "Gerenciamento de Pedidos" },
+    { value: "caixa", label: "Caixa" },
+    { value: "financeiro", label: "Financeiro" },
     { value: "relatorios", label: "Relatórios" }
   ];
 
@@ -34,7 +36,7 @@ const Dashboard = () => {
         break;
       case 'seller':
         tabs = defaultTabs.filter(tab => 
-          tab.value !== 'relatorios' // "Clientes", "Produtos", "Venda" e "Pedidos"
+          tab.value !== 'relatorios' && tab.value !== 'caixa'  && tab.value !== 'financeiro' // "Clientes", "Produtos", "Venda" e "Pedidos"
         );
         break;
       case 'admin':
