@@ -26,6 +26,11 @@ const Dashboard = () => {
     );
   }
 
+  // Se o usuário for do tipo 'producao', garante que a aba "clientes" está visível
+if (user && user.role === 'producao') {
+  tabs.push({ value: "pedidos", label: "Gerenciamento de Pedidos" });
+}
+
   const handleLogout = () => {
     logout();
     navigate('/login');
