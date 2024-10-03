@@ -137,6 +137,7 @@ const Venda = () => {
         m2: item.m2,
       })),
       created_by: user.username,
+      discount: parseFloat(desconto) || 0,
     };
 
     try {

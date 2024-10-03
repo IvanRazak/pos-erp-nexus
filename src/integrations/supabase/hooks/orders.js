@@ -32,6 +32,7 @@ export const useAddOrder = () => {
           delivery_date: newOrder.delivery_date,
           payment_option: newOrder.payment_option,
           created_by: newOrder.created_by,
+          discount: newOrder.discount,
         }])
         .select()
         .single();

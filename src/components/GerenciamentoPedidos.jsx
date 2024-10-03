@@ -125,6 +125,7 @@ const GerenciamentoPedidos = () => {
             <TableHead>Data e Hora</TableHead>
             <TableHead>Cliente</TableHead>
             <TableHead>Valor</TableHead>
+            <TableHead>Desconto</TableHead>
             <TableHead>Data de Entrega</TableHead>
             <TableHead>Status</TableHead>
             <TableHead>Criado por</TableHead>
@@ -138,6 +139,7 @@ const GerenciamentoPedidos = () => {
               <TableCell>{pedido.created_at ? format(parseISO(pedido.created_at), 'dd/MM/yyyy HH:mm', { locale: ptBR }) : 'N/A'}</TableCell>
               <TableCell>{clientes?.find(c => c.id === pedido.customer_id)?.name || 'N/A'}</TableCell>
               <TableCell>R$ {pedido.total_amount?.toFixed(2) || 'N/A'}</TableCell>
+              <TableCell>R$ {pedido.discount?.toFixed(2) || '0.00'}</TableCell>
               <TableCell>{pedido.delivery_date ? format(parseISO(pedido.delivery_date), 'dd/MM/yyyy', { locale: ptBR }) : 'N/A'}</TableCell>
               <TableCell>{pedido.status}</TableCell>
               <TableCell>{pedido.created_by || 'N/A'}</TableCell>
