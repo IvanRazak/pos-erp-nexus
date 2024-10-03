@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQueryClient } from '@tanstack/react-query';
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -14,14 +14,16 @@ import { ptBR } from 'date-fns/locale';
 import { useAuth } from '../hooks/useAuth';
 
 const Financeiro = () => {
-  const [filtroDataInicio, setFiltroDataInicio] = useState(null);
-  const [filtroDataFim, setFiltroDataFim] = useState(null);
-  const [filtroOpcaoPagamento, setFiltroOpcaoPagamento] = useState('');
+  const [filters, setFilters] = useState({
+    dataInicio: null,
+    dataFim: null,
+    opcaoPagamento: '',
+    cliente: '',
+    numeroPedido: ''
+  });
   const [pedidoSelecionado, setPedidoSelecionado] = useState(null);
   const [valorPagamento, setValorPagamento] = useState(0);
   const [opcaoPagamento, setOpcaoPagamento] = useState('');
-  const [filtroCliente, setFiltroCliente] = useState('');
-  const [filtroNumeroPedido, setFiltroNumeroPedido] = useState('');
   const navigate = useNavigate();
   const { user } = useAuth();
 
@@ -46,16 +48,16 @@ const Financeiro = () => {
     if (!pedidos) return [];
     return pedidos.filter(pedido => {
       const pedidoDate = parseISO(pedido.created_at);
-      const matchData = (!filtroDataInicio || !filtroDataFim || isWithinInterval(pedidoDate, {
-        start: startOfDay(filtroDataInicio),
-        end: endOfDay(filtroDataFim)
+      const matchData = (!filters.dataInicio || !filters.dataFim || isWithinInterval(pedidoDate, {
+        start: startOfDay(filters.dataInicio),
+        end: endOfDay(filters.dataFim)
       }));
-      const matchOpcaoPagamento = !filtroOpcaoPagamento || pedido.payment_option === filtroOpcaoPagamento;
-      const matchCliente = !filtroCliente || (pedido.customer?.name && pedido.customer.name.toLowerCase().includes(filtroCliente.toLowerCase()));
-      const matchNumeroPedido = !filtroNumeroPedido || pedido.order_number?.toString().includes(filtroNumeroPedido);
+      const matchOpcaoPagamento = !filters.opcaoPagamento || pedido.payment_option === filters.opcaoPagamento;
+      const matchCliente = !filters.cliente || (pedido.customer?.name && pedido.customer.name.toLowerCase().includes(filters.cliente.toLowerCase()));
+      const matchNumeroPedido = !filters.numeroPedido || pedido.order_number?.toString().includes(filters.numeroPedido);
       return matchData && matchOpcaoPagamento && matchCliente && matchNumeroPedido && pedido.remaining_balance > 0;
     });
-  }, [pedidos, filtroDataInicio, filtroDataFim, filtroOpcaoPagamento, filtroCliente, filtroNumeroPedido]);
+  }, [pedidos, filters]);
 
   const handlePagamento = async () => {
     if (!pedidoSelecionado || valorPagamento <= 0 || !opcaoPagamento) {
@@ -110,20 +112,20 @@ const Financeiro = () => {
       <h2 className="text-2xl font-bold mb-4">Financeiro - Saldos Restantes</h2>
       <div className="grid grid-cols-3 gap-4 mb-4">
         <DatePicker
-          selected={filtroDataInicio}
-          onChange={setFiltroDataInicio}
+          selected={filters.dataInicio}
+          onChange={(date) => setFilters({...filters, dataInicio: date})}
           placeholderText="Data Início"
           locale={ptBR}
           dateFormat="dd/MM/yyyy"
         />
         <DatePicker
-          selected={filtroDataFim}
-          onChange={setFiltroDataFim}
+          selected={filters.dataFim}
+          onChange={(date) => setFilters({...filters, dataFim: date})}
           placeholderText="Data Fim"
           locale={ptBR}
           dateFormat="dd/MM/yyyy"
         />
-        <Select onValueChange={setFiltroOpcaoPagamento} value={filtroOpcaoPagamento}>
+        <Select onValueChange={(value) => setFilters({...filters, opcaoPagamento: value})} value={filters.opcaoPagamento}>
           <SelectTrigger>
             <SelectValue placeholder="Opção de Pagamento" />
           </SelectTrigger>
@@ -136,13 +138,13 @@ const Financeiro = () => {
         </Select>
         <Input
           placeholder="Filtrar por nome do cliente"
-          value={filtroCliente}
-          onChange={(e) => setFiltroCliente(e.target.value)}
+          value={filters.cliente}
+          onChange={(e) => setFilters({...filters, cliente: e.target.value})}
         />
         <Input
           placeholder="Filtrar por número do pedido"
-          value={filtroNumeroPedido}
-          onChange={(e) => setFiltroNumeroPedido(e.target.value)}
+          value={filters.numeroPedido}
+          onChange={(e) => setFilters({...filters, numeroPedido: e.target.value})}
         />
       </div>
       <Table>
@@ -202,7 +204,6 @@ const Financeiro = () => {
           ))}
         </TableBody>
       </Table>
-    </div>
     </div>
   );
 };
