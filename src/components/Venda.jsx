@@ -127,6 +127,7 @@ const Venda = () => {
         height: item.altura,
         m2: item.m2,
       })),
+      created_by: user.username, // Add the username of the logged-in user
     };
 
     try {

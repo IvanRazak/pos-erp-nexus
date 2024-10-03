@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useOrders, useUpdateOrder, useCustomers } from '../integrations/supabase';
 import { Input } from "@/components/ui/input";
@@ -127,6 +127,7 @@ const GerenciamentoPedidos = () => {
             <TableHead>Valor</TableHead>
             <TableHead>Data de Entrega</TableHead>
             <TableHead>Status</TableHead>
+            <TableHead>Criado por</TableHead>
             <TableHead>Ações</TableHead>
           </TableRow>
         </TableHeader>
@@ -139,6 +140,7 @@ const GerenciamentoPedidos = () => {
               <TableCell>R$ {pedido.total_amount?.toFixed(2) || 'N/A'}</TableCell>
               <TableCell>{pedido.delivery_date ? format(parseISO(pedido.delivery_date), 'dd/MM/yyyy', { locale: ptBR }) : 'N/A'}</TableCell>
               <TableCell>{pedido.status}</TableCell>
+              <TableCell>{pedido.created_by || 'N/A'}</TableCell>
               <TableCell>
                 <Select onValueChange={(value) => atualizarStatus(pedido.id, value)}>
                   <SelectTrigger>
