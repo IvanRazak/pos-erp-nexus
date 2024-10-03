@@ -26,7 +26,11 @@ export const useAuth = () => {
       if (error) throw error;
 
       if (data && data.password_hash === password) {
-        const userData = { username, isAdmin: data.role === 'admin' };
+        const userData = { 
+          username, 
+          isAdmin: data.role === 'admin',
+          role: data.role
+        };
         localStorage.setItem('user', JSON.stringify(userData));
         setUser(userData);
         return true;
