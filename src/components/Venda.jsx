@@ -8,11 +8,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { format } from "date-fns";
 import { CalendarIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useProducts, useCustomers, useExtraOptions, usePaymentOptions, useAddOrder } from '../integrations/supabase';
 import ClienteForm from './ClienteForm';
+import BuscarClienteModal from './BuscarClienteModal';
 import { toast } from "@/components/ui/use-toast";
 import ProdutoExtraOptionsModal from './ProdutoExtraOptionsModal';
 import { useAuth } from '../hooks/useAuth';
@@ -40,8 +42,8 @@ const Venda = () => {
   const { data: opcoesPagamento } = usePaymentOptions();
   const addOrder = useAddOrder();
 
-  // Estado para controlar a exibição do conteúdo
-  const [isLoading, setIsLoading] = useState(true);
+  const [isBuscarClienteModalOpen, setIsBuscarClienteModalOpen] = useState(false);
+  const [selectedClienteName, setSelectedClienteName] = useState('');
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -78,6 +80,13 @@ const Venda = () => {
       setIsExtraOptionsModalOpen(true);
     }
   };
+
+  const handleSelectCliente = (cliente) => {
+    setClienteSelecionado(cliente.id);
+    setSelectedClienteName(cliente.name);
+    setIsBuscarClienteModalOpen(false);
+  };
+
 
   const handleAdicionarAoCarrinhoComExtras = (extrasEscolhidas) => {
     const m2Total = produtoSelecionado.unit_type === 'square_meter' ? largura * altura : 1;
@@ -187,7 +196,7 @@ const Venda = () => {
   return (
     <div className="container mx-auto p-4">
       {isLoading ? (
-        <div>Carregando...</div> // Exibe uma mensagem de carregamento
+        <div>Carregando...</div>
       ) : (
         <>
           <h2 className="text-2xl font-bold mb-4">Venda</h2>
@@ -224,25 +233,28 @@ const Venda = () => {
             </div>
             <div>
               <h3 className="text-xl font-semibold mb-2">Selecionar Cliente</h3>
-              <Select onValueChange={setClienteSelecionado}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione um cliente" />
-                </SelectTrigger>
-                <SelectContent>
-                  {clientes?.map((cliente) => (
-                    <SelectItem key={cliente.id} value={cliente.id}>{cliente.name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <Dialog open={isNewClientDialogOpen} onOpenChange={setIsNewClientDialogOpen}>
+              <div className="flex items-center space-x-2">
+                <Input
+                  value={selectedClienteName}
+                  placeholder="Cliente selecionado"
+                  readOnly
+                  className="flex-grow"
+                />
+                <Button onClick={() => setIsBuscarClienteModalOpen(true)}>
+                  Buscar Cliente
+                </Button>
+              </div>
+              <Dialog>
                 <DialogTrigger asChild>
                   <Button className="mt-2">Cadastrar Novo Cliente</Button>
                 </DialogTrigger>
-                <DialogContent>
+                <DialogContent className="sm:max-w-[425px]">
                   <DialogHeader>
                     <DialogTitle>Cadastro de Cliente</DialogTitle>
                   </DialogHeader>
-                  <ClienteForm onSuccess={handleNewClientSuccess} />
+                  <ScrollArea className="h-[400px] w-full rounded-md">
+                    <ClienteForm onSuccess={handleNewClientSuccess} />
+                  </ScrollArea>
                 </DialogContent>
               </Dialog>
             </div>
@@ -302,6 +314,11 @@ const Venda = () => {
             <p className="mt-2 text-xl font-bold">Saldo Restante: R$ {(calcularTotal() - valorPago).toFixed(2)}</p>
             <Button className="mt-2" onClick={finalizarVenda}>Finalizar Venda</Button>
           </div>
+          <BuscarClienteModal
+            isOpen={isBuscarClienteModalOpen}
+            onClose={() => setIsBuscarClienteModalOpen(false)}
+            onSelectCliente={handleSelectCliente}
+          />
           {isExtraOptionsModalOpen && (
             <ProdutoExtraOptionsModal
               produto={produtoSelecionado}
