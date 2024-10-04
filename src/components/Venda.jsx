@@ -41,16 +41,15 @@ const Venda = () => {
   const { data: opcoesPagamento } = usePaymentOptions();
   const addOrder = useAddOrder();
 
-    // Verificação de autenticação
+
   useEffect(() => {
-    console.log("Verificando autenticação...");
-    if (!user) {
-      console.log("Usuário não autenticado, redirecionando para /login");
-      navigate('/login');
-    } else {
-      console.log("Usuário autenticado:", user);
-    }
-  }, [user, navigate]);
+     const timer = setTimeout(() => {
+       if (!user) {
+         navigate('/login');
+       }
+     }, 1000);
+     return () => clearTimeout(timer);
+   }, [user, navigate]);
 
 
   const handleDeleteFromCart = (itemToDelete) => {
