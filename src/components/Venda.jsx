@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Table, TableBody, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { format } from "date-fns";
@@ -16,6 +16,7 @@ import ClienteForm from './ClienteForm';
 import { toast } from "@/components/ui/use-toast";
 import ProdutoExtraOptionsModal from './ProdutoExtraOptionsModal';
 import { useAuth } from '../hooks/useAuth';
+import CarrinhoItem from './CarrinhoItem';
 
 const Venda = () => {
   const navigate = useNavigate();
@@ -40,15 +41,19 @@ const Venda = () => {
   const { data: opcoesPagamento } = usePaymentOptions();
   const addOrder = useAddOrder();
 
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      if (!user) {
-        navigate('/login');
-      }
-    }, 1000);
+  const handleDeleteFromCart = (itemToDelete) => {
+    setCarrinho(carrinho.filter(item => item !== itemToDelete));
+  };
 
-    return () => clearTimeout(timer);
-  }, [user, navigate]);
+  const handleEditCartItem = (itemToEdit) => {
+    setProdutoSelecionado(itemToEdit);
+    setQuantidade(itemToEdit.quantidade);
+    setLargura(itemToEdit.largura || '');
+    setAltura(itemToEdit.altura || '');
+    setM2(itemToEdit.m2 || 0);
+    setCarrinho(carrinho.filter(item => item !== itemToEdit));
+    setIsExtraOptionsModalOpen(true);
+  };
 
   const adicionarAoCarrinho = () => {
     if (produtoSelecionado) {
@@ -236,19 +241,17 @@ const Venda = () => {
               <TableHead>Preço Unitário</TableHead>
               <TableHead>Extras</TableHead>
               <TableHead>Total</TableHead>
+              <TableHead>Ações</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {carrinho.map((item, index) => (
-              <TableRow key={index}>
-                <TableCell>{item.name}</TableCell>
-                <TableCell>{item.quantidade}</TableCell>
-                <TableCell>{item.largura && item.altura ? `${item.largura}m x ${item.altura}m` : 'N/A'}</TableCell>
-                <TableCell>{item.m2 ? `${item.m2.toFixed(2)}m²` : 'N/A'}</TableCell>
-                <TableCell>R$ {item.sale_price.toFixed(2)}</TableCell>
-                <TableCell>{item.extras.map((extra, i) => <div key={i}>{extra.name}: R$ {extra.price.toFixed(2)}</div>)}</TableCell>
-                <TableCell>R$ {item.total.toFixed(2)}</TableCell>
-              </TableRow>
+              <CarrinhoItem
+                key={index}
+                item={item}
+                onDelete={handleDeleteFromCart}
+                onEdit={handleEditCartItem}
+              />
             ))}
           </TableBody>
         </Table>
