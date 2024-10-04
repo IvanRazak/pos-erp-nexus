@@ -1,17 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useQuery, useMutation } from '@tanstack/react-query';
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useProducts, useCustomers, useExtraOptions, usePaymentOptions, useAddOrder } from '../integrations/supabase';
-import ClienteForm from './ClienteForm';
-import { toast } from "@/components/ui/use-toast";
-import ProdutoExtraOptionsModal from './ProdutoExtraOptionsModal';
 import { useAuth } from '../hooks/useAuth';
+import { toast } from "@/components/ui/use-toast";
+import { format } from "date-fns";
+import ClienteForm from './ClienteForm';
+import ProdutoExtraOptionsModal from './ProdutoExtraOptionsModal';
 import BuscarClienteModal from './BuscarClienteModal';
 import BuscarProdutoModal from './BuscarProdutoModal';
 import VendaCarrinho from './VendaCarrinho';
+import VendaHeader from './VendaHeader';
 
 const Venda = () => {
   const navigate = useNavigate();
@@ -23,26 +24,22 @@ const Venda = () => {
   const [isExtraOptionsModalOpen, setIsExtraOptionsModalOpen] = useState(false);
   const [isBuscarClienteModalOpen, setIsBuscarClienteModalOpen] = useState(false);
   const [isBuscarProdutoModalOpen, setIsBuscarProdutoModalOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [dataEntrega, setDataEntrega] = useState(null);
+  const [opcaoPagamento, setOpcaoPagamento] = useState('');
+  const [desconto, setDesconto] = useState(0);
+  const [valorPago, setValorPago] = useState(0);
+
   const { data: produtos } = useProducts();
   const { data: clientes } = useCustomers();
   const { data: opcoesExtras } = useExtraOptions();
   const { data: opcoesPagamento } = usePaymentOptions();
   const addOrder = useAddOrder();
 
-  const [isLoading, setIsLoading] = useState(true);
-
   useEffect(() => {
     const timer = setTimeout(() => {
       setIsLoading(false);
-    }, 1000);
-    return () => clearTimeout(timer);
-  }, []);
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      if (!user) {
-        navigate('/login');
-      }
+      if (!user) navigate('/login');
     }, 1000);
     return () => clearTimeout(timer);
   }, [user, navigate]);
@@ -81,7 +78,6 @@ const Venda = () => {
 
   const handleNewClientSuccess = () => {
     setIsNewClientDialogOpen(false);
-    // Aqui você pode adicionar lógica para atualizar a lista de clientes, se necessário
   };
 
   const handleSelectCliente = (cliente) => {
@@ -91,6 +87,7 @@ const Venda = () => {
 
   const handleSelectProduto = (produto) => {
     setProdutoSelecionado(produto);
+    setIsBuscarProdutoModalOpen(false);
     setIsExtraOptionsModalOpen(true);
   };
 
@@ -161,96 +158,53 @@ const Venda = () => {
     setValorPago(0);
   };
 
-  const handleSelectCliente = (cliente) => {
-    setClienteSelecionado(cliente.id);
-    setIsBuscarClienteModalOpen(false);
-  };
-
-  const handleSelectProduto = (produto) => {
-    setProdutoSelecionado(produto);
-    setIsBuscarProdutoModalOpen(false);
-    setIsExtraOptionsModalOpen(true);
-  };
+  if (isLoading) return <div>Carregando...</div>;
 
   return (
     <div className="container mx-auto p-4">
-      {isLoading ? (
-        <div>Carregando...</div>
-      ) : (
-        <>
-          <h2 className="text-2xl font-bold mb-4">Venda</h2>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <h3 className="text-xl font-semibold mb-2">Selecionar Produto</h3>
-              <Button onClick={() => setIsBuscarProdutoModalOpen(true)}>
-                Buscar Produto
-              </Button>
-            </div>
-            <div>
-              <h3 className="text-xl font-semibold mb-2">Selecionar Cliente</h3>
-              <div className="flex items-center space-x-2">
-                <Select onValueChange={setClienteSelecionado}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione um cliente" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {clientes?.map((cliente) => (
-                      <SelectItem key={cliente.id} value={cliente.id}>{cliente.name}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <Button onClick={() => setIsBuscarClienteModalOpen(true)}>
-                  Buscar Cliente
-                </Button>
-              </div>
-              <Dialog open={isNewClientDialogOpen} onOpenChange={setIsNewClientDialogOpen}>
-                <DialogTrigger asChild>
-                  <Button className="mt-2">Cadastrar Novo Cliente</Button>
-                </DialogTrigger>
-                <DialogContent>
-                  <DialogHeader>
-                    <DialogTitle>Cadastro de Cliente</DialogTitle>
-                  </DialogHeader>
-                  <ClienteForm onSuccess={handleNewClientSuccess} />
-                </DialogContent>
-              </Dialog>
-            </div>
-          </div>
-          <VendaCarrinho
-            carrinho={carrinho}
-            onDelete={handleDeleteFromCart}
-            onEdit={handleEditCartItem}
-            desconto={desconto}
-            setDesconto={setDesconto}
-            dataEntrega={dataEntrega}
-            setDataEntrega={setDataEntrega}
-            opcaoPagamento={opcaoPagamento}
-            setOpcaoPagamento={setOpcaoPagamento}
-            opcoesPagamento={opcoesPagamento}
-            valorPago={valorPago}
-            setValorPago={setValorPago}
-            calcularTotal={calcularTotal}
-            finalizarVenda={finalizarVenda}
-          />
-          <BuscarClienteModal
-            isOpen={isBuscarClienteModalOpen}
-            onClose={() => setIsBuscarClienteModalOpen(false)}
-            onSelectCliente={handleSelectCliente}
-          />
-          <BuscarProdutoModal
-            isOpen={isBuscarProdutoModalOpen}
-            onClose={() => setIsBuscarProdutoModalOpen(false)}
-            onSelectProduto={handleSelectProduto}
-          />
-          {isExtraOptionsModalOpen && produtoSelecionado && (
-            <ProdutoExtraOptionsModal
-              produto={produtoSelecionado}
-              opcoesExtras={opcoesExtras}
-              onClose={() => setIsExtraOptionsModalOpen(false)}
-              onConfirm={handleAdicionarAoCarrinhoComExtras}
-            />
-          )}
-        </>
+      <h2 className="text-2xl font-bold mb-4">Venda</h2>
+      <VendaHeader
+        setIsBuscarProdutoModalOpen={setIsBuscarProdutoModalOpen}
+        setClienteSelecionado={setClienteSelecionado}
+        setIsBuscarClienteModalOpen={setIsBuscarClienteModalOpen}
+        isNewClientDialogOpen={isNewClientDialogOpen}
+        setIsNewClientDialogOpen={setIsNewClientDialogOpen}
+        handleNewClientSuccess={handleNewClientSuccess}
+        clientes={clientes}
+      />
+      <VendaCarrinho
+        carrinho={carrinho}
+        onDelete={handleDeleteFromCart}
+        onEdit={handleEditCartItem}
+        desconto={desconto}
+        setDesconto={setDesconto}
+        dataEntrega={dataEntrega}
+        setDataEntrega={setDataEntrega}
+        opcaoPagamento={opcaoPagamento}
+        setOpcaoPagamento={setOpcaoPagamento}
+        opcoesPagamento={opcoesPagamento}
+        valorPago={valorPago}
+        setValorPago={setValorPago}
+        calcularTotal={calcularTotal}
+        finalizarVenda={finalizarVenda}
+      />
+      <BuscarClienteModal
+        isOpen={isBuscarClienteModalOpen}
+        onClose={() => setIsBuscarClienteModalOpen(false)}
+        onSelectCliente={handleSelectCliente}
+      />
+      <BuscarProdutoModal
+        isOpen={isBuscarProdutoModalOpen}
+        onClose={() => setIsBuscarProdutoModalOpen(false)}
+        onSelectProduto={handleSelectProduto}
+      />
+      {isExtraOptionsModalOpen && produtoSelecionado && (
+        <ProdutoExtraOptionsModal
+          produto={produtoSelecionado}
+          opcoesExtras={opcoesExtras}
+          onClose={() => setIsExtraOptionsModalOpen(false)}
+          onConfirm={handleAdicionarAoCarrinhoComExtras}
+        />
       )}
     </div>
   );
