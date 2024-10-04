@@ -5,8 +5,6 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Table, TableBody, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { format } from "date-fns";
 import { CalendarIcon } from "lucide-react";
@@ -19,6 +17,8 @@ import { useAuth } from '../hooks/useAuth';
 import CarrinhoItem from './CarrinhoItem';
 import BuscarClienteModal from './BuscarClienteModal';
 import BuscarProdutoModal from './BuscarProdutoModal';
+import ProdutoSelectionForm from './ProdutoSelectionForm';
+import VendaCarrinho from './VendaCarrinho';
 
 const Venda = () => {
   const navigate = useNavigate();
@@ -196,6 +196,7 @@ const Venda = () => {
   const handleSelectProduto = (produto) => {
     setProdutoSelecionado(produto);
     setIsBuscarProdutoModalOpen(false);
+    setIsExtraOptionsModalOpen(true);
   };
 
   return (
@@ -206,40 +207,21 @@ const Venda = () => {
         <>
           <h2 className="text-2xl font-bold mb-4">Venda</h2>
           <div className="grid grid-cols-2 gap-4">
-            <div>
-              <h3 className="text-xl font-semibold mb-2">Selecionar Produto</h3>
-              <div className="flex items-center space-x-2">
-                <Select onValueChange={(value) => setProdutoSelecionado(produtos?.find(p => p.id === value))}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione um produto" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {produtos?.map((produto) => (
-                      <SelectItem key={produto.id} value={produto.id}>{produto.name}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <Button onClick={() => setIsBuscarProdutoModalOpen(true)}>
-                  Buscar Produto
-                </Button>
-              </div>
-              <Input type="number" placeholder="Quantidade" value={quantidade} onChange={(e) => setQuantidade(parseInt(e.target.value) || 1)} className="mt-2" />
-              {produtoSelecionado?.unit_type === 'square_meter' && (
-                <>
-                  <Input type="number" placeholder="Largura" value={largura} onChange={(e) => {
-                    const newLargura = parseFloat(e.target.value);
-                    setLargura(newLargura);
-                    setM2(newLargura * altura);
-                  }} className="mt-2" />
-                  <Input type="number" placeholder="Altura" value={altura} onChange={(e) => {
-                    const newAltura = parseFloat(e.target.value);
-                    setAltura(newAltura);
-                    setM2(largura * newAltura);
-                  }} className="mt-2" />
-                  <Input type="number" placeholder="M²" value={m2} readOnly className="mt-2" />
-                </>
-              )}
-            </div>
+            <ProdutoSelectionForm
+              produtos={produtos}
+              produtoSelecionado={produtoSelecionado}
+              setProdutoSelecionado={setProdutoSelecionado}
+              quantidade={quantidade}
+              setQuantidade={setQuantidade}
+              largura={largura}
+              setLargura={setLargura}
+              altura={altura}
+              setAltura={setAltura}
+              m2={m2}
+              setM2={setM2}
+              openBuscarProdutoModal={() => setIsBuscarProdutoModalOpen(true)}
+              adicionarAoCarrinho={adicionarAoCarrinho}
+            />
             <div>
               <h3 className="text-xl font-semibold mb-2">Selecionar Cliente</h3>
               <div className="flex items-center space-x-2">
@@ -270,61 +252,22 @@ const Venda = () => {
               </Dialog>
             </div>
           </div>
-          <div className="mt-4">
-            <h3 className="text-xl font-semibold mb-2">Carrinho</h3>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Produto</TableHead>
-                  <TableHead>Quantidade</TableHead>
-                  <TableHead>Dimensões</TableHead>
-                  <TableHead>M²</TableHead>
-                  <TableHead>Preço Unitário</TableHead>
-                  <TableHead>Extras</TableHead>
-                  <TableHead>Total</TableHead>
-                  <TableHead>Ações</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {carrinho.map((item, index) => (
-                  <CarrinhoItem
-                    key={index}
-                    item={item}
-                    onDelete={handleDeleteFromCart}
-                    onEdit={handleEditCartItem}
-                  />
-                ))}
-              </TableBody>
-            </Table>
-          </div>
-          <div className="mt-4">
-            <Input type="number" placeholder="Desconto" value={desconto} onChange={(e) => setDesconto(parseFloat(e.target.value))} />
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button variant={"outline"} className={cn("w-[280px] justify-start text-left font-normal", !dataEntrega && "text-muted-foreground")}>
-                  <CalendarIcon className="mr-2 h-4 w-4" />
-                  {dataEntrega ? format(dataEntrega, "PPP") : <span>Selecione a data de entrega</span>}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0">
-                <Calendar mode="single" selected={dataEntrega} onSelect={setDataEntrega} initialFocus />
-              </PopoverContent>
-            </Popover>
-            <Select onValueChange={setOpcaoPagamento} value={opcaoPagamento}>
-              <SelectTrigger>
-                <SelectValue placeholder="Opção de Pagamento" />
-              </SelectTrigger>
-              <SelectContent>
-                {opcoesPagamento?.map((opcao) => (
-                  <SelectItem key={opcao.id} value={opcao.name}>{opcao.name}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Input type="number" placeholder="Valor Pago" value={valorPago} onChange={(e) => setValorPago(parseFloat(e.target.value))} className="mt-2" />
-            <p className="mt-2 text-xl font-bold">Total: R$ {calcularTotal().toFixed(2)}</p>
-            <p className="mt-2 text-xl font-bold">Saldo Restante: R$ {(calcularTotal() - valorPago).toFixed(2)}</p>
-            <Button className="mt-2" onClick={finalizarVenda}>Finalizar Venda</Button>
-          </div>
+          <VendaCarrinho
+            carrinho={carrinho}
+            onDelete={handleDeleteFromCart}
+            onEdit={handleEditCartItem}
+            desconto={desconto}
+            setDesconto={setDesconto}
+            dataEntrega={dataEntrega}
+            setDataEntrega={setDataEntrega}
+            opcaoPagamento={opcaoPagamento}
+            setOpcaoPagamento={setOpcaoPagamento}
+            opcoesPagamento={opcoesPagamento}
+            valorPago={valorPago}
+            setValorPago={setValorPago}
+            calcularTotal={calcularTotal}
+            finalizarVenda={finalizarVenda}
+          />
           <BuscarClienteModal
             isOpen={isBuscarClienteModalOpen}
             onClose={() => setIsBuscarClienteModalOpen(false)}

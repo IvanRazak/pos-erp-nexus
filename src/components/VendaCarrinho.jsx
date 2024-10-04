@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -10,23 +10,9 @@ import { CalendarIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import CarrinhoItem from './CarrinhoItem';
 
-const VendaCarrinho = ({ carrinho, onDelete, onEdit, total, opcoesPagamento, onFinalizarVenda }) => {
-  const [desconto, setDesconto] = useState('');
-  const [dataEntrega, setDataEntrega] = useState(null);
-  const [opcaoPagamento, setOpcaoPagamento] = useState('');
-  const [valorPago, setValorPago] = useState(0);
-
-  const handleFinalizarVenda = () => {
-    onFinalizarVenda({
-      desconto,
-      dataEntrega,
-      opcaoPagamento,
-      valorPago: parseFloat(valorPago)
-    });
-  };
-
+const VendaCarrinho = ({ carrinho, onDelete, onEdit, desconto, setDesconto, dataEntrega, setDataEntrega, opcaoPagamento, setOpcaoPagamento, opcoesPagamento, valorPago, setValorPago, calcularTotal, finalizarVenda }) => {
   return (
-    <div>
+    <div className="mt-4">
       <h3 className="text-xl font-semibold mb-2">Carrinho</h3>
       <Table>
         <TableHeader>
@@ -53,7 +39,7 @@ const VendaCarrinho = ({ carrinho, onDelete, onEdit, total, opcoesPagamento, onF
         </TableBody>
       </Table>
       <div className="mt-4 space-y-2">
-        <Input type="number" placeholder="Desconto" value={desconto} onChange={(e) => setDesconto(e.target.value)} />
+        <Input type="number" placeholder="Desconto" value={desconto} onChange={(e) => setDesconto(parseFloat(e.target.value))} />
         <Popover>
           <PopoverTrigger asChild>
             <Button variant={"outline"} className={cn("w-[280px] justify-start text-left font-normal", !dataEntrega && "text-muted-foreground")}>
@@ -75,10 +61,10 @@ const VendaCarrinho = ({ carrinho, onDelete, onEdit, total, opcoesPagamento, onF
             ))}
           </SelectContent>
         </Select>
-        <Input type="number" placeholder="Valor Pago" value={valorPago} onChange={(e) => setValorPago(e.target.value)} />
-        <p className="text-xl font-bold">Total: R$ {total.toFixed(2)}</p>
-        <p className="text-xl font-bold">Saldo Restante: R$ {(total - parseFloat(valorPago)).toFixed(2)}</p>
-        <Button onClick={handleFinalizarVenda}>Finalizar Venda</Button>
+        <Input type="number" placeholder="Valor Pago" value={valorPago} onChange={(e) => setValorPago(parseFloat(e.target.value))} />
+        <p className="text-xl font-bold">Total: R$ {calcularTotal().toFixed(2)}</p>
+        <p className="text-xl font-bold">Saldo Restante: R$ {(calcularTotal() - valorPago).toFixed(2)}</p>
+        <Button onClick={finalizarVenda}>Finalizar Venda</Button>
       </div>
     </div>
   );
