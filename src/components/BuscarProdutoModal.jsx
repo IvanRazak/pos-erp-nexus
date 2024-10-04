@@ -3,6 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { useProducts } from '../integrations/supabase';
 
 const BuscarProdutoModal = ({ isOpen, onClose, onSelectProduto }) => {
@@ -45,7 +46,7 @@ const BuscarProdutoModal = ({ isOpen, onClose, onSelectProduto }) => {
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-3xl">
+      <DialogContent className="max-w-3xl max-h-[80vh] flex flex-col">
         <DialogHeader>
           <DialogTitle>Buscar Produto</DialogTitle>
         </DialogHeader>
@@ -55,28 +56,31 @@ const BuscarProdutoModal = ({ isOpen, onClose, onSelectProduto }) => {
           onChange={(e) => setSearchTerm(e.target.value)}
           className="mb-4"
         />
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Nome</TableHead>
-              <TableHead>Preço</TableHead>
-              <TableHead>Ações</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {filteredProdutos?.map((produto) => (
-              <TableRow key={produto.id}>
-                <TableCell>{produto.name}</TableCell>
-                <TableCell>R$ {produto.sale_price.toFixed(2)}</TableCell>
-                <TableCell>
-                  <Button onClick={() => handleProductSelect(produto)}>Selecionar</Button>
-                </TableCell>
+        <ScrollArea className="flex-grow">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Nome</TableHead>
+                <TableHead>Preço</TableHead>
+                <TableHead>Ações</TableHead>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+            </TableHeader>
+            <TableBody>
+              {filteredProdutos?.map((produto) => (
+                <TableRow key={produto.id}>
+                  <TableCell>{produto.name}</TableCell>
+                  <TableCell>R$ {produto.sale_price.toFixed(2)}</TableCell>
+                  <TableCell>
+                    <Button onClick={() => handleProductSelect(produto)}>Selecionar</Button>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </ScrollArea>
         {selectedProduct && (
-          <div className="mt-4 space-y-2">
+          <div className="mt-4 space-y-2 bg-gray-100 p-4 rounded-md">
+            <h3 className="font-bold">{selectedProduct.name}</h3>
             <Input
               type="number"
               placeholder="Quantidade"
