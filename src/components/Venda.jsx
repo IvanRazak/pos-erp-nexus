@@ -41,6 +41,18 @@ const Venda = () => {
   const { data: opcoesPagamento } = usePaymentOptions();
   const addOrder = useAddOrder();
 
+    // Verificação de autenticação
+  useEffect(() => {
+    console.log("Verificando autenticação...");
+    if (!user) {
+      console.log("Usuário não autenticado, redirecionando para /login");
+      navigate('/login');
+    } else {
+      console.log("Usuário autenticado:", user);
+    }
+  }, [user, navigate]);
+
+
   const handleDeleteFromCart = (itemToDelete) => {
     setCarrinho(carrinho.filter(item => item !== itemToDelete));
   };
