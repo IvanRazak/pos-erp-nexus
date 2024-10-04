@@ -40,7 +40,15 @@ const Venda = () => {
   const { data: opcoesExtras } = useExtraOptions();
   const { data: opcoesPagamento } = usePaymentOptions();
   const addOrder = useAddOrder();
+  // Estado para controlar a exibição do conteúdo
+  const [isLoading, setIsLoading] = useState(true);
 
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsLoading(false); // Após 1 segundo, o conteúdo será exibido
+    }, 1000);
+    return () => clearTimeout(timer);
+  }, []);
 
   useEffect(() => {
      const timer = setTimeout(() => {
