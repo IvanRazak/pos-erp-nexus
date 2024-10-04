@@ -40,6 +40,14 @@ const BuscarProdutoModal = ({ isOpen, onClose, onSelectProduto }) => {
     }
   };
 
+  const handleCancel = () => {
+    setSelectedProduct(null);
+    setQuantidade(1);
+    setLargura('');
+    setAltura('');
+    setM2(0);
+  };
+
   const updateM2 = (newLargura, newAltura) => {
     setM2((parseFloat(newLargura) * parseFloat(newAltura)).toFixed(2));
   };
@@ -117,7 +125,10 @@ const BuscarProdutoModal = ({ isOpen, onClose, onSelectProduto }) => {
                 />
               </>
             )}
-            <Button onClick={handleConfirm}>Confirmar Seleção</Button>
+            <div className="flex justify-end space-x-2">
+              <Button variant="outline" onClick={handleCancel}>Cancelar Seleção</Button>
+              <Button onClick={handleConfirm}>Confirmar Seleção</Button>
+            </div>
           </div>
         )}
       </DialogContent>
