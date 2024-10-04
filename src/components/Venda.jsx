@@ -1,23 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery, useMutation } from '@tanstack/react-query';
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { format } from "date-fns";
-import { CalendarIcon } from "lucide-react";
-import { cn } from "@/lib/utils";
 import { useProducts, useCustomers, useExtraOptions, usePaymentOptions, useAddOrder } from '../integrations/supabase';
 import ClienteForm from './ClienteForm';
 import { toast } from "@/components/ui/use-toast";
 import ProdutoExtraOptionsModal from './ProdutoExtraOptionsModal';
 import { useAuth } from '../hooks/useAuth';
-import CarrinhoItem from './CarrinhoItem';
 import BuscarClienteModal from './BuscarClienteModal';
 import BuscarProdutoModal from './BuscarProdutoModal';
-import ProdutoSelectionForm from './ProdutoSelectionForm';
 import VendaCarrinho from './VendaCarrinho';
 
 const Venda = () => {
@@ -26,24 +19,15 @@ const Venda = () => {
   const [carrinho, setCarrinho] = useState([]);
   const [clienteSelecionado, setClienteSelecionado] = useState(null);
   const [produtoSelecionado, setProdutoSelecionado] = useState(null);
-  const [quantidade, setQuantidade] = useState(1);
-  const [largura, setLargura] = useState('');
-  const [altura, setAltura] = useState('');
-  const [m2, setM2] = useState(0);
-  const [desconto, setDesconto] = useState('');
-  const [dataEntrega, setDataEntrega] = useState(null);
-  const [opcaoPagamento, setOpcaoPagamento] = useState('');
   const [isNewClientDialogOpen, setIsNewClientDialogOpen] = useState(false);
   const [isExtraOptionsModalOpen, setIsExtraOptionsModalOpen] = useState(false);
-  const [valorPago, setValorPago] = useState(0);
   const [isBuscarClienteModalOpen, setIsBuscarClienteModalOpen] = useState(false);
+  const [isBuscarProdutoModalOpen, setIsBuscarProdutoModalOpen] = useState(false);
   const { data: produtos } = useProducts();
   const { data: clientes } = useCustomers();
   const { data: opcoesExtras } = useExtraOptions();
   const { data: opcoesPagamento } = usePaymentOptions();
   const addOrder = useAddOrder();
-
-  const [isBuscarProdutoModalOpen, setIsBuscarProdutoModalOpen] = useState(false);
 
   const [isLoading, setIsLoading] = useState(true);
 
@@ -69,56 +53,45 @@ const Venda = () => {
 
   const handleEditCartItem = (itemToEdit) => {
     setProdutoSelecionado(itemToEdit);
-    setQuantidade(itemToEdit.quantidade);
-    setLargura(itemToEdit.largura || '');
-    setAltura(itemToEdit.altura || '');
-    setM2(itemToEdit.m2 || 0);
     setCarrinho(carrinho.filter(item => item !== itemToEdit));
     setIsExtraOptionsModalOpen(true);
   };
 
-  const adicionarAoCarrinho = () => {
-    if (produtoSelecionado) {
-      setIsExtraOptionsModalOpen(true);
-    }
-  };
-
   const handleAdicionarAoCarrinhoComExtras = (extrasEscolhidas) => {
-    const m2Total = produtoSelecionado.unit_type === 'square_meter' ? largura * altura : 1;
     const novoItem = {
       ...produtoSelecionado,
       cartItemId: Date.now().toString(),
-      quantidade,
-      largura,
-      altura,
-      m2: m2Total,
-      total: produtoSelecionado.sale_price * m2Total * quantidade,
       extras: extrasEscolhidas,
+      total: calcularTotalItem(produtoSelecionado, extrasEscolhidas),
     };
     setCarrinho([...carrinho, novoItem]);
-    resetProduto();
+    setProdutoSelecionado(null);
     setIsExtraOptionsModalOpen(false);
   };
 
-  const resetProduto = () => {
-    setProdutoSelecionado(null);
-    setQuantidade(1);
-    setLargura(0);
-    setAltura(0);
-    setM2(0);
+  const calcularTotalItem = (item, extras) => {
+    const precoBase = item.unit_type === 'square_meter' ? item.sale_price * item.m2 : item.sale_price;
+    const precoExtras = extras.reduce((total, extra) => total + extra.price, 0);
+    return (precoBase + precoExtras) * item.quantidade;
   };
 
   const calcularTotal = () => {
-    const subtotal = carrinho.reduce((acc, item) => {
-      const itemTotal = item.total + item.extras.reduce((extrasTotal, extra) => extrasTotal + extra.price * item.quantidade, 0);
-      return acc + itemTotal;
-    }, 0);
-    return subtotal - desconto;
+    return carrinho.reduce((total, item) => total + item.total, 0);
   };
 
   const handleNewClientSuccess = () => {
     setIsNewClientDialogOpen(false);
-    refetchClientes();
+    // Aqui você pode adicionar lógica para atualizar a lista de clientes, se necessário
+  };
+
+  const handleSelectCliente = (cliente) => {
+    setClienteSelecionado(cliente.id);
+    setIsBuscarClienteModalOpen(false);
+  };
+
+  const handleSelectProduto = (produto) => {
+    setProdutoSelecionado(produto);
+    setIsExtraOptionsModalOpen(true);
   };
 
   const finalizarVenda = async () => {
@@ -207,21 +180,12 @@ const Venda = () => {
         <>
           <h2 className="text-2xl font-bold mb-4">Venda</h2>
           <div className="grid grid-cols-2 gap-4">
-            <ProdutoSelectionForm
-              produtos={produtos}
-              produtoSelecionado={produtoSelecionado}
-              setProdutoSelecionado={setProdutoSelecionado}
-              quantidade={quantidade}
-              setQuantidade={setQuantidade}
-              largura={largura}
-              setLargura={setLargura}
-              altura={altura}
-              setAltura={setAltura}
-              m2={m2}
-              setM2={setM2}
-              openBuscarProdutoModal={() => setIsBuscarProdutoModalOpen(true)}
-              adicionarAoCarrinho={adicionarAoCarrinho}
-            />
+            <div>
+              <h3 className="text-xl font-semibold mb-2">Selecionar Produto</h3>
+              <Button onClick={() => setIsBuscarProdutoModalOpen(true)}>
+                Buscar Produto
+              </Button>
+            </div>
             <div>
               <h3 className="text-xl font-semibold mb-2">Selecionar Cliente</h3>
               <div className="flex items-center space-x-2">
@@ -278,7 +242,7 @@ const Venda = () => {
             onClose={() => setIsBuscarProdutoModalOpen(false)}
             onSelectProduto={handleSelectProduto}
           />
-          {isExtraOptionsModalOpen && (
+          {isExtraOptionsModalOpen && produtoSelecionado && (
             <ProdutoExtraOptionsModal
               produto={produtoSelecionado}
               opcoesExtras={opcoesExtras}
