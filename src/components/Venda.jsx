@@ -18,6 +18,7 @@ import ProdutoExtraOptionsModal from './ProdutoExtraOptionsModal';
 import { useAuth } from '../hooks/useAuth';
 import CarrinhoItem from './CarrinhoItem';
 import BuscarClienteModal from './BuscarClienteModal';
+import BuscarProdutoModal from './BuscarProdutoModal';
 
 const Venda = () => {
   const navigate = useNavigate();
@@ -41,6 +42,8 @@ const Venda = () => {
   const { data: opcoesExtras } = useExtraOptions();
   const { data: opcoesPagamento } = usePaymentOptions();
   const addOrder = useAddOrder();
+
+  const [isBuscarProdutoModalOpen, setIsBuscarProdutoModalOpen] = useState(false);
 
   const [isLoading, setIsLoading] = useState(true);
 
@@ -190,6 +193,11 @@ const Venda = () => {
     setIsBuscarClienteModalOpen(false);
   };
 
+  const handleSelectProduto = (produto) => {
+    setProdutoSelecionado(produto);
+    setIsBuscarProdutoModalOpen(false);
+  };
+
   return (
     <div className="container mx-auto p-4">
       {isLoading ? (
@@ -200,16 +208,21 @@ const Venda = () => {
           <div className="grid grid-cols-2 gap-4">
             <div>
               <h3 className="text-xl font-semibold mb-2">Selecionar Produto</h3>
-              <Select onValueChange={(value) => setProdutoSelecionado(produtos?.find(p => p.id === value))}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione um produto" />
-                </SelectTrigger>
-                <SelectContent>
-                  {produtos?.map((produto) => (
-                    <SelectItem key={produto.id} value={produto.id}>{produto.name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <div className="flex items-center space-x-2">
+                <Select onValueChange={(value) => setProdutoSelecionado(produtos?.find(p => p.id === value))}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione um produto" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {produtos?.map((produto) => (
+                      <SelectItem key={produto.id} value={produto.id}>{produto.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Button onClick={() => setIsBuscarProdutoModalOpen(true)}>
+                  Buscar Produto
+                </Button>
+              </div>
               <Input type="number" placeholder="Quantidade" value={quantidade} onChange={(e) => setQuantidade(parseInt(e.target.value) || 1)} className="mt-2" />
               {produtoSelecionado?.unit_type === 'square_meter' && (
                 <>
@@ -226,7 +239,6 @@ const Venda = () => {
                   <Input type="number" placeholder="M²" value={m2} readOnly className="mt-2" />
                 </>
               )}
-              <Button onClick={adicionarAoCarrinho} className="mt-2">Adicionar ao Carrinho</Button>
             </div>
             <div>
               <h3 className="text-xl font-semibold mb-2">Selecionar Cliente</h3>
@@ -317,6 +329,11 @@ const Venda = () => {
             isOpen={isBuscarClienteModalOpen}
             onClose={() => setIsBuscarClienteModalOpen(false)}
             onSelectCliente={handleSelectCliente}
+          />
+          <BuscarProdutoModal
+            isOpen={isBuscarProdutoModalOpen}
+            onClose={() => setIsBuscarProdutoModalOpen(false)}
+            onSelectProduto={handleSelectProduto}
           />
           {isExtraOptionsModalOpen && (
             <ProdutoExtraOptionsModal
