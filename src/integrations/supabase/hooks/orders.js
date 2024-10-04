@@ -47,6 +47,7 @@ export const useAddOrder = () => {
         width: item.width || null,
         height: item.height || null,
         m2: item.m2 || null,
+        cart_item_id: item.cartItemId, // Add this line
       }));
 
       const { data: insertedItems, error: itemsError } = await supabase
@@ -58,7 +59,7 @@ export const useAddOrder = () => {
 
       const extraOptions = newOrder.items.flatMap(item => 
         item.extras.map(extra => ({
-          order_item_id: insertedItems.find(i => i.product_id === item.product_id).id,
+          order_item_id: insertedItems.find(i => i.cart_item_id === item.cartItemId).id, // Update this line
           extra_option_id: extra.id,
         }))
       );

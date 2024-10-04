@@ -65,6 +65,7 @@ const Venda = () => {
     const m2Total = produtoSelecionado.unit_type === 'square_meter' ? largura * altura : 1;
     const novoItem = {
       ...produtoSelecionado,
+      cartItemId: Date.now().toString(), // Add a unique identifier
       quantidade,
       largura,
       altura,
@@ -140,6 +141,7 @@ const Venda = () => {
         width: item.largura,
         height: item.altura,
         m2: item.m2,
+        cartItemId: item.cartItemId, // Include the unique identifier
       })),
       created_by: user.username,
       discount: parseFloat(desconto) || 0,
