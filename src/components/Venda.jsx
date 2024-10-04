@@ -17,6 +17,7 @@ import { toast } from "@/components/ui/use-toast";
 import ProdutoExtraOptionsModal from './ProdutoExtraOptionsModal';
 import { useAuth } from '../hooks/useAuth';
 import CarrinhoItem from './CarrinhoItem';
+import BuscarClienteModal from './BuscarClienteModal';
 
 const Venda = () => {
   const navigate = useNavigate();
@@ -34,18 +35,18 @@ const Venda = () => {
   const [isNewClientDialogOpen, setIsNewClientDialogOpen] = useState(false);
   const [isExtraOptionsModalOpen, setIsExtraOptionsModalOpen] = useState(false);
   const [valorPago, setValorPago] = useState(0);
+  const [isBuscarClienteModalOpen, setIsBuscarClienteModalOpen] = useState(false);
   const { data: produtos } = useProducts();
   const { data: clientes } = useCustomers();
   const { data: opcoesExtras } = useExtraOptions();
   const { data: opcoesPagamento } = usePaymentOptions();
   const addOrder = useAddOrder();
 
-  // Estado para controlar a exibição do conteúdo
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      setIsLoading(false); // Após 1 segundo, o conteúdo será exibido
+      setIsLoading(false);
     }, 1000);
     return () => clearTimeout(timer);
   }, []);
@@ -83,7 +84,7 @@ const Venda = () => {
     const m2Total = produtoSelecionado.unit_type === 'square_meter' ? largura * altura : 1;
     const novoItem = {
       ...produtoSelecionado,
-      cartItemId: Date.now().toString(), // Add a unique identifier
+      cartItemId: Date.now().toString(),
       quantidade,
       largura,
       altura,
@@ -154,7 +155,7 @@ const Venda = () => {
         width: item.largura,
         height: item.altura,
         m2: item.m2,
-        cartItemId: item.cartItemId, // Include the unique identifier
+        cartItemId: item.cartItemId,
       })),
       created_by: user.username,
       discount: parseFloat(desconto) || 0,
@@ -184,10 +185,15 @@ const Venda = () => {
     setValorPago(0);
   };
 
+  const handleSelectCliente = (cliente) => {
+    setClienteSelecionado(cliente.id);
+    setIsBuscarClienteModalOpen(false);
+  };
+
   return (
     <div className="container mx-auto p-4">
       {isLoading ? (
-        <div>Carregando...</div> // Exibe uma mensagem de carregamento
+        <div>Carregando...</div>
       ) : (
         <>
           <h2 className="text-2xl font-bold mb-4">Venda</h2>
@@ -224,16 +230,21 @@ const Venda = () => {
             </div>
             <div>
               <h3 className="text-xl font-semibold mb-2">Selecionar Cliente</h3>
-              <Select onValueChange={setClienteSelecionado}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione um cliente" />
-                </SelectTrigger>
-                <SelectContent>
-                  {clientes?.map((cliente) => (
-                    <SelectItem key={cliente.id} value={cliente.id}>{cliente.name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <div className="flex items-center space-x-2">
+                <Select onValueChange={setClienteSelecionado}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione um cliente" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {clientes?.map((cliente) => (
+                      <SelectItem key={cliente.id} value={cliente.id}>{cliente.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Button onClick={() => setIsBuscarClienteModalOpen(true)}>
+                  Buscar Cliente
+                </Button>
+              </div>
               <Dialog open={isNewClientDialogOpen} onOpenChange={setIsNewClientDialogOpen}>
                 <DialogTrigger asChild>
                   <Button className="mt-2">Cadastrar Novo Cliente</Button>
@@ -302,6 +313,11 @@ const Venda = () => {
             <p className="mt-2 text-xl font-bold">Saldo Restante: R$ {(calcularTotal() - valorPago).toFixed(2)}</p>
             <Button className="mt-2" onClick={finalizarVenda}>Finalizar Venda</Button>
           </div>
+          <BuscarClienteModal
+            isOpen={isBuscarClienteModalOpen}
+            onClose={() => setIsBuscarClienteModalOpen(false)}
+            onSelectCliente={handleSelectCliente}
+          />
           {isExtraOptionsModalOpen && (
             <ProdutoExtraOptionsModal
               produto={produtoSelecionado}
