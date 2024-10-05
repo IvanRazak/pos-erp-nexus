@@ -5,12 +5,14 @@ import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useProducts } from '../integrations/supabase';
-import ProdutoExtraOptionsModal from './ProdutoExtraOptionsModal';
 
 const BuscarProdutoModal = ({ isOpen, onClose, onSelectProduto }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedProduct, setSelectedProduct] = useState(null);
-  const [showExtraOptions, setShowExtraOptions] = useState(false);
+  const [quantidade, setQuantidade] = useState(1);
+  const [altura, setAltura] = useState('');
+  const [largura, setLargura] = useState('');
+  const [m2, setM2] = useState(0);
   const { data: produtos } = useProducts();
 
   const filteredProdutos = produtos?.filter(produto =>
@@ -19,12 +21,35 @@ const BuscarProdutoModal = ({ isOpen, onClose, onSelectProduto }) => {
 
   const handleProductSelect = (produto) => {
     setSelectedProduct(produto);
-    setShowExtraOptions(true);
+    setQuantidade(1);
+    setAltura('');
+    setLargura('');
+    setM2(0);
   };
 
-  const handleConfirmWithExtras = (produtoComExtras) => {
-    onSelectProduto(produtoComExtras);
-    onClose();
+  const handleConfirm = () => {
+    if (selectedProduct) {
+      onSelectProduto({
+        ...selectedProduct,
+        quantidade,
+        altura: parseFloat(altura) || 0,
+        largura: parseFloat(largura) || 0,
+        m2: parseFloat(m2) || 0
+      });
+      onClose();
+    }
+  };
+
+  const handleCancel = () => {
+    setSelectedProduct(null);
+    setQuantidade(1);
+    setAltura('');
+    setLargura('');
+    setM2(0);
+  };
+
+  const updateM2 = (newAltura, newLargura) => {
+    setM2((parseFloat(newAltura) * parseFloat(newLargura)).toFixed(2));
   };
 
   return (
@@ -61,14 +86,52 @@ const BuscarProdutoModal = ({ isOpen, onClose, onSelectProduto }) => {
             </TableBody>
           </Table>
         </ScrollArea>
+        {selectedProduct && (
+          <div className="mt-4 space-y-2 bg-gray-100 p-4 rounded-md">
+            <h3 className="font-bold">{selectedProduct.name}</h3>
+            <Input
+              type="number"
+              placeholder="Quantidade"
+              value={quantidade}
+              onChange={(e) => setQuantidade(parseInt(e.target.value) || 1)}
+            />
+            {selectedProduct.unit_type === 'square_meter' && (
+              <>
+                <Input
+                  type="number"
+                  placeholder="Altura"
+                  value={altura}
+                  onChange={(e) => {
+                    const newAltura = e.target.value;
+                    setAltura(newAltura);
+                    updateM2(newAltura, largura);
+                  }}
+                />
+                <Input
+                  type="number"
+                  placeholder="Largura"
+                  value={largura}
+                  onChange={(e) => {
+                    const newLargura = e.target.value;
+                    setLargura(newLargura);
+                    updateM2(altura, newLargura);
+                  }}
+                />
+                <Input
+                  type="number"
+                  placeholder="M²"
+                  value={m2}
+                  readOnly
+                />
+              </>
+            )}
+            <div className="flex justify-end space-x-2">
+              <Button variant="outline" onClick={handleCancel}>Cancelar Seleção</Button>
+              <Button onClick={handleConfirm}>Confirmar Seleção</Button>
+            </div>
+          </div>
+        )}
       </DialogContent>
-      {showExtraOptions && selectedProduct && (
-        <ProdutoExtraOptionsModal
-          produto={selectedProduct}
-          onClose={() => setShowExtraOptions(false)}
-          onConfirm={handleConfirmWithExtras}
-        />
-      )}
     </Dialog>
   );
 };
