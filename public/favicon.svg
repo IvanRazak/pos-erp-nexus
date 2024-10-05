@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Creator: CorelDRAW 2021 (64 Bit) -->
+<svg xmlns="http://www.w3.org/2000/svg" xml:space="preserve" width="10.8373mm" height="10.8373mm" version="1.1" style="shape-rendering:geometricPrecision; text-rendering:geometricPrecision; image-rendering:optimizeQuality; fill-rule:evenodd; clip-rule:evenodd"
+viewBox="0 0 118.96 118.96"
+ xmlns:xlink="http://www.w3.org/1999/xlink"
+ xmlns:xodm="http://www.corel.com/coreldraw/odm/2003">
+ <defs>
+  <style type="text/css">
+   <![CDATA[
+    .fil4 {fill:#354992}
+    .fil2 {fill:url(#id0)}
+    .fil0 {fill:url(#id1)}
+    .fil3 {fill:url(#id2)}
+    .fil1 {fill:url(#id3)}
+   ]]>
+  </style>
+  <linearGradient id="id0" gradientUnits="userSpaceOnUse" x1="51.53" y1="83.2" x2="103.22" y2="83.2">
+   <stop offset="0" style="stop-opacity:1; stop-color:#443482"/>
+   <stop offset="1" style="stop-opacity:1; stop-color:#15A1D1"/>
+  </linearGradient>
+  <linearGradient id="id1" gradientUnits="userSpaceOnUse" xlink:href="#id0" x1="41.75" y1="35.63" x2="105.46" y2="35.63">
+  </linearGradient>
+  <linearGradient id="id2" gradientUnits="userSpaceOnUse" x1="19.07" y1="103.44" x2="99.8" y2="15.44">
+   <stop offset="0" style="stop-opacity:1; stop-color:#3C4992"/>
+   <stop offset="1" style="stop-opacity:1; stop-color:#15A1D1"/>
+  </linearGradient>
+  <linearGradient id="id3" gradientUnits="userSpaceOnUse" x1="0" y1="87.58" x2="115.19" y2="87.58">
+   <stop offset="0" style="stop-opacity:1; stop-color:#40689F"/>
+   <stop offset="1" style="stop-opacity:1; stop-color:#15A1D1"/>
+  </linearGradient>
+ </defs>
+ <g id="Camada_x0020_1">
+  <metadata id="CorelCorpID_0Corel-Layer"/>
+  <polygon class="fil0" points="47.04,34.39 105.46,21.73 92.49,45.29 41.75,49.52 "/>
+  <polygon class="fil1" points="-0,118.96 24.97,118.96 66.88,79.08 103.22,72.72 115.28,56.3 50,68.08 "/>
+  <polygon class="fil2" points="88.98,92.45 51.53,93.69 66.88,79.08 103.22,72.72 "/>
+  <polygon class="fil3" points="18.15,21.24 118.96,0 105.34,21.92 47.05,34.4 27.12,91.37 -0,118.96 "/>
+  <polygon class="fil4" points="-0,118.96 27.12,91.37 32.61,75.67 "/>
+ </g>
+</svg>
