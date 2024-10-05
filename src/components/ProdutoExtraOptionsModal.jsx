@@ -6,6 +6,10 @@ import { Button } from "@/components/ui/button";
 const ProdutoExtraOptionsModal = ({ produto, opcoesExtras, onClose, onConfirm }) => {
   const [extrasEscolhidas, setExtrasEscolhidas] = useState([]);
 
+  const produtoOpcoesExtras = opcoesExtras?.filter(opcao => 
+    produto.extra_options?.includes(opcao.id)
+  );
+
   const handleExtraChange = (extra) => {
     setExtrasEscolhidas(prev => {
       const isAlreadySelected = prev.some(item => item.id === extra.id);
@@ -29,7 +33,7 @@ const ProdutoExtraOptionsModal = ({ produto, opcoesExtras, onClose, onConfirm })
           <DialogTitle>Opções Extras para {produto.name}</DialogTitle>
         </DialogHeader>
         <div className="space-y-4">
-          {opcoesExtras?.map((opcao) => (
+          {produtoOpcoesExtras?.map((opcao) => (
             <div key={opcao.id} className="flex items-center space-x-2">
               <Checkbox
                 id={`extra-${opcao.id}`}

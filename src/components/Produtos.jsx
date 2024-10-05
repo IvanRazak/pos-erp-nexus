@@ -10,8 +10,9 @@ import { useToast } from "@/components/ui/use-toast";
 import { useSupabaseAuth } from '../integrations/supabase/auth';
 import { supabase } from '../lib/supabase';
 import EditProdutoModal from './EditProdutoModal';
-import { useProducts, useAddProduct, useUpdateProduct, useDeleteProduct } from '../integrations/supabase';
+import { useProducts, useAddProduct, useUpdateProduct, useDeleteProduct, useExtraOptions } from '../integrations/supabase';
 import { useAuth } from '../hooks/useAuth';
+import { Checkbox } from "@/components/ui/checkbox";
 
 const Produtos = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -35,6 +36,7 @@ const Produtos = () => {
   const isAdmin = session?.user?.user_metadata?.role === 'admin';
 
   const { data: produtos, isLoading } = useProducts();
+  const { data: extraOptions } = useExtraOptions();
   const addProduct = useAddProduct();
   const updateProduct = useUpdateProduct();
   const deleteProduct = useDeleteProduct();
@@ -43,6 +45,10 @@ const Produtos = () => {
     event.preventDefault();
     const formData = new FormData(event.target);
     const novoProduto = Object.fromEntries(formData.entries());
+    
+    // Convert extra_options to an array of UUIDs
+    novoProduto.extra_options = Array.from(formData.getAll('extra_options'));
+    
     addProduct.mutate(novoProduto, {
       onSuccess: () => {
         toast({
@@ -127,6 +133,21 @@ const Produtos = () => {
                 <SelectItem value="square_meter">Metro Quadrado</SelectItem>
               </SelectContent>
             </Select>
+            <div>
+              <h4 className="mb-2">Opções Extras</h4>
+              {extraOptions?.map((option) => (
+                <div key={option.id} className="flex items-center space-x-2">
+                  <Checkbox
+                    id={`extra-${option.id}`}
+                    name="extra_options"
+                    value={option.id}
+                  />
+                  <label htmlFor={`extra-${option.id}`}>
+                    {option.name} - R$ {option.price.toFixed(2)}
+                  </label>
+                </div>
+              ))}
+            </div>
             <Button type="submit">Cadastrar</Button>
           </form>
         </DialogContent>
@@ -143,6 +164,7 @@ const Produtos = () => {
             <TableHead>Formato</TableHead>
             <TableHead>Impressão</TableHead>
             <TableHead>Tipo de Unidade</TableHead>
+            <TableHead>Opções Extras</TableHead>
             <TableHead>Ações</TableHead>
           </TableRow>
         </TableHeader>
@@ -159,6 +181,11 @@ const Produtos = () => {
               <TableCell>{produto.print_type}</TableCell>
               <TableCell>{produto.unit_type}</TableCell>
               <TableCell>
+                {produto.extra_options?.map(optionId => 
+                  extraOptions?.find(o => o.id === optionId)?.name
+                ).join(', ')}
+              </TableCell>
+              <TableCell>
                 <Button onClick={() => handleOpenEditModal(produto)} className="mr-2">Editar</Button>
                 {isAdmin && (
                   <Button onClick={() => handleDeleteProduct(produto.id)} variant="destructive">Excluir</Button>
@@ -169,7 +196,12 @@ const Produtos = () => {
         </TableBody>
       </Table>
       {editingProduto && (
-        <EditProdutoModal produto={editingProduto} onClose={handleCloseEditModal} onUpdate={updateProduct.mutate} />
+        <EditProdutoModal 
+          produto={editingProduto} 
+          onClose={handleCloseEditModal} 
+          onUpdate={updateProduct.mutate}
+          extraOptions={extraOptions}
+        />
       )}
     </div>
   );

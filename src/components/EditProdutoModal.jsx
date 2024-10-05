@@ -3,11 +3,12 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '../lib/supabase';
 import { useToast } from "@/components/ui/use-toast";
 
-const EditProdutoModal = ({ produto, onClose }) => {
+const EditProdutoModal = ({ produto, onClose, extraOptions }) => {
   const [editedProduto, setEditedProduto] = useState(produto);
   const queryClient = useQueryClient();
   const { toast } = useToast();
@@ -33,8 +34,15 @@ const EditProdutoModal = ({ produto, onClose }) => {
   });
 
   const handleChange = (e) => {
-    const { name, value } = e.target;
-    setEditedProduto(prev => ({ ...prev, [name]: value }));
+    const { name, value, type, checked } = e.target;
+    if (type === 'checkbox') {
+      const updatedExtraOptions = checked
+        ? [...(editedProduto.extra_options || []), value]
+        : (editedProduto.extra_options || []).filter(id => id !== value);
+      setEditedProduto(prev => ({ ...prev, extra_options: updatedExtraOptions }));
+    } else {
+      setEditedProduto(prev => ({ ...prev, [name]: value }));
+    }
   };
 
   const handleSubmit = (e) => {
@@ -75,6 +83,30 @@ const EditProdutoModal = ({ produto, onClose }) => {
               <SelectItem value="square_meter">Metro Quadrado</SelectItem>
             </SelectContent>
           </Select>
+          <div>
+            <h4 className="mb-2">Opções Extras</h4>
+            {extraOptions?.map((option) => (
+              <div key={option.id} className="flex items-center space-x-2">
+                <Checkbox
+                  id={`extra-${option.id}`}
+                  name="extra_options"
+                  value={option.id}
+                  checked={(editedProduto.extra_options || []).includes(option.id)}
+                  onCheckedChange={(checked) => handleChange({
+                    target: { 
+                      type: 'checkbox', 
+                      name: 'extra_options', 
+                      value: option.id, 
+                      checked 
+                    }
+                  })}
+                />
+                <label htmlFor={`extra-${option.id}`}>
+                  {option.name} - R$ {option.price.toFixed(2)}
+                </label>
+              </div>
+            ))}
+          </div>
           <Button type="submit">Salvar Alterações</Button>
         </form>
       </DialogContent>
