@@ -1,23 +1,22 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/components/ui/use-toast";
 import { useSupabaseAuth } from '../integrations/supabase/auth';
-import { supabase } from '../lib/supabase';
-import EditProdutoModal from './EditProdutoModal';
-import { useProducts, useAddProduct, useUpdateProduct, useDeleteProduct } from '../integrations/supabase';
+import { useProducts, useAddProduct, useUpdateProduct, useDeleteProduct, useExtraOptions } from '../integrations/supabase';
 import { useAuth } from '../hooks/useAuth';
+import EditProdutoModal from './EditProdutoModal';
 
 const Produtos = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingProduto, setEditingProduto] = useState(null);
+  const [selectedExtras, setSelectedExtras] = useState([]);
   const { toast } = useToast();
-  const queryClient = useQueryClient();
   const { session } = useSupabaseAuth() || {};
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -35,6 +34,7 @@ const Produtos = () => {
   const isAdmin = session?.user?.user_metadata?.role === 'admin';
 
   const { data: produtos, isLoading } = useProducts();
+  const { data: extraOptions } = useExtraOptions();
   const addProduct = useAddProduct();
   const updateProduct = useUpdateProduct();
   const deleteProduct = useDeleteProduct();
@@ -43,6 +43,7 @@ const Produtos = () => {
     event.preventDefault();
     const formData = new FormData(event.target);
     const novoProduto = Object.fromEntries(formData.entries());
+    novoProduto.extra_options = selectedExtras;
     addProduct.mutate(novoProduto, {
       onSuccess: () => {
         toast({
@@ -50,6 +51,7 @@ const Produtos = () => {
           description: "O novo produto foi adicionado à lista.",
         });
         setIsDialogOpen(false);
+        setSelectedExtras([]);
       },
       onError: (error) => {
         toast({
@@ -63,10 +65,12 @@ const Produtos = () => {
 
   const handleOpenEditModal = (produto) => {
     setEditingProduto(produto);
+    setSelectedExtras(produto.extra_options || []);
   };
 
   const handleCloseEditModal = () => {
     setEditingProduto(null);
+    setSelectedExtras([]);
   };
 
   const handleDeleteProduct = (id) => {
@@ -85,6 +89,14 @@ const Produtos = () => {
         });
       }
     });
+  };
+
+  const handleExtraOptionChange = (extraId) => {
+    setSelectedExtras(prev => 
+      prev.includes(extraId) 
+        ? prev.filter(id => id !== extraId)
+        : [...prev, extraId]
+    );
   };
 
   if (isLoading) return <div>Carregando...</div>;
@@ -127,6 +139,19 @@ const Produtos = () => {
                 <SelectItem value="square_meter">Metro Quadrado</SelectItem>
               </SelectContent>
             </Select>
+            <div>
+              <h4 className="font-semibold mb-2">Opções Extras</h4>
+              {extraOptions?.map((option) => (
+                <div key={option.id} className="flex items-center space-x-2">
+                  <Checkbox
+                    id={`extra-${option.id}`}
+                    checked={selectedExtras.includes(option.id)}
+                    onCheckedChange={() => handleExtraOptionChange(option.id)}
+                  />
+                  <label htmlFor={`extra-${option.id}`}>{option.name}</label>
+                </div>
+              ))}
+            </div>
             <Button type="submit">Cadastrar</Button>
           </form>
         </DialogContent>
@@ -143,6 +168,7 @@ const Produtos = () => {
             <TableHead>Formato</TableHead>
             <TableHead>Impressão</TableHead>
             <TableHead>Tipo de Unidade</TableHead>
+            <TableHead>Opções Extras</TableHead>
             <TableHead>Ações</TableHead>
           </TableRow>
         </TableHeader>
@@ -158,6 +184,7 @@ const Produtos = () => {
               <TableCell>{produto.format}</TableCell>
               <TableCell>{produto.print_type}</TableCell>
               <TableCell>{produto.unit_type}</TableCell>
+              <TableCell>{produto.extra_options?.length || 0}</TableCell>
               <TableCell>
                 <Button onClick={() => handleOpenEditModal(produto)} className="mr-2">Editar</Button>
                 {isAdmin && (
@@ -169,7 +196,14 @@ const Produtos = () => {
         </TableBody>
       </Table>
       {editingProduto && (
-        <EditProdutoModal produto={editingProduto} onClose={handleCloseEditModal} onUpdate={updateProduct.mutate} />
+        <EditProdutoModal
+          produto={editingProduto}
+          onClose={handleCloseEditModal}
+          onUpdate={updateProduct.mutate}
+          extraOptions={extraOptions}
+          selectedExtras={selectedExtras}
+          setSelectedExtras={setSelectedExtras}
+        />
       )}
     </div>
   );

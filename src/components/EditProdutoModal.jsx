@@ -1,45 +1,30 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '../lib/supabase';
-import { useToast } from "@/components/ui/use-toast";
+import { Checkbox } from "@/components/ui/checkbox";
 
-const EditProdutoModal = ({ produto, onClose }) => {
+const EditProdutoModal = ({ produto, onClose, onUpdate, extraOptions, selectedExtras, setSelectedExtras }) => {
   const [editedProduto, setEditedProduto] = useState(produto);
-  const queryClient = useQueryClient();
-  const { toast } = useToast();
-
-  const updateProdutoMutation = useMutation({
-    mutationFn: async (updatedProduto) => {
-      const { data, error } = await supabase
-        .from('products')
-        .update(updatedProduto)
-        .eq('id', produto.id)
-        .select();
-      if (error) throw error;
-      return data[0];
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries(['produtos']);
-      toast({
-        title: "Produto atualizado com sucesso!",
-        description: "As alterações foram salvas.",
-      });
-      onClose();
-    },
-  });
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setEditedProduto(prev => ({ ...prev, [name]: value }));
   };
 
+  const handleExtraOptionChange = (extraId) => {
+    setSelectedExtras(prev => 
+      prev.includes(extraId) 
+        ? prev.filter(id => id !== extraId)
+        : [...prev, extraId]
+    );
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
-    updateProdutoMutation.mutate(editedProduto);
+    onUpdate({ ...editedProduto, extra_options: selectedExtras });
+    onClose();
   };
 
   return (
@@ -75,6 +60,19 @@ const EditProdutoModal = ({ produto, onClose }) => {
               <SelectItem value="square_meter">Metro Quadrado</SelectItem>
             </SelectContent>
           </Select>
+          <div>
+            <h4 className="font-semibold mb-2">Opções Extras</h4>
+            {extraOptions?.map((option) => (
+              <div key={option.id} className="flex items-center space-x-2">
+                <Checkbox
+                  id={`extra-${option.id}`}
+                  checked={selectedExtras.includes(option.id)}
+                  onCheckedChange={() => handleExtraOptionChange(option.id)}
+                />
+                <label htmlFor={`extra-${option.id}`}>{option.name}</label>
+              </div>
+            ))}
+          </div>
           <Button type="submit">Salvar Alterações</Button>
         </form>
       </DialogContent>
