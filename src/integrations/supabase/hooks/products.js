@@ -9,12 +9,12 @@ const fromSupabase = async (query) => {
 
 export const useProduct = (id) => useQuery({
   queryKey: ['products', id],
-  queryFn: () => fromSupabase(supabase.from('products').select('*').eq('id', id).single()),
+  queryFn: () => fromSupabase(supabase.from('products').select('*, extra_options').eq('id', id).single()),
 });
 
 export const useProducts = () => useQuery({
   queryKey: ['products'],
-  queryFn: () => fromSupabase(supabase.from('products').select('*')),
+  queryFn: () => fromSupabase(supabase.from('products').select('*, extra_options')),
 });
 
 export const useAddProduct = () => {
