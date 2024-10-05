@@ -1,5 +1,5 @@
 export const calcularTotalItem = (item, extras) => {
-  const precoBase = item.unit_type === 'square_meter' ? item.sale_price * item.m2 : item.sale_price;
+  const precoBase = item.unitPrice || item.sale_price;
   const precoExtras = Array.isArray(extras) ? extras.reduce((total, extra) => total + extra.price, 0) : 0;
   return (precoBase + precoExtras) * item.quantidade;
 };

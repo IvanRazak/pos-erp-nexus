@@ -29,12 +29,18 @@ const BuscarProdutoModal = ({ isOpen, onClose, onSelectProduto }) => {
 
   const handleConfirm = () => {
     if (selectedProduct) {
+      const calculatedM2 = parseFloat(m2) || 0;
+      const unitPrice = selectedProduct.unit_type === 'square_meter'
+        ? selectedProduct.sale_price * calculatedM2
+        : selectedProduct.sale_price;
+
       onSelectProduto({
         ...selectedProduct,
         quantidade,
         altura: parseFloat(altura) || 0,
         largura: parseFloat(largura) || 0,
-        m2: parseFloat(m2) || 0
+        m2: calculatedM2,
+        unitPrice: unitPrice
       });
       onClose();
     }
@@ -49,7 +55,8 @@ const BuscarProdutoModal = ({ isOpen, onClose, onSelectProduto }) => {
   };
 
   const updateM2 = (newAltura, newLargura) => {
-    setM2((parseFloat(newAltura) * parseFloat(newLargura)).toFixed(2));
+    const calculatedM2 = (parseFloat(newAltura) * parseFloat(newLargura)).toFixed(2);
+    setM2(calculatedM2);
   };
 
   return (
