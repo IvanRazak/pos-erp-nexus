@@ -96,7 +96,7 @@ const Venda = () => {
       });
       return;
     }
-    const totalVenda = calcularTotal();
+    const totalVenda = calcularTotal(carrinho);
     const saldoRestante = totalVenda - valorPago;
     const novaVenda = {
       customer_id: clienteSelecionado,

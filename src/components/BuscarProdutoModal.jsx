@@ -30,9 +30,11 @@ const BuscarProdutoModal = ({ isOpen, onClose, onSelectProduto }) => {
   const handleConfirm = () => {
     if (selectedProduct) {
       const calculatedM2 = parseFloat(m2) || 0;
-      const unitPrice = selectedProduct.unit_type === 'square_meter'
-        ? selectedProduct.sale_price * calculatedM2
-        : selectedProduct.sale_price;
+      let unitPrice = selectedProduct.sale_price;
+
+      if (selectedProduct.unit_type === 'square_meter') {
+        unitPrice = selectedProduct.sale_price * calculatedM2;
+      }
 
       onSelectProduto({
         ...selectedProduct,

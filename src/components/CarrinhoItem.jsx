@@ -9,7 +9,7 @@ const CarrinhoItem = ({ item, onDelete, onEdit }) => {
       <TableCell>{item.quantidade}</TableCell>
       <TableCell>{item.largura && item.altura ? `${item.largura}m x ${item.altura}m` : 'N/A'}</TableCell>
       <TableCell>{item.m2 ? `${item.m2.toFixed(2)}m²` : 'N/A'}</TableCell>
-      <TableCell>R$ {item.sale_price.toFixed(2)}</TableCell>
+      <TableCell>R$ {item.unitPrice.toFixed(2)}</TableCell>
       <TableCell>{item.extras.map((extra, i) => <div key={i}>{extra.name}: R$ {extra.price.toFixed(2)}</div>)}</TableCell>
       <TableCell>R$ {item.total.toFixed(2)}</TableCell>
       <TableCell>
