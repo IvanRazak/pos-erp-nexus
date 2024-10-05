@@ -1,18 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useProducts, useCustomers, useExtraOptions, usePaymentOptions, useAddOrder } from '../integrations/supabase';
 import { useAuth } from '../hooks/useAuth';
 import { toast } from "@/components/ui/use-toast";
 import { format } from "date-fns";
-import ClienteForm from './ClienteForm';
-import ProdutoExtraOptionsModal from './ProdutoExtraOptionsModal';
+import VendaHeader from './VendaHeader';
+import VendaCarrinho from './VendaCarrinho';
 import BuscarClienteModal from './BuscarClienteModal';
 import BuscarProdutoModal from './BuscarProdutoModal';
-import VendaCarrinho from './VendaCarrinho';
-import VendaHeader from './VendaHeader';
+import ProdutoExtraOptionsModal from './ProdutoExtraOptionsModal';
+import { calcularTotalItem, calcularTotal, resetCarrinho } from '../utils/vendaUtils';
 
 const Venda = () => {
   const navigate = useNavigate();
@@ -66,16 +63,6 @@ const Venda = () => {
     setIsExtraOptionsModalOpen(false);
   };
 
-  const calcularTotalItem = (item, extras) => {
-    const precoBase = item.unit_type === 'square_meter' ? item.sale_price * item.m2 : item.sale_price;
-    const precoExtras = extras.reduce((total, extra) => total + extra.price, 0);
-    return (precoBase + precoExtras) * item.quantidade;
-  };
-
-  const calcularTotal = () => {
-    return carrinho.reduce((total, item) => total + item.total, 0);
-  };
-
   const handleNewClientSuccess = () => {
     setIsNewClientDialogOpen(false);
   };
@@ -110,7 +97,7 @@ const Venda = () => {
       });
       return;
     }
-    const totalVenda = calcularTotal();
+    const totalVenda = calcularTotal(carrinho);
     const saldoRestante = totalVenda - valorPago;
     const novaVenda = {
       customer_id: clienteSelecionado,
@@ -139,7 +126,7 @@ const Venda = () => {
         title: "Venda finalizada com sucesso!",
         description: "A nova venda foi registrada no sistema.",
       });
-      resetCarrinho();
+      resetCarrinho(setCarrinho, setClienteSelecionado, setDataEntrega, setOpcaoPagamento, setDesconto, setValorPago);
     } catch (error) {
       toast({
         title: "Erro ao finalizar venda",
@@ -147,15 +134,6 @@ const Venda = () => {
         variant: "destructive",
       });
     }
-  };
-
-  const resetCarrinho = () => {
-    setCarrinho([]);
-    setClienteSelecionado(null);
-    setDataEntrega(null);
-    setOpcaoPagamento('');
-    setDesconto(0);
-    setValorPago(0);
   };
 
   if (isLoading) return <div>Carregando...</div>;
@@ -185,7 +163,7 @@ const Venda = () => {
         opcoesPagamento={opcoesPagamento}
         valorPago={valorPago}
         setValorPago={setValorPago}
-        calcularTotal={calcularTotal}
+        calcularTotal={() => calcularTotal(carrinho)}
         finalizarVenda={finalizarVenda}
       />
       <BuscarClienteModal
