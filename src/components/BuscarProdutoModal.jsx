@@ -10,8 +10,8 @@ const BuscarProdutoModal = ({ isOpen, onClose, onSelectProduto }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [quantidade, setQuantidade] = useState(1);
-  const [largura, setLargura] = useState('');
   const [altura, setAltura] = useState('');
+  const [largura, setLargura] = useState('');
   const [m2, setM2] = useState(0);
   const { data: produtos } = useProducts();
 
@@ -22,8 +22,8 @@ const BuscarProdutoModal = ({ isOpen, onClose, onSelectProduto }) => {
   const handleProductSelect = (produto) => {
     setSelectedProduct(produto);
     setQuantidade(1);
-    setLargura('');
     setAltura('');
+    setLargura('');
     setM2(0);
   };
 
@@ -32,8 +32,8 @@ const BuscarProdutoModal = ({ isOpen, onClose, onSelectProduto }) => {
       onSelectProduto({
         ...selectedProduct,
         quantidade,
-        largura: parseFloat(largura) || 0,
         altura: parseFloat(altura) || 0,
+        largura: parseFloat(largura) || 0,
         m2: parseFloat(m2) || 0
       });
       onClose();
@@ -43,13 +43,13 @@ const BuscarProdutoModal = ({ isOpen, onClose, onSelectProduto }) => {
   const handleCancel = () => {
     setSelectedProduct(null);
     setQuantidade(1);
-    setLargura('');
     setAltura('');
+    setLargura('');
     setM2(0);
   };
 
-  const updateM2 = (newLargura, newAltura) => {
-    setM2((parseFloat(newLargura) * parseFloat(newAltura)).toFixed(2));
+  const updateM2 = (newAltura, newLargura) => {
+    setM2((parseFloat(newAltura) * parseFloat(newLargura)).toFixed(2));
   };
 
   return (
@@ -64,7 +64,7 @@ const BuscarProdutoModal = ({ isOpen, onClose, onSelectProduto }) => {
           onChange={(e) => setSearchTerm(e.target.value)}
           className="mb-4"
         />
-        <ScrollArea className="flex-grow">
+        <ScrollArea className="flex-grow h-[40vh]">
           <Table>
             <TableHeader>
               <TableRow>
@@ -99,22 +99,22 @@ const BuscarProdutoModal = ({ isOpen, onClose, onSelectProduto }) => {
               <>
                 <Input
                   type="number"
-                  placeholder="Largura"
-                  value={largura}
-                  onChange={(e) => {
-                    const newLargura = e.target.value;
-                    setLargura(newLargura);
-                    updateM2(newLargura, altura);
-                  }}
-                />
-                <Input
-                  type="number"
                   placeholder="Altura"
                   value={altura}
                   onChange={(e) => {
                     const newAltura = e.target.value;
                     setAltura(newAltura);
-                    updateM2(largura, newAltura);
+                    updateM2(newAltura, largura);
+                  }}
+                />
+                <Input
+                  type="number"
+                  placeholder="Largura"
+                  value={largura}
+                  onChange={(e) => {
+                    const newLargura = e.target.value;
+                    setLargura(newLargura);
+                    updateM2(altura, newLargura);
                   }}
                 />
                 <Input
