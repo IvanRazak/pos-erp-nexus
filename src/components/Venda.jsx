@@ -1,14 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useProducts, useCustomers, useExtraOptions, usePaymentOptions, useAddOrder } from '../integrations/supabase';
 import { useAuth } from '../hooks/useAuth';
 import { toast } from "@/components/ui/use-toast";
+import { format } from "date-fns";
+import ClienteForm from './ClienteForm';
 import ProdutoExtraOptionsModal from './ProdutoExtraOptionsModal';
 import BuscarClienteModal from './BuscarClienteModal';
 import BuscarProdutoModal from './BuscarProdutoModal';
 import VendaCarrinho from './VendaCarrinho';
 import VendaHeader from './VendaHeader';
-import { calcularTotal, resetCarrinho, handleAdicionarAoCarrinhoComExtras, prepararNovaVenda } from '../utils/vendaUtils';
 
 const Venda = () => {
   const navigate = useNavigate();
@@ -50,10 +54,26 @@ const Venda = () => {
     setIsExtraOptionsModalOpen(true);
   };
 
-  const handleAdicionarAoCarrinho = (extrasEscolhidas) => {
-    handleAdicionarAoCarrinhoComExtras(produtoSelecionado, extrasEscolhidas, setCarrinho);
+  const handleAdicionarAoCarrinhoComExtras = (extrasEscolhidas) => {
+    const novoItem = {
+      ...produtoSelecionado,
+      cartItemId: Date.now().toString(),
+      extras: extrasEscolhidas,
+      total: calcularTotalItem(produtoSelecionado, extrasEscolhidas),
+    };
+    setCarrinho([...carrinho, novoItem]);
     setProdutoSelecionado(null);
     setIsExtraOptionsModalOpen(false);
+  };
+
+  const calcularTotalItem = (item, extras) => {
+    const precoBase = item.unit_type === 'square_meter' ? item.sale_price * item.m2 : item.sale_price;
+    const precoExtras = extras.reduce((total, extra) => total + extra.price, 0);
+    return (precoBase + precoExtras) * item.quantidade;
+  };
+
+  const calcularTotal = () => {
+    return carrinho.reduce((total, item) => total + item.total, 0);
   };
 
   const handleNewClientSuccess = () => {
@@ -90,16 +110,36 @@ const Venda = () => {
       });
       return;
     }
-    
-    const novaVenda = prepararNovaVenda(clienteSelecionado, () => calcularTotal(carrinho), valorPago, dataEntrega, opcaoPagamento, carrinho, user, desconto);
-    
+    const totalVenda = calcularTotal();
+    const saldoRestante = totalVenda - valorPago;
+    const novaVenda = {
+      customer_id: clienteSelecionado,
+      total_amount: totalVenda,
+      paid_amount: valorPago,
+      remaining_balance: saldoRestante,
+      status: saldoRestante > 0 ? 'partial_payment' : 'in_production',
+      delivery_date: format(dataEntrega, 'yyyy-MM-dd'),
+      payment_option: opcaoPagamento,
+      items: carrinho.map(item => ({
+        product_id: item.id,
+        quantity: item.quantidade,
+        unit_price: item.sale_price,
+        extras: item.extras,
+        width: item.largura,
+        height: item.altura,
+        m2: item.m2,
+        cartItemId: item.cartItemId,
+      })),
+      created_by: user.username,
+      discount: parseFloat(desconto) || 0,
+    };
     try {
       await addOrder.mutateAsync(novaVenda);
       toast({
         title: "Venda finalizada com sucesso!",
         description: "A nova venda foi registrada no sistema.",
       });
-      resetCarrinho(setCarrinho, setClienteSelecionado, setDataEntrega, setOpcaoPagamento, setDesconto, setValorPago);
+      resetCarrinho();
     } catch (error) {
       toast({
         title: "Erro ao finalizar venda",
@@ -107,6 +147,15 @@ const Venda = () => {
         variant: "destructive",
       });
     }
+  };
+
+  const resetCarrinho = () => {
+    setCarrinho([]);
+    setClienteSelecionado(null);
+    setDataEntrega(null);
+    setOpcaoPagamento('');
+    setDesconto(0);
+    setValorPago(0);
   };
 
   if (isLoading) return <div>Carregando...</div>;
@@ -136,7 +185,7 @@ const Venda = () => {
         opcoesPagamento={opcoesPagamento}
         valorPago={valorPago}
         setValorPago={setValorPago}
-        calcularTotal={() => calcularTotal(carrinho)}
+        calcularTotal={calcularTotal}
         finalizarVenda={finalizarVenda}
       />
       <BuscarClienteModal
@@ -154,7 +203,7 @@ const Venda = () => {
           produto={produtoSelecionado}
           opcoesExtras={opcoesExtras}
           onClose={() => setIsExtraOptionsModalOpen(false)}
-          onConfirm={handleAdicionarAoCarrinho}
+          onConfirm={handleAdicionarAoCarrinhoComExtras}
         />
       )}
     </div>
