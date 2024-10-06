@@ -2,8 +2,17 @@ import React from 'react';
 import { Button } from "@/components/ui/button";
 import { TableCell, TableRow } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
+import { calcularTotalItem } from '../utils/vendaUtils';
 
 const CarrinhoItem = ({ item, onDelete, onEdit, onExtraEdit }) => {
+  const handleExtraEdit = (extra, newPrice) => {
+    const updatedExtras = item.extras.map(e => 
+      e.id === extra.id ? { ...e, price: newPrice } : e
+    );
+    const newTotal = calcularTotalItem({ ...item, extras: updatedExtras });
+    onExtraEdit(item, updatedExtras, newTotal);
+  };
+
   return (
     <TableRow>
       <TableCell>{item.name}</TableCell>
@@ -19,7 +28,7 @@ const CarrinhoItem = ({ item, onDelete, onEdit, onExtraEdit }) => {
               <Input
                 type="number"
                 value={extra.price}
-                onChange={(e) => onExtraEdit(item, extra, parseFloat(e.target.value))}
+                onChange={(e) => handleExtraEdit(extra, parseFloat(e.target.value) || 0)}
                 className="w-20"
               />
             ) : (

@@ -135,17 +135,10 @@ const Venda = () => {
     }
   };
 
-  const handleExtraEdit = (itemToEdit, extraToEdit, newPrice) => {
-    const updatedCarrinho = carrinho.map(item => {
-      if (item === itemToEdit) {
-        const updatedExtras = item.extras.map(extra => 
-          extra === extraToEdit ? { ...extra, price: newPrice } : extra
-        );
-        const updatedTotal = calcularTotalItem({ ...item, extras: updatedExtras });
-        return { ...item, extras: updatedExtras, total: updatedTotal };
-      }
-      return item;
-    });
+  const handleExtraEdit = (itemToEdit, updatedExtras, newTotal) => {
+    const updatedCarrinho = carrinho.map(item => 
+      item === itemToEdit ? { ...item, extras: updatedExtras, total: newTotal } : item
+    );
     setCarrinho(updatedCarrinho);
   };
 
