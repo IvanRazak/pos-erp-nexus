@@ -83,6 +83,15 @@ const EditProdutoModal = ({ produto, onClose, extraOptions }) => {
               <SelectItem value="square_meter">Metro Quadrado</SelectItem>
             </SelectContent>
           </Select>
+          <Select name="type" value={editedProduto.type} onValueChange={(value) => handleChange({ target: { name: 'type', value } })} required>
+            <SelectTrigger>
+              <SelectValue placeholder="Tipo de Produto" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="standard">Padrão</SelectItem>
+              <SelectItem value="custom">Personalizado</SelectItem>
+            </SelectContent>
+          </Select>
           <div>
             <h4 className="mb-2">Opções Extras</h4>
             {extraOptions?.map((option) => (

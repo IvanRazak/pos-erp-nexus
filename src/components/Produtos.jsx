@@ -49,6 +49,9 @@ const Produtos = () => {
     // Convert extra_options to an array of UUIDs
     novoProduto.extra_options = Array.from(formData.getAll('extra_options'));
     
+    // Set a default type if not provided
+    novoProduto.type = novoProduto.type || 'standard';
+    
     addProduct.mutate(novoProduto, {
       onSuccess: () => {
         toast({
@@ -133,6 +136,15 @@ const Produtos = () => {
                 <SelectItem value="square_meter">Metro Quadrado</SelectItem>
               </SelectContent>
             </Select>
+            <Select name="type" required>
+              <SelectTrigger>
+                <SelectValue placeholder="Tipo de Produto" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="standard">Padrão</SelectItem>
+                <SelectItem value="custom">Personalizado</SelectItem>
+              </SelectContent>
+            </Select>
             <div>
               <h4 className="mb-2">Opções Extras</h4>
               {extraOptions?.map((option) => (
@@ -164,6 +176,7 @@ const Produtos = () => {
             <TableHead>Formato</TableHead>
             <TableHead>Impressão</TableHead>
             <TableHead>Tipo de Unidade</TableHead>
+            <TableHead>Tipo de Produto</TableHead>
             <TableHead>Opções Extras</TableHead>
             <TableHead>Ações</TableHead>
           </TableRow>
@@ -180,6 +193,7 @@ const Produtos = () => {
               <TableCell>{produto.format}</TableCell>
               <TableCell>{produto.print_type}</TableCell>
               <TableCell>{produto.unit_type}</TableCell>
+              <TableCell>{produto.type}</TableCell>
               <TableCell>
                 {produto.extra_options?.map(optionId => 
                   extraOptions?.find(o => o.id === optionId)?.name
