@@ -1,10 +1,13 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 
 const ProdutoForm = ({ onSubmit, extraOptions, initialValues = {} }) => {
+  const [productType, setProductType] = useState(initialValues.type || 'standard');
+  const [options, setOptions] = useState(initialValues.options || []);
+
   const handleSubmit = (event) => {
     event.preventDefault();
     const formData = new FormData(event.target);
@@ -13,12 +16,22 @@ const ProdutoForm = ({ onSubmit, extraOptions, initialValues = {} }) => {
     // Convert extra_options to an array of UUIDs
     novoProduto.extra_options = Array.from(formData.getAll('extra_options'));
     
-    // Set a default type if not provided
-    if (!novoProduto.type) {
-      novoProduto.type = 'standard';
+    // Add options for custom products
+    if (productType === 'custom') {
+      novoProduto.options = options;
     }
     
     onSubmit(novoProduto);
+  };
+
+  const handleAddOption = () => {
+    setOptions([...options, { name: '', price: 0 }]);
+  };
+
+  const handleOptionChange = (index, field, value) => {
+    const newOptions = [...options];
+    newOptions[index][field] = value;
+    setOptions(newOptions);
   };
 
   return (
@@ -49,7 +62,7 @@ const ProdutoForm = ({ onSubmit, extraOptions, initialValues = {} }) => {
           <SelectItem value="square_meter">Metro Quadrado</SelectItem>
         </SelectContent>
       </Select>
-      <Select name="type" required defaultValue={initialValues.type}>
+      <Select name="type" required value={productType} onValueChange={setProductType}>
         <SelectTrigger>
           <SelectValue placeholder="Tipo de Produto" />
         </SelectTrigger>
@@ -58,6 +71,27 @@ const ProdutoForm = ({ onSubmit, extraOptions, initialValues = {} }) => {
           <SelectItem value="custom">Personalizado</SelectItem>
         </SelectContent>
       </Select>
+      {productType === 'custom' && (
+        <div>
+          <h4 className="mb-2">Opções do Produto</h4>
+          {options.map((option, index) => (
+            <div key={index} className="flex space-x-2 mb-2">
+              <Input
+                placeholder="Nome da Opção"
+                value={option.name}
+                onChange={(e) => handleOptionChange(index, 'name', e.target.value)}
+              />
+              <Input
+                type="number"
+                placeholder="Preço"
+                value={option.price}
+                onChange={(e) => handleOptionChange(index, 'price', parseFloat(e.target.value))}
+              />
+            </div>
+          ))}
+          <Button type="button" onClick={handleAddOption}>Adicionar Opção</Button>
+        </div>
+      )}
       <div>
         <h4 className="mb-2">Opções Extras</h4>
         {extraOptions?.map((option) => (
