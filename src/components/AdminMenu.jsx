@@ -106,22 +106,6 @@ const AdminMenu = () => {
 
         <Dialog>
           <DialogTrigger asChild>
-            <Button className="w-full">Cadastrar Opção Extra</Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Cadastrar Opção Extra</DialogTitle>
-            </DialogHeader>
-            <form onSubmit={handleCadastrarOpcaoExtra}>
-              <Input name="extraOption" placeholder="Nome da opção extra" className="mb-4" />
-              <Input name="price" type="number" step="0.01" placeholder="Preço" className="mb-4" />
-              <Button type="submit">Cadastrar</Button>
-            </form>
-          </DialogContent>
-        </Dialog>
-
-        <Dialog>
-          <DialogTrigger asChild>
             <Button className="w-full">Gerenciar Usuários</Button>
           </DialogTrigger>
           <DialogContent>
