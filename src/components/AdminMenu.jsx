@@ -8,10 +8,12 @@ import { toast } from "@/components/ui/use-toast";
 import bcrypt from 'bcryptjs';
 import ExtraOptionForm from './ExtraOptionForm';
 import SelectOptionsModal from './SelectOptionsModal';
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 const AdminMenu = () => {
   const [isSelectOptionsModalOpen, setIsSelectOptionsModalOpen] = useState(false);
   const [currentExtraOption, setCurrentExtraOption] = useState(null);
+  const [editingExtraOption, setEditingExtraOption] = useState(null);
   const addPaymentOption = useAddPaymentOption();
   const addCustomerType = useAddCustomerType();
   const addExtraOption = useAddExtraOption();
@@ -97,6 +99,7 @@ const AdminMenu = () => {
     saveFunction.mutate(extraOption, {
       onSuccess: () => {
         toast({ title: `Opção extra ${extraOption.id ? 'atualizada' : 'cadastrada'} com sucesso!` });
+        setEditingExtraOption(null);
       },
       onError: (error) => {
         toast({ title: `Erro ao ${extraOption.id ? 'atualizar' : 'cadastrar'} opção extra`, description: error.message, variant: "destructive" });
@@ -108,6 +111,7 @@ const AdminMenu = () => {
     deleteExtraOption.mutate(id, {
       onSuccess: () => {
         toast({ title: "Opção extra excluída com sucesso!" });
+        setEditingExtraOption(null);
       },
       onError: (error) => {
         toast({ title: "Erro ao excluir opção extra", description: error.message, variant: "destructive" });
@@ -214,21 +218,27 @@ const AdminMenu = () => {
             <DialogHeader>
               <DialogTitle>Gerenciar Opções Extras</DialogTitle>
             </DialogHeader>
-            <div className="space-y-4">
-              {extraOptions?.map((option) => (
-                <ExtraOptionForm
-                  key={option.id}
-                  extraOption={option}
-                  onSave={handleSaveExtraOption}
-                  onDelete={() => handleDeleteExtraOption(option.id)}
-                  onOpenSelectOptions={() => handleOpenSelectOptions(option)}
-                />
-              ))}
+            <ScrollArea className="h-[400px] pr-4">
+              <div className="space-y-4">
+                {extraOptions?.map((option) => (
+                  <div key={option.id} className="flex justify-between items-center">
+                    <span>{option.name}</span>
+                    <Button onClick={() => setEditingExtraOption(option)}>Editar</Button>
+                  </div>
+                ))}
+              </div>
+            </ScrollArea>
+            {editingExtraOption && (
               <ExtraOptionForm
+                extraOption={editingExtraOption}
                 onSave={handleSaveExtraOption}
-                onOpenSelectOptions={() => handleOpenSelectOptions({})}
+                onDelete={() => handleDeleteExtraOption(editingExtraOption.id)}
+                onOpenSelectOptions={() => handleOpenSelectOptions(editingExtraOption)}
               />
-            </div>
+            )}
+            {!editingExtraOption && (
+              <Button onClick={() => setEditingExtraOption({})}>Adicionar Nova Opção Extra</Button>
+            )}
           </DialogContent>
         </Dialog>
       </div>

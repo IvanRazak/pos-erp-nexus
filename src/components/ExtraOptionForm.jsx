@@ -21,7 +21,7 @@ const ExtraOptionForm = ({ extraOption = {}, onSave, onDelete, onOpenSelectOptio
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4 border p-4 rounded">
+    <form onSubmit={handleSubmit} className="space-y-4">
       <Input
         name="name"
         value={localOption.name || ''}
@@ -48,6 +48,7 @@ const ExtraOptionForm = ({ extraOption = {}, onSave, onDelete, onOpenSelectOptio
         <SelectContent>
           <SelectItem value="number">Número</SelectItem>
           <SelectItem value="select">Seleção</SelectItem>
+          <SelectItem value="checkbox">Checkbox</SelectItem>
         </SelectContent>
       </Select>
       {localOption.type === 'select' && (
