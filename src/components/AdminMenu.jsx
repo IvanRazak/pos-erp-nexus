@@ -3,24 +3,16 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useAddPaymentOption, useAddCustomerType, useAddExtraOption, useUpdateExtraOption, useDeleteExtraOption, useAddUser, useExtraOptions } from '../integrations/supabase';
+import { useAddPaymentOption, useAddCustomerType, useAddUser } from '../integrations/supabase';
 import { toast } from "@/components/ui/use-toast";
 import bcrypt from 'bcryptjs';
-import ExtraOptionForm from './ExtraOptionForm';
-import SelectOptionsModal from './SelectOptionsModal';
-import { ScrollArea } from "@/components/ui/scroll-area";
+import GerenciarOpcoesExtras from './GerenciarOpcoesExtras';
 
 const AdminMenu = () => {
-  const [isSelectOptionsModalOpen, setIsSelectOptionsModalOpen] = useState(false);
-  const [currentExtraOption, setCurrentExtraOption] = useState(null);
-  const [editingExtraOption, setEditingExtraOption] = useState(null);
+  const [isGerenciarOpcoesExtrasOpen, setIsGerenciarOpcoesExtrasOpen] = useState(false);
   const addPaymentOption = useAddPaymentOption();
   const addCustomerType = useAddCustomerType();
-  const addExtraOption = useAddExtraOption();
-  const updateExtraOption = useUpdateExtraOption();
-  const deleteExtraOption = useDeleteExtraOption();
   const addUser = useAddUser();
-  const { data: extraOptions } = useExtraOptions();
 
   const handleCadastrarOpcaoPagamento = (event) => {
     event.preventDefault();
@@ -52,22 +44,6 @@ const AdminMenu = () => {
     });
   };
 
-  const handleCadastrarOpcaoExtra = (event) => {
-    event.preventDefault();
-    const formData = new FormData(event.target);
-    const name = formData.get('extraOption');
-    const price = parseFloat(formData.get('price'));
-    addExtraOption.mutate({ name, price }, {
-      onSuccess: () => {
-        toast({ title: "Opção extra cadastrada com sucesso!" });
-        event.target.reset();
-      },
-      onError: (error) => {
-        toast({ title: "Erro ao cadastrar opção extra", description: error.message, variant: "destructive" });
-      }
-    });
-  };
-
   const handleGerenciarUsuarios = async (event) => {
     event.preventDefault();
     const formData = new FormData(event.target);
@@ -92,45 +68,6 @@ const AdminMenu = () => {
     } catch (error) {
       toast({ title: "Erro ao gerar hash da senha", description: error.message, variant: "destructive" });
     }
-  };
-
-  const handleSaveExtraOption = (extraOption) => {
-    const saveFunction = extraOption.id ? updateExtraOption : addExtraOption;
-    saveFunction.mutate(extraOption, {
-      onSuccess: () => {
-        toast({ title: `Opção extra ${extraOption.id ? 'atualizada' : 'cadastrada'} com sucesso!` });
-        setEditingExtraOption(null);
-      },
-      onError: (error) => {
-        toast({ title: `Erro ao ${extraOption.id ? 'atualizar' : 'cadastrar'} opção extra`, description: error.message, variant: "destructive" });
-      }
-    });
-  };
-
-  const handleDeleteExtraOption = (id) => {
-    deleteExtraOption.mutate(id, {
-      onSuccess: () => {
-        toast({ title: "Opção extra excluída com sucesso!" });
-        setEditingExtraOption(null);
-      },
-      onError: (error) => {
-        toast({ title: "Erro ao excluir opção extra", description: error.message, variant: "destructive" });
-      }
-    });
-  };
-
-  const handleOpenSelectOptions = (extraOption) => {
-    setCurrentExtraOption(extraOption);
-    setIsSelectOptionsModalOpen(true);
-  };
-
-  const handleSaveSelectOptions = (options) => {
-    const updatedExtraOption = { 
-      ...currentExtraOption, 
-      options: JSON.stringify(options)
-    };
-    handleSaveExtraOption(updatedExtraOption);
-    setIsSelectOptionsModalOpen(false);
   };
 
   return (
@@ -210,44 +147,14 @@ const AdminMenu = () => {
           </DialogContent>
         </Dialog>
 
-        <Dialog>
-          <DialogTrigger asChild>
-            <Button className="w-full">Gerenciar Opções Extras</Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-4xl">
-            <DialogHeader>
-              <DialogTitle>Gerenciar Opções Extras</DialogTitle>
-            </DialogHeader>
-            <ScrollArea className="h-[400px] pr-4">
-              <div className="space-y-4">
-                {extraOptions?.map((option) => (
-                  <div key={option.id} className="flex justify-between items-center">
-                    <span>{option.name}</span>
-                    <Button onClick={() => setEditingExtraOption(option)}>Editar</Button>
-                  </div>
-                ))}
-              </div>
-            </ScrollArea>
-            {editingExtraOption && (
-              <ExtraOptionForm
-                extraOption={editingExtraOption}
-                onSave={handleSaveExtraOption}
-                onDelete={() => handleDeleteExtraOption(editingExtraOption.id)}
-                onOpenSelectOptions={() => handleOpenSelectOptions(editingExtraOption)}
-              />
-            )}
-            {!editingExtraOption && (
-              <Button onClick={() => setEditingExtraOption({})}>Adicionar Nova Opção Extra</Button>
-            )}
-          </DialogContent>
-        </Dialog>
+        <Button className="w-full" onClick={() => setIsGerenciarOpcoesExtrasOpen(true)}>
+          Gerenciar Opções Extras
+        </Button>
       </div>
 
-      <SelectOptionsModal
-        isOpen={isSelectOptionsModalOpen}
-        onClose={() => setIsSelectOptionsModalOpen(false)}
-        onSave={handleSaveSelectOptions}
-        initialOptions={currentExtraOption?.options ? JSON.parse(currentExtraOption.options) : []}
+      <GerenciarOpcoesExtras
+        isOpen={isGerenciarOpcoesExtrasOpen}
+        onClose={() => setIsGerenciarOpcoesExtrasOpen(false)}
       />
     </div>
   );
