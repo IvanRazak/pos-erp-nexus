@@ -9,8 +9,8 @@ import bcrypt from 'bcryptjs';
 import ExtraOptionForm from './ExtraOptionForm';
 import SelectOptionsModal from './SelectOptionsModal';
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
-const AdminMenu = () => {
   const [isSelectOptionsModalOpen, setIsSelectOptionsModalOpen] = useState(false);
   const [currentExtraOption, setCurrentExtraOption] = useState(null);
   const [editingExtraOption, setEditingExtraOption] = useState(null);
@@ -21,6 +21,8 @@ const AdminMenu = () => {
   const deleteExtraOption = useDeleteExtraOption();
   const addUser = useAddUser();
   const { data: extraOptions } = useExtraOptions();
+
+const AdminMenu = () => {
 
   const handleCadastrarOpcaoPagamento = (event) => {
     event.preventDefault();
@@ -214,31 +216,44 @@ const AdminMenu = () => {
           <DialogTrigger asChild>
             <Button className="w-full">Gerenciar Opções Extras</Button>
           </DialogTrigger>
-          <DialogContent className="max-w-4xl">
+          <DialogContent className="max-w-4xl max-h-[80vh] overflow-hidden flex flex-col">
             <DialogHeader>
               <DialogTitle>Gerenciar Opções Extras</DialogTitle>
             </DialogHeader>
-            <ScrollArea className="h-[400px] pr-4">
-              <div className="space-y-4">
-                {extraOptions?.map((option) => (
-                  <div key={option.id} className="flex justify-between items-center">
-                    <span>{option.name}</span>
-                    <Button onClick={() => setEditingExtraOption(option)}>Editar</Button>
+            <div className="flex-1 overflow-hidden flex">
+              <ScrollArea className="w-1/3 pr-4 border-r">
+                <div className="space-y-2">
+                  {extraOptions?.map((option) => (
+                    <Card key={option.id} className="cursor-pointer hover:bg-gray-100" onClick={() => setEditingExtraOption(option)}>
+                      <CardHeader className="p-3">
+                        <CardTitle className="text-sm">{option.name}</CardTitle>
+                      </CardHeader>
+                    </Card>
+                  ))}
+                </div>
+              </ScrollArea>
+              <div className="flex-1 pl-4">
+                {editingExtraOption ? (
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>{editingExtraOption.id ? 'Editar' : 'Adicionar'} Opção Extra</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <ExtraOptionForm
+                        extraOption={editingExtraOption}
+                        onSave={handleSaveExtraOption}
+                        onDelete={() => handleDeleteExtraOption(editingExtraOption.id)}
+                        onOpenSelectOptions={() => handleOpenSelectOptions(editingExtraOption)}
+                      />
+                    </CardContent>
+                  </Card>
+                ) : (
+                  <div className="flex items-center justify-center h-full">
+                    <Button onClick={() => setEditingExtraOption({})}>Adicionar Nova Opção Extra</Button>
                   </div>
-                ))}
+                )}
               </div>
-            </ScrollArea>
-            {editingExtraOption && (
-              <ExtraOptionForm
-                extraOption={editingExtraOption}
-                onSave={handleSaveExtraOption}
-                onDelete={() => handleDeleteExtraOption(editingExtraOption.id)}
-                onOpenSelectOptions={() => handleOpenSelectOptions(editingExtraOption)}
-              />
-            )}
-            {!editingExtraOption && (
-              <Button onClick={() => setEditingExtraOption({})}>Adicionar Nova Opção Extra</Button>
-            )}
+            </div>
           </DialogContent>
         </Dialog>
       </div>
