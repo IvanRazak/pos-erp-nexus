@@ -4,8 +4,9 @@ export const calcularTotalItem = (item, extras) => {
   return (precoBase + precoExtras) * item.quantidade;
 };
 
-export const calcularTotal = (carrinho) => {
-  return carrinho.reduce((total, item) => total + item.total, 0);
+export const calcularTotal = (carrinho, desconto) => {
+  const subtotal = carrinho.reduce((total, item) => total + item.total, 0);
+  return Math.max(subtotal - (desconto || 0), 0); // Ensure total is not negative
 };
 
 export const resetCarrinho = (setCarrinho, setClienteSelecionado, setDataEntrega, setOpcaoPagamento, setDesconto, setValorPago) => {

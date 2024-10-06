@@ -11,6 +11,9 @@ import { cn } from "@/lib/utils";
 import CarrinhoItem from './CarrinhoItem';
 
 const VendaCarrinho = ({ carrinho, onDelete, onEdit, desconto, setDesconto, dataEntrega, setDataEntrega, opcaoPagamento, setOpcaoPagamento, opcoesPagamento, valorPago, setValorPago, calcularTotal, finalizarVenda }) => {
+  const subtotal = carrinho.reduce((total, item) => total + item.total, 0);
+  const total = calcularTotal();
+
   return (
     <div className="mt-4">
       <h3 className="text-xl font-semibold mb-2">Carrinho</h3>
@@ -39,7 +42,7 @@ const VendaCarrinho = ({ carrinho, onDelete, onEdit, desconto, setDesconto, data
         </TableBody>
       </Table>
       <div className="mt-4 space-y-2">
-        <Input type="number" placeholder="Desconto" value={desconto} onChange={(e) => setDesconto(parseFloat(e.target.value))} />
+        <Input type="number" placeholder="Desconto" value={desconto} onChange={(e) => setDesconto(parseFloat(e.target.value) || 0)} />
         <Popover>
           <PopoverTrigger asChild>
             <Button variant={"outline"} className={cn("w-[280px] justify-start text-left font-normal", !dataEntrega && "text-muted-foreground")}>
@@ -61,9 +64,11 @@ const VendaCarrinho = ({ carrinho, onDelete, onEdit, desconto, setDesconto, data
             ))}
           </SelectContent>
         </Select>
-        <Input type="number" placeholder="Valor Pago" value={valorPago} onChange={(e) => setValorPago(parseFloat(e.target.value))} />
-        <p className="text-xl font-bold">Total: R$ {calcularTotal().toFixed(2)}</p>
-        <p className="text-xl font-bold">Saldo Restante: R$ {(calcularTotal() - valorPago).toFixed(2)}</p>
+        <Input type="number" placeholder="Valor Pago" value={valorPago} onChange={(e) => setValorPago(parseFloat(e.target.value) || 0)} />
+        <p className="text-xl">Subtotal: R$ {subtotal.toFixed(2)}</p>
+        <p className="text-xl">Desconto: R$ {desconto.toFixed(2)}</p>
+        <p className="text-xl font-bold">Total: R$ {total.toFixed(2)}</p>
+        <p className="text-xl font-bold">Saldo Restante: R$ {Math.max(total - valorPago, 0).toFixed(2)}</p>
         <Button onClick={finalizarVenda}>Finalizar Venda</Button>
       </div>
     </div>

@@ -96,7 +96,7 @@ const Venda = () => {
       });
       return;
     }
-    const totalVenda = calcularTotal(carrinho);
+    const totalVenda = calcularTotal(carrinho, desconto);
     const saldoRestante = totalVenda - valorPago;
     const novaVenda = {
       customer_id: clienteSelecionado,
@@ -162,7 +162,7 @@ const Venda = () => {
         opcoesPagamento={opcoesPagamento}
         valorPago={valorPago}
         setValorPago={setValorPago}
-        calcularTotal={() => calcularTotal(carrinho)}
+        calcularTotal={() => calcularTotal(carrinho, desconto)}
         finalizarVenda={finalizarVenda}
       />
       <BuscarClienteModal
