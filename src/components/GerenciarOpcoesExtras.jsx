@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -57,6 +57,9 @@ const GerenciarOpcoesExtras = ({ isOpen, onClose }) => {
   const handleSaveSelectOptions = (options) => {
     setCurrentExtraOption(prev => ({ ...prev, options: JSON.stringify(options) }));
     setIsSelectOptionsModalOpen(false);
+    if (editingOption) {
+      handleSaveExtraOption({ ...editingOption, options: JSON.stringify(options) });
+    }
   };
 
   return (

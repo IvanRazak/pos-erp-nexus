@@ -5,12 +5,12 @@ import { Button } from "@/components/ui/button";
 
 const SelectOptionsModal = ({ isOpen, onClose, onSave, initialOptions = [] }) => {
   const [options, setOptions] = useState(initialOptions);
-  const [newOption, setNewOption] = useState('');
+  const [newOption, setNewOption] = useState({ name: '', price: '' });
 
   const handleAddOption = () => {
-    if (newOption.trim()) {
-      setOptions([...options, newOption.trim()]);
-      setNewOption('');
+    if (newOption.name.trim() && newOption.price.trim()) {
+      setOptions([...options, { ...newOption, price: parseFloat(newOption.price) }]);
+      setNewOption({ name: '', price: '' });
     }
   };
 
@@ -32,16 +32,22 @@ const SelectOptionsModal = ({ isOpen, onClose, onSave, initialOptions = [] }) =>
         <div className="space-y-4">
           <div className="flex space-x-2">
             <Input
-              value={newOption}
-              onChange={(e) => setNewOption(e.target.value)}
-              placeholder="Nova opção"
+              value={newOption.name}
+              onChange={(e) => setNewOption({ ...newOption, name: e.target.value })}
+              placeholder="Nome da opção"
+            />
+            <Input
+              type="number"
+              value={newOption.price}
+              onChange={(e) => setNewOption({ ...newOption, price: e.target.value })}
+              placeholder="Preço"
             />
             <Button onClick={handleAddOption}>Adicionar</Button>
           </div>
           <ul className="space-y-2">
             {options.map((option, index) => (
               <li key={index} className="flex justify-between items-center">
-                <span>{option}</span>
+                <span>{option.name} - R$ {option.price.toFixed(2)}</span>
                 <Button variant="destructive" size="sm" onClick={() => handleRemoveOption(index)}>
                   Remover
                 </Button>

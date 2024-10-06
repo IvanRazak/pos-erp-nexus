@@ -29,15 +29,17 @@ const ExtraOptionForm = ({ extraOption = {}, onSave, onDelete, onOpenSelectOptio
         placeholder="Nome da opção extra"
         required
       />
-      <Input
-        name="price"
-        type="number"
-        step="0.01"
-        value={localOption.price || ''}
-        onChange={handleChange}
-        placeholder="Preço"
-        required
-      />
+      {localOption.type !== 'select' && (
+        <Input
+          name="price"
+          type="number"
+          step="0.01"
+          value={localOption.price || ''}
+          onChange={handleChange}
+          placeholder="Preço"
+          required
+        />
+      )}
       <Select
         value={localOption.type || 'number'}
         onValueChange={(value) => setLocalOption(prev => ({ ...prev, type: value }))}
