@@ -7,18 +7,6 @@ const fromSupabase = async (query) => {
   return data;
 };
 
-/*
-### extra_options
-
-| name       | type                    | format                    | required |
-|------------|-------------------------|---------------------------|----------|
-| id         | uuid                    | uuid                      | true     |
-| name       | text                    | string                    | true     |
-| price      | numeric                 | number                    | true     |
-| created_at | timestamp with time zone| string                    | false    |
-| updated_at | timestamp with time zone| string                    | false    |
-*/
-
 export const useExtraOption = (id) => useQuery({
   queryKey: ['extra_options', id],
   queryFn: () => fromSupabase(supabase.from('extra_options').select('*').eq('id', id).single()),
