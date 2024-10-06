@@ -51,7 +51,7 @@ const ExtraOptionForm = ({ extraOption = {}, onSave, onDelete, onOpenSelectOptio
         </SelectContent>
       </Select>
       {localOption.type === 'select' && (
-        <Button type="button" onClick={onOpenSelectOptions}>
+        <Button type="button" onClick={() => onOpenSelectOptions(localOption)}>
           Configurar Opções de Seleção
         </Button>
       )}

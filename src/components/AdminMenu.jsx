@@ -93,25 +93,15 @@ const AdminMenu = () => {
   };
 
   const handleSaveExtraOption = (extraOption) => {
-    if (extraOption.id) {
-      updateExtraOption.mutate(extraOption, {
-        onSuccess: () => {
-          toast({ title: "Opção extra atualizada com sucesso!" });
-        },
-        onError: (error) => {
-          toast({ title: "Erro ao atualizar opção extra", description: error.message, variant: "destructive" });
-        }
-      });
-    } else {
-      addExtraOption.mutate(extraOption, {
-        onSuccess: () => {
-          toast({ title: "Opção extra cadastrada com sucesso!" });
-        },
-        onError: (error) => {
-          toast({ title: "Erro ao cadastrar opção extra", description: error.message, variant: "destructive" });
-        }
-      });
-    }
+    const saveFunction = extraOption.id ? updateExtraOption : addExtraOption;
+    saveFunction.mutate(extraOption, {
+      onSuccess: () => {
+        toast({ title: `Opção extra ${extraOption.id ? 'atualizada' : 'cadastrada'} com sucesso!` });
+      },
+      onError: (error) => {
+        toast({ title: `Erro ao ${extraOption.id ? 'atualizar' : 'cadastrar'} opção extra`, description: error.message, variant: "destructive" });
+      }
+    });
   };
 
   const handleDeleteExtraOption = (id) => {
@@ -131,7 +121,10 @@ const AdminMenu = () => {
   };
 
   const handleSaveSelectOptions = (options) => {
-    const updatedExtraOption = { ...currentExtraOption, options: JSON.stringify(options) };
+    const updatedExtraOption = { 
+      ...currentExtraOption, 
+      options: JSON.stringify(options)
+    };
     handleSaveExtraOption(updatedExtraOption);
     setIsSelectOptionsModalOpen(false);
   };
