@@ -4,6 +4,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { supabase } from '../lib/supabase';
+import { calcularSubtotalItem, formatarDimensoes, formatarM2 } from '../utils/pedidoUtils';
 
 const PedidoDetalhesModal = ({ pedido, onClose }) => {
   const { data: itensPedido, isLoading } = useQuery({
@@ -24,6 +25,12 @@ const PedidoDetalhesModal = ({ pedido, onClose }) => {
   });
 
   if (isLoading) return <div>Carregando detalhes do pedido...</div>;
+
+  const renderExtras = (extras) => {
+    return extras.map((extra) => (
+      <div key={extra.id}>{extra.extra_option.name}: R$ {extra.extra_option.price.toFixed(2)}</div>
+    ));
+  };
 
   return (
     <Dialog open={true} onOpenChange={onClose}>
@@ -50,23 +57,10 @@ const PedidoDetalhesModal = ({ pedido, onClose }) => {
                   <TableCell>{item.product.name}</TableCell>
                   <TableCell>{item.quantity}</TableCell>
                   <TableCell>R$ {item.unit_price.toFixed(2)}</TableCell>
-                  <TableCell>
-                    {item.extras.map((extra) => (
-                      <div key={extra.id}>{extra.extra_option.name}: R$ {extra.extra_option.price.toFixed(2)}</div>
-                    ))}
-                  </TableCell>
-                  <TableCell>
-                    {item.width && item.height ? (
-                      `${item.width}m x ${item.height}m`
-                    ) : (
-                      'N/A'
-                    )}
-                  </TableCell>
-                  <TableCell>{item.m2 ? `${item.m2.toFixed(2)}m²` : 'N/A'}</TableCell>
-                  <TableCell>
-                    R$ {(item.quantity * item.unit_price * (item.m2 || 1) + 
-                      item.extras.reduce((sum, extra) => sum + extra.extra_option.price, 0)).toFixed(2)}
-                  </TableCell>
+                  <TableCell>{renderExtras(item.extras)}</TableCell>
+                  <TableCell>{formatarDimensoes(item)}</TableCell>
+                  <TableCell>{formatarM2(item)}</TableCell>
+                  <TableCell>R$ {calcularSubtotalItem(item).toFixed(2)}</TableCell>
                 </TableRow>
               ))}
             </TableBody>
