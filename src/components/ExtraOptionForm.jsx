@@ -3,7 +3,6 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Label } from "@/components/ui/label";
 
 const ExtraOptionForm = ({ extraOption = {}, onSave, onDelete, onOpenSelectOptions }) => {
   const [localOption, setLocalOption] = React.useState(extraOption);
@@ -23,54 +22,40 @@ const ExtraOptionForm = ({ extraOption = {}, onSave, onDelete, onOpenSelectOptio
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      <div className="space-y-2">
-        <Label htmlFor="name">Nome da opção extra</Label>
-        <Input
-          id="name"
-          name="name"
-          value={localOption.name || ''}
-          onChange={handleChange}
-          required
-        />
-      </div>
-      
-      <div className="space-y-2">
-        <Label htmlFor="price">Preço</Label>
-        <Input
-          id="price"
-          name="price"
-          type="number"
-          step="0.01"
-          value={localOption.price || ''}
-          onChange={handleChange}
-          required
-        />
-      </div>
-      
-      <div className="space-y-2">
-        <Label htmlFor="type">Tipo</Label>
-        <Select
-          id="type"
-          value={localOption.type || 'number'}
-          onValueChange={(value) => setLocalOption(prev => ({ ...prev, type: value }))}
-        >
-          <SelectTrigger>
-            <SelectValue placeholder="Tipo" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="number">Número</SelectItem>
-            <SelectItem value="select">Seleção</SelectItem>
-            <SelectItem value="checkbox">Checkbox</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
-      
+      <Input
+        name="name"
+        value={localOption.name || ''}
+        onChange={handleChange}
+        placeholder="Nome da opção extra"
+        required
+      />
+      <Input
+        name="price"
+        type="number"
+        step="0.01"
+        value={localOption.price || ''}
+        onChange={handleChange}
+        placeholder="Preço"
+        required
+      />
+      <Select
+        value={localOption.type || 'number'}
+        onValueChange={(value) => setLocalOption(prev => ({ ...prev, type: value }))}
+      >
+        <SelectTrigger>
+          <SelectValue placeholder="Tipo" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="number">Número</SelectItem>
+          <SelectItem value="select">Seleção</SelectItem>
+          <SelectItem value="checkbox">Checkbox</SelectItem>
+        </SelectContent>
+      </Select>
       {localOption.type === 'select' && (
         <Button type="button" onClick={() => onOpenSelectOptions(localOption)}>
           Configurar Opções de Seleção
         </Button>
       )}
-      
       <div className="flex items-center space-x-2">
         <Checkbox
           id="editable_in_cart"
@@ -78,9 +63,8 @@ const ExtraOptionForm = ({ extraOption = {}, onSave, onDelete, onOpenSelectOptio
           checked={localOption.editable_in_cart || false}
           onCheckedChange={(checked) => setLocalOption(prev => ({ ...prev, editable_in_cart: checked }))}
         />
-        <Label htmlFor="editable_in_cart">Editável no carrinho</Label>
+        <label htmlFor="editable_in_cart">Editável no carrinho</label>
       </div>
-      
       <div className="flex items-center space-x-2">
         <Checkbox
           id="required"
@@ -88,9 +72,8 @@ const ExtraOptionForm = ({ extraOption = {}, onSave, onDelete, onOpenSelectOptio
           checked={localOption.required || false}
           onCheckedChange={(checked) => setLocalOption(prev => ({ ...prev, required: checked }))}
         />
-        <Label htmlFor="required">Obrigatório</Label>
+        <label htmlFor="required">Obrigatório</label>
       </div>
-      
       <div className="flex justify-between">
         <Button type="submit">{extraOption.id ? 'Atualizar' : 'Adicionar'}</Button>
         {extraOption.id && (

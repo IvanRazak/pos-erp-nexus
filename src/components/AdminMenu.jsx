@@ -9,7 +9,6 @@ import bcrypt from 'bcryptjs';
 import ExtraOptionForm from './ExtraOptionForm';
 import SelectOptionsModal from './SelectOptionsModal';
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 const AdminMenu = () => {
   const [isSelectOptionsModalOpen, setIsSelectOptionsModalOpen] = useState(false);
@@ -138,75 +137,108 @@ const AdminMenu = () => {
     <div className="bg-gray-100 p-4 rounded-lg">
       <h3 className="text-xl font-bold mb-4">Menu Administrativo</h3>
       <div className="space-y-4">
-        {/* Payment Option Dialog */}
-        <AdminDialog
-          title="Cadastrar Opção de Pagamento"
-          buttonText="Cadastrar Opção de Pagamento"
-          onSubmit={handleCadastrarOpcaoPagamento}
-          inputName="paymentOption"
-          inputPlaceholder="Nome da opção de pagamento"
-        />
+        <Dialog>
+          <DialogTrigger asChild>
+            <Button className="w-full">Cadastrar Opção de Pagamento</Button>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Cadastrar Opção de Pagamento</DialogTitle>
+            </DialogHeader>
+            <form onSubmit={handleCadastrarOpcaoPagamento}>
+              <Input name="paymentOption" placeholder="Nome da opção de pagamento" className="mb-4" />
+              <Button type="submit">Cadastrar</Button>
+            </form>
+          </DialogContent>
+        </Dialog>
 
-        {/* Customer Type Dialog */}
-        <AdminDialog
-          title="Cadastrar Tipo de Cliente"
-          buttonText="Cadastrar Tipo de Cliente"
-          onSubmit={handleCadastrarTipoCliente}
-          inputName="customerType"
-          inputPlaceholder="Nome do tipo de cliente"
-        />
+        <Dialog>
+          <DialogTrigger asChild>
+            <Button className="w-full">Cadastrar Tipo de Cliente</Button>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Cadastrar Tipo de Cliente</DialogTitle>
+            </DialogHeader>
+            <form onSubmit={handleCadastrarTipoCliente}>
+              <Input name="customerType" placeholder="Nome do tipo de cliente" className="mb-4" />
+              <Button type="submit">Cadastrar</Button>
+            </form>
+          </DialogContent>
+        </Dialog>
 
-        {/* Extra Option Dialog */}
-        <AdminDialog
-          title="Cadastrar Opção Extra"
-          buttonText="Cadastrar Opção Extra"
-          onSubmit={handleCadastrarOpcaoExtra}
-          inputs={[
-            { name: "extraOption", placeholder: "Nome da opção extra" },
-            { name: "price", type: "number", step: "0.01", placeholder: "Preço" }
-          ]}
-        />
+        <Dialog>
+          <DialogTrigger asChild>
+            <Button className="w-full">Cadastrar Opção Extra</Button>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Cadastrar Opção Extra</DialogTitle>
+            </DialogHeader>
+            <form onSubmit={handleCadastrarOpcaoExtra}>
+              <Input name="extraOption" placeholder="Nome da opção extra" className="mb-4" />
+              <Input name="price" type="number" step="0.01" placeholder="Preço" className="mb-4" />
+              <Button type="submit">Cadastrar</Button>
+            </form>
+          </DialogContent>
+        </Dialog>
 
-        {/* User Management Dialog */}
-        <AdminDialog
-          title="Gerenciar Usuários"
-          buttonText="Gerenciar Usuários"
-          onSubmit={handleGerenciarUsuarios}
-          inputs={[
-            { name: "username", placeholder: "Nome do usuário" },
-            { name: "email", type: "email", placeholder: "E-mail" },
-            { name: "password", type: "password", placeholder: "Senha" }
-          ]}
-        >
-          <Select name="role">
-            <SelectTrigger>
-              <SelectValue placeholder="Nível de acesso" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="admin">Administrador</SelectItem>
-              <SelectItem value="operator">Operador</SelectItem>
-              <SelectItem value="seller">Vendedor</SelectItem>
-            </SelectContent>
-          </Select>
-        </AdminDialog>
+        <Dialog>
+          <DialogTrigger asChild>
+            <Button className="w-full">Gerenciar Usuários</Button>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Gerenciar Usuários</DialogTitle>
+            </DialogHeader>
+            <form onSubmit={handleGerenciarUsuarios}>
+              <Input name="username" placeholder="Nome do usuário" className="mb-4" />
+              <Input name="email" type="email" placeholder="E-mail" className="mb-4" />
+              <Input name="password" type="password" placeholder="Senha" className="mb-4" />
+              <Select name="role">
+                <SelectTrigger>
+                  <SelectValue placeholder="Nível de acesso" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="admin">Administrador</SelectItem>
+                  <SelectItem value="operator">Operador</SelectItem>
+                  <SelectItem value="seller">Vendedor</SelectItem>
+                </SelectContent>
+              </Select>
+              <Button type="submit" className="mt-4">Adicionar Usuário</Button>
+            </form>
+          </DialogContent>
+        </Dialog>
 
-        {/* Extra Options Management Dialog */}
         <Dialog>
           <DialogTrigger asChild>
             <Button className="w-full">Gerenciar Opções Extras</Button>
           </DialogTrigger>
-          <DialogContent className="max-w-4xl max-h-[80vh] overflow-hidden flex flex-col">
+          <DialogContent className="max-w-4xl">
             <DialogHeader>
               <DialogTitle>Gerenciar Opções Extras</DialogTitle>
             </DialogHeader>
-            <ExtraOptionsManagement
-              extraOptions={extraOptions}
-              editingExtraOption={editingExtraOption}
-              setEditingExtraOption={setEditingExtraOption}
-              handleSaveExtraOption={handleSaveExtraOption}
-              handleDeleteExtraOption={handleDeleteExtraOption}
-              handleOpenSelectOptions={handleOpenSelectOptions}
-            />
+            <ScrollArea className="h-[400px] pr-4">
+              <div className="space-y-4">
+                {extraOptions?.map((option) => (
+                  <div key={option.id} className="flex justify-between items-center">
+                    <span>{option.name}</span>
+                    <Button onClick={() => setEditingExtraOption(option)}>Editar</Button>
+                  </div>
+                ))}
+              </div>
+            </ScrollArea>
+            {editingExtraOption && (
+              <ExtraOptionForm
+                extraOption={editingExtraOption}
+                onSave={handleSaveExtraOption}
+                onDelete={() => handleDeleteExtraOption(editingExtraOption.id)}
+                onOpenSelectOptions={() => handleOpenSelectOptions(editingExtraOption)}
+              />
+            )}
+            {!editingExtraOption && (
+              <Button onClick={() => setEditingExtraOption({})}>Adicionar Nova Opção Extra</Button>
+            )}
           </DialogContent>
         </Dialog>
       </div>
@@ -220,65 +252,5 @@ const AdminMenu = () => {
     </div>
   );
 };
-
-const AdminDialog = ({ title, buttonText, onSubmit, inputName, inputPlaceholder, inputs, children }) => (
-  <Dialog>
-    <DialogTrigger asChild>
-      <Button className="w-full">{buttonText}</Button>
-    </DialogTrigger>
-    <DialogContent>
-      <DialogHeader>
-        <DialogTitle>{title}</DialogTitle>
-      </DialogHeader>
-      <form onSubmit={onSubmit}>
-        {inputName && (
-          <Input name={inputName} placeholder={inputPlaceholder} className="mb-4" />
-        )}
-        {inputs && inputs.map((input, index) => (
-          <Input key={index} {...input} className="mb-4" />
-        ))}
-        {children}
-        <Button type="submit">Cadastrar</Button>
-      </form>
-    </DialogContent>
-  </Dialog>
-);
-
-const ExtraOptionsManagement = ({ extraOptions, editingExtraOption, setEditingExtraOption, handleSaveExtraOption, handleDeleteExtraOption, handleOpenSelectOptions }) => (
-  <div className="flex-1 overflow-hidden flex">
-    <ScrollArea className="w-1/3 pr-4 border-r">
-      <div className="space-y-2">
-        {extraOptions?.map((option) => (
-          <Card key={option.id} className="cursor-pointer hover:bg-gray-100" onClick={() => setEditingExtraOption(option)}>
-            <CardHeader className="p-3">
-              <CardTitle className="text-sm">{option.name}</CardTitle>
-            </CardHeader>
-          </Card>
-        ))}
-      </div>
-    </ScrollArea>
-    <div className="flex-1 pl-4">
-      {editingExtraOption ? (
-        <Card>
-          <CardHeader>
-            <CardTitle>{editingExtraOption.id ? 'Editar' : 'Adicionar'} Opção Extra</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ExtraOptionForm
-              extraOption={editingExtraOption}
-              onSave={handleSaveExtraOption}
-              onDelete={() => handleDeleteExtraOption(editingExtraOption.id)}
-              onOpenSelectOptions={() => handleOpenSelectOptions(editingExtraOption)}
-            />
-          </CardContent>
-        </Card>
-      ) : (
-        <div className="flex items-center justify-center h-full">
-          <Button onClick={() => setEditingExtraOption({})}>Adicionar Nova Opção Extra</Button>
-        </div>
-      )}
-    </div>
-  </div>
-);
 
 export default AdminMenu;
