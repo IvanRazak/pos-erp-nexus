@@ -1,35 +1,17 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Checkbox } from "@/components/ui/checkbox";
-import { useAddPaymentOption, useAddCustomerType, useExtraOptions, useAddExtraOption, useUpdateExtraOption, useDeleteExtraOption, useAddUser } from '../integrations/supabase';
+import { useAddPaymentOption, useAddCustomerType, useAddExtraOption, useAddUser } from '../integrations/supabase';
 import { toast } from "@/components/ui/use-toast";
 import bcrypt from 'bcryptjs';
-import SelectOptionsModal from './SelectOptionsModal';
-import ExtraOptionForm from './ExtraOptionForm';
-import UserManagementForm from './UserManagementForm';
 
 const AdminMenu = () => {
-  const [isExtraOptionsDialogOpen, setIsExtraOptionsDialogOpen] = useState(false);
-  const [editingExtraOption, setEditingExtraOption] = useState(null);
-  const [isSelectOptionsModalOpen, setIsSelectOptionsModalOpen] = useState(false);
-  const [newExtraOption, setNewExtraOption] = useState({
-    name: '',
-    price: 0,
-    type: 'number',
-    options: [],
-    editable_in_cart: false,
-    required: false
-  });
-
   const addPaymentOption = useAddPaymentOption();
   const addCustomerType = useAddCustomerType();
-  const { data: extraOptions, refetch: refetchExtraOptions } = useExtraOptions();
   const addExtraOption = useAddExtraOption();
-  const updateExtraOption = useUpdateExtraOption();
-  const deleteExtraOption = useDeleteExtraOption();
+  const addUser = useAddUser();
 
   const handleCadastrarOpcaoPagamento = (event) => {
     event.preventDefault();
@@ -61,50 +43,45 @@ const AdminMenu = () => {
     });
   };
 
-  const handleAddOrUpdateExtraOption = async (extraOption) => {
-    try {
-      if (editingExtraOption) {
-        await updateExtraOption.mutateAsync({ id: editingExtraOption.id, ...extraOption });
-        toast({ title: "Opção extra atualizada com sucesso!" });
-      } else {
-        await addExtraOption.mutateAsync(extraOption);
+  const handleCadastrarOpcaoExtra = (event) => {
+    event.preventDefault();
+    const formData = new FormData(event.target);
+    const name = formData.get('extraOption');
+    const price = parseFloat(formData.get('price'));
+    addExtraOption.mutate({ name, price }, {
+      onSuccess: () => {
         toast({ title: "Opção extra cadastrada com sucesso!" });
+        event.target.reset();
+      },
+      onError: (error) => {
+        toast({ title: "Erro ao cadastrar opção extra", description: error.message, variant: "destructive" });
       }
-      setEditingExtraOption(null);
-      setNewExtraOption({
-        name: '',
-        price: 0,
-        type: 'number',
-        options: [],
-        editable_in_cart: false,
-        required: false
-      });
-      refetchExtraOptions();
-    } catch (error) {
-      toast({ title: "Erro ao salvar opção extra", description: error.message, variant: "destructive" });
-    }
+    });
   };
 
-  const handleDeleteExtraOption = async (id) => {
+  const handleGerenciarUsuarios = async (event) => {
+    event.preventDefault();
+    const formData = new FormData(event.target);
+    const username = formData.get('username');
+    const email = formData.get('email');
+    const password = formData.get('password');
+    const role = formData.get('role');
+
     try {
-      await deleteExtraOption.mutateAsync(id);
-      toast({ title: "Opção extra excluída com sucesso!" });
-      refetchExtraOptions();
+      const salt = await bcrypt.genSalt(10);
+      const password_hash = await bcrypt.hash(password, salt);
+
+      addUser.mutate({ username, email, password_hash, role }, {
+        onSuccess: () => {
+          toast({ title: "Usuário cadastrado com sucesso!" });
+          event.target.reset();
+        },
+        onError: (error) => {
+          toast({ title: "Erro ao cadastrar usuário", description: error.message, variant: "destructive" });
+        }
+      });
     } catch (error) {
-      toast({ title: "Erro ao excluir opção extra", description: error.message, variant: "destructive" });
-    }
-  };
-
-  const handleOpenSelectOptionsModal = (option) => {
-    setEditingExtraOption(option);
-    setIsSelectOptionsModalOpen(true);
-  };
-
-  const handleSaveSelectOptions = (options) => {
-    if (editingExtraOption) {
-      setEditingExtraOption({ ...editingExtraOption, options });
-    } else {
-      setNewExtraOption({ ...newExtraOption, options });
+      toast({ title: "Erro ao gerar hash da senha", description: error.message, variant: "destructive" });
     }
   };
 
@@ -144,67 +121,46 @@ const AdminMenu = () => {
 
         <Dialog>
           <DialogTrigger asChild>
+            <Button className="w-full">Cadastrar Opção Extra</Button>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Cadastrar Opção Extra</DialogTitle>
+            </DialogHeader>
+            <form onSubmit={handleCadastrarOpcaoExtra}>
+              <Input name="extraOption" placeholder="Nome da opção extra" className="mb-4" />
+              <Input name="price" type="number" step="0.01" placeholder="Preço" className="mb-4" />
+              <Button type="submit">Cadastrar</Button>
+            </form>
+          </DialogContent>
+        </Dialog>
+
+        <Dialog>
+          <DialogTrigger asChild>
             <Button className="w-full">Gerenciar Usuários</Button>
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
               <DialogTitle>Gerenciar Usuários</DialogTitle>
             </DialogHeader>
-            <UserManagementForm />
+            <form onSubmit={handleGerenciarUsuarios}>
+              <Input name="username" placeholder="Nome do usuário" className="mb-4" />
+              <Input name="email" type="email" placeholder="E-mail" className="mb-4" />
+              <Input name="password" type="password" placeholder="Senha" className="mb-4" />
+              <Select name="role">
+                <SelectTrigger>
+                  <SelectValue placeholder="Nível de acesso" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="admin">Administrador</SelectItem>
+                  <SelectItem value="operator">Operador</SelectItem>
+                  <SelectItem value="seller">Vendedor</SelectItem>
+                </SelectContent>
+              </Select>
+              <Button type="submit" className="mt-4">Adicionar Usuário</Button>
+            </form>
           </DialogContent>
         </Dialog>
-
-        <Dialog open={isExtraOptionsDialogOpen} onOpenChange={setIsExtraOptionsDialogOpen}>
-          <DialogTrigger asChild>
-            <Button className="w-full">Gerenciar Opções Extras</Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-3xl">
-            <DialogHeader>
-              <DialogTitle>Gerenciar Opções Extras</DialogTitle>
-            </DialogHeader>
-            <div className="space-y-4">
-              <h4 className="font-semibold">Adicionar Nova Opção Extra</h4>
-              <ExtraOptionForm
-                extraOption={newExtraOption}
-                onSave={handleAddOrUpdateExtraOption}
-                onOpenSelectOptions={() => handleOpenSelectOptionsModal(newExtraOption)}
-              />
-              
-              <h4 className="font-semibold mt-6">Opções Extras Existentes</h4>
-              {extraOptions?.map((option) => (
-                <div key={option.id} className="border p-4 rounded">
-                  <h5 className="font-semibold">{option.name}</h5>
-                  <p>Preço: R$ {option.price.toFixed(2)}</p>
-                  <p>Tipo: {option.type}</p>
-                  {option.type === 'select' && <p>Opções: {option.options?.join(', ')}</p>}
-                  <p>Editável no carrinho: {option.editable_in_cart ? 'Sim' : 'Não'}</p>
-                  <p>Obrigatório: {option.required ? 'Sim' : 'Não'}</p>
-                  <div className="mt-2 space-x-2">
-                    <Button onClick={() => setEditingExtraOption(option)}>Editar</Button>
-                    <Button variant="destructive" onClick={() => handleDeleteExtraOption(option.id)}>Excluir</Button>
-                  </div>
-                  {editingExtraOption?.id === option.id && (
-                    <div className="mt-4">
-                      <h6 className="font-semibold">Editar Opção Extra</h6>
-                      <ExtraOptionForm
-                        extraOption={editingExtraOption}
-                        onSave={handleAddOrUpdateExtraOption}
-                        onOpenSelectOptions={() => handleOpenSelectOptionsModal(editingExtraOption)}
-                      />
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
-          </DialogContent>
-        </Dialog>
-
-        <SelectOptionsModal
-          isOpen={isSelectOptionsModalOpen}
-          onClose={() => setIsSelectOptionsModalOpen(false)}
-          onSave={handleSaveSelectOptions}
-          initialOptions={editingExtraOption?.options || newExtraOption.options}
-        />
       </div>
     </div>
   );
