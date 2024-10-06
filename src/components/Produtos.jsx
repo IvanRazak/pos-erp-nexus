@@ -49,6 +49,11 @@ const Produtos = () => {
     // Convert extra_options to an array of UUIDs
     novoProduto.extra_options = Array.from(formData.getAll('extra_options'));
     
+    // Set a default type if not provided
+    if (!novoProduto.type) {
+      novoProduto.type = 'standard';
+    }
+    
     addProduct.mutate(novoProduto, {
       onSuccess: () => {
         toast({
@@ -60,32 +65,6 @@ const Produtos = () => {
       onError: (error) => {
         toast({
           title: "Erro ao cadastrar produto",
-          description: error.message,
-          variant: "destructive",
-        });
-      }
-    });
-  };
-
-  const handleOpenEditModal = (produto) => {
-    setEditingProduto(produto);
-  };
-
-  const handleCloseEditModal = () => {
-    setEditingProduto(null);
-  };
-
-  const handleDeleteProduct = (id) => {
-    deleteProduct.mutate(id, {
-      onSuccess: () => {
-        toast({
-          title: "Produto excluído com sucesso!",
-          description: "O produto foi removido da lista.",
-        });
-      },
-      onError: (error) => {
-        toast({
-          title: "Erro ao excluir produto",
           description: error.message,
           variant: "destructive",
         });
@@ -133,6 +112,15 @@ const Produtos = () => {
                 <SelectItem value="square_meter">Metro Quadrado</SelectItem>
               </SelectContent>
             </Select>
+            <Select name="type" required>
+              <SelectTrigger>
+                <SelectValue placeholder="Tipo de Produto" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="standard">Padrão</SelectItem>
+                <SelectItem value="custom">Personalizado</SelectItem>
+              </SelectContent>
+            </Select>
             <div>
               <h4 className="mb-2">Opções Extras</h4>
               {extraOptions?.map((option) => (
@@ -164,6 +152,7 @@ const Produtos = () => {
             <TableHead>Formato</TableHead>
             <TableHead>Impressão</TableHead>
             <TableHead>Tipo de Unidade</TableHead>
+            <TableHead>Tipo</TableHead>
             <TableHead>Opções Extras</TableHead>
             <TableHead>Ações</TableHead>
           </TableRow>
@@ -180,6 +169,7 @@ const Produtos = () => {
               <TableCell>{produto.format}</TableCell>
               <TableCell>{produto.print_type}</TableCell>
               <TableCell>{produto.unit_type}</TableCell>
+              <TableCell>{produto.type}</TableCell>
               <TableCell>
                 {produto.extra_options?.map(optionId => 
                   extraOptions?.find(o => o.id === optionId)?.name

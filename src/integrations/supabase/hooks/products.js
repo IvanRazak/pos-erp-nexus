@@ -22,6 +22,7 @@ const fromSupabase = async (query) => {
 | format          | text                    | string                    | false    |
 | print_type      | text                    | string                    | false    |
 | unit_type       | public.product_unit_type| string                    | true     |
+| type            | text                    | string                    | true     |
 | created_at      | timestamp with time zone| string                    | false    |
 | updated_at      | timestamp with time zone| string                    | false    |
 */
