@@ -7,7 +7,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 const ExtraOptionForm = ({ extraOption = {}, onSave, onDelete, onOpenSelectOptions }) => {
   const [localOption, setLocalOption] = useState({
     ...extraOption,
-    options: extraOption.options ? JSON.parse(extraOption.options) : []
+    options: Array.isArray(extraOption.options) ? extraOption.options : []
   });
 
   const handleChange = (e) => {
@@ -20,10 +20,7 @@ const ExtraOptionForm = ({ extraOption = {}, onSave, onDelete, onOpenSelectOptio
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    onSave({
-      ...localOption,
-      options: JSON.stringify(localOption.options)
-    });
+    onSave(localOption);
   };
 
   return (

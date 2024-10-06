@@ -24,7 +24,11 @@ const GerenciarOpcoesExtras = ({ isOpen, onClose }) => {
 
   const handleSaveExtraOption = (extraOption) => {
     const saveFunction = extraOption.id ? updateExtraOption : addExtraOption;
-    saveFunction.mutate(extraOption, {
+    const optionToSave = {
+      ...extraOption,
+      options: extraOption.options ? JSON.stringify(extraOption.options) : null
+    };
+    saveFunction.mutate(optionToSave, {
       onSuccess: () => {
         toast({ title: `Opção extra ${extraOption.id ? 'atualizada' : 'cadastrada'} com sucesso!` });
         setEditingOption(null);
@@ -55,10 +59,19 @@ const GerenciarOpcoesExtras = ({ isOpen, onClose }) => {
   };
 
   const handleSaveSelectOptions = (options) => {
-    setCurrentExtraOption(prev => ({ ...prev, options: JSON.stringify(options) }));
+    setCurrentExtraOption(prev => ({ ...prev, options }));
     setIsSelectOptionsModalOpen(false);
     if (editingOption) {
-      handleSaveExtraOption({ ...editingOption, options: JSON.stringify(options) });
+      handleSaveExtraOption({ ...editingOption, options });
+    }
+  };
+
+  const parseOptions = (optionsString) => {
+    try {
+      return optionsString ? JSON.parse(optionsString) : [];
+    } catch (error) {
+      console.error("Error parsing options:", error);
+      return [];
     }
   };
 
@@ -93,7 +106,7 @@ const GerenciarOpcoesExtras = ({ isOpen, onClose }) => {
               <DialogTitle>{editingOption.id ? 'Editar' : 'Adicionar'} Opção Extra</DialogTitle>
             </DialogHeader>
             <ExtraOptionForm
-              extraOption={editingOption}
+              extraOption={{...editingOption, options: parseOptions(editingOption.options)}}
               onSave={handleSaveExtraOption}
               onDelete={editingOption.id ? () => handleDeleteExtraOption(editingOption.id) : undefined}
               onOpenSelectOptions={handleOpenSelectOptions}
@@ -105,7 +118,7 @@ const GerenciarOpcoesExtras = ({ isOpen, onClose }) => {
         isOpen={isSelectOptionsModalOpen}
         onClose={() => setIsSelectOptionsModalOpen(false)}
         onSave={handleSaveSelectOptions}
-        initialOptions={currentExtraOption?.options ? JSON.parse(currentExtraOption.options) : []}
+        initialOptions={parseOptions(currentExtraOption?.options)}
       />
     </Dialog>
   );
