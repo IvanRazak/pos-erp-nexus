@@ -6,10 +6,13 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { useExtraOptions, useAddExtraOption, useUpdateExtraOption, useDeleteExtraOption } from '../integrations/supabase';
 import { toast } from "@/components/ui/use-toast";
 import ExtraOptionForm from './ExtraOptionForm';
+import SelectOptionsModal from './SelectOptionsModal';
 
 const GerenciarOpcoesExtras = ({ isOpen, onClose }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [editingOption, setEditingOption] = useState(null);
+  const [isSelectOptionsModalOpen, setIsSelectOptionsModalOpen] = useState(false);
+  const [currentExtraOption, setCurrentExtraOption] = useState(null);
   const { data: extraOptions, refetch } = useExtraOptions();
   const addExtraOption = useAddExtraOption();
   const updateExtraOption = useUpdateExtraOption();
@@ -46,6 +49,16 @@ const GerenciarOpcoesExtras = ({ isOpen, onClose }) => {
     });
   };
 
+  const handleOpenSelectOptions = (extraOption) => {
+    setCurrentExtraOption(extraOption);
+    setIsSelectOptionsModalOpen(true);
+  };
+
+  const handleSaveSelectOptions = (options) => {
+    setCurrentExtraOption(prev => ({ ...prev, options: JSON.stringify(options) }));
+    setIsSelectOptionsModalOpen(false);
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-4xl">
@@ -80,10 +93,17 @@ const GerenciarOpcoesExtras = ({ isOpen, onClose }) => {
               extraOption={editingOption}
               onSave={handleSaveExtraOption}
               onDelete={editingOption.id ? () => handleDeleteExtraOption(editingOption.id) : undefined}
+              onOpenSelectOptions={handleOpenSelectOptions}
             />
           </DialogContent>
         </Dialog>
       )}
+      <SelectOptionsModal
+        isOpen={isSelectOptionsModalOpen}
+        onClose={() => setIsSelectOptionsModalOpen(false)}
+        onSave={handleSaveSelectOptions}
+        initialOptions={currentExtraOption?.options ? JSON.parse(currentExtraOption.options) : []}
+      />
     </Dialog>
   );
 };
