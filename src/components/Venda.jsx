@@ -135,13 +135,6 @@ const Venda = () => {
     }
   };
 
-  const handleExtraEdit = (itemToEdit, updatedExtras, newTotal) => {
-    const updatedCarrinho = carrinho.map(item => 
-      item === itemToEdit ? { ...item, extras: updatedExtras, total: newTotal } : item
-    );
-    setCarrinho(updatedCarrinho);
-  };
-
   if (isLoading) return <div>Carregando...</div>;
 
   return (
@@ -160,7 +153,6 @@ const Venda = () => {
         carrinho={carrinho}
         onDelete={handleDeleteFromCart}
         onEdit={handleEditCartItem}
-        onExtraEdit={handleExtraEdit}
         desconto={desconto}
         setDesconto={setDesconto}
         dataEntrega={dataEntrega}

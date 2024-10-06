@@ -1,18 +1,8 @@
 import React from 'react';
 import { Button } from "@/components/ui/button";
 import { TableCell, TableRow } from "@/components/ui/table";
-import { Input } from "@/components/ui/input";
-import { calcularTotalItem } from '../utils/vendaUtils';
 
-const CarrinhoItem = ({ item, onDelete, onEdit, onExtraEdit }) => {
-  const handleExtraEdit = (extra, newPrice) => {
-    const updatedExtras = item.extras.map(e => 
-      e.id === extra.id ? { ...e, price: newPrice } : e
-    );
-    const newTotal = calcularTotalItem({ ...item, extras: updatedExtras });
-    onExtraEdit(item, updatedExtras, newTotal);
-  };
-
+const CarrinhoItem = ({ item, onDelete, onEdit }) => {
   return (
     <TableRow>
       <TableCell>{item.name}</TableCell>
@@ -20,23 +10,7 @@ const CarrinhoItem = ({ item, onDelete, onEdit, onExtraEdit }) => {
       <TableCell>{item.largura && item.altura ? `${item.largura}m x ${item.altura}m` : 'N/A'}</TableCell>
       <TableCell>{item.m2 ? `${item.m2.toFixed(2)}m²` : 'N/A'}</TableCell>
       <TableCell>R$ {item.unitPrice.toFixed(2)}</TableCell>
-      <TableCell>
-        {item.extras.map((extra, i) => (
-          <div key={i} className="flex items-center space-x-2">
-            <span>{extra.name}:</span>
-            {extra.editable_in_cart ? (
-              <Input
-                type="number"
-                value={extra.price}
-                onChange={(e) => handleExtraEdit(extra, parseFloat(e.target.value) || 0)}
-                className="w-20"
-              />
-            ) : (
-              <span>R$ {extra.price.toFixed(2)}</span>
-            )}
-          </div>
-        ))}
-      </TableCell>
+      <TableCell>{item.extras.map((extra, i) => <div key={i}>{extra.name}: R$ {extra.price.toFixed(2)}</div>)}</TableCell>
       <TableCell>R$ {item.total.toFixed(2)}</TableCell>
       <TableCell>
         <Button onClick={() => onEdit(item)} className="mr-2">Editar</Button>
