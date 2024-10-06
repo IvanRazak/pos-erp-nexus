@@ -56,7 +56,12 @@ export const useUpdateExtraOption = () => {
 export const useDeleteExtraOption = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (id) => fromSupabase(supabase.from('extra_options').delete().eq('id', id)),
+    mutationFn: async (id) => {
+      // First, delete related order_item_extras (this should now cascade)
+      await supabase.from('order_item_extras').delete().eq('extra_option_id', id);
+      // Then delete the extra_option
+      return fromSupabase(supabase.from('extra_options').delete().eq('id', id));
+    },
     onSuccess: () => {
       queryClient.invalidateQueries(['extra_options']);
     },
