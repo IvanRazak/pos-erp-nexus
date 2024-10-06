@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 
-const ExtraOptionForm = ({ extraOption, onSave, onOpenSelectOptions }) => {
+const ExtraOptionForm = ({ extraOption = {}, onSave, onDelete, onOpenSelectOptions }) => {
   const [localOption, setLocalOption] = React.useState(extraOption);
 
   const handleChange = (e) => {
@@ -21,10 +21,10 @@ const ExtraOptionForm = ({ extraOption, onSave, onOpenSelectOptions }) => {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <form onSubmit={handleSubmit} className="space-y-4 border p-4 rounded">
       <Input
         name="name"
-        value={localOption.name}
+        value={localOption.name || ''}
         onChange={handleChange}
         placeholder="Nome da opção extra"
         required
@@ -33,13 +33,13 @@ const ExtraOptionForm = ({ extraOption, onSave, onOpenSelectOptions }) => {
         name="price"
         type="number"
         step="0.01"
-        value={localOption.price}
+        value={localOption.price || ''}
         onChange={handleChange}
         placeholder="Preço"
         required
       />
       <Select
-        value={localOption.type}
+        value={localOption.type || 'number'}
         onValueChange={(value) => setLocalOption(prev => ({ ...prev, type: value }))}
       >
         <SelectTrigger>
@@ -59,7 +59,7 @@ const ExtraOptionForm = ({ extraOption, onSave, onOpenSelectOptions }) => {
         <Checkbox
           id="editable_in_cart"
           name="editable_in_cart"
-          checked={localOption.editable_in_cart}
+          checked={localOption.editable_in_cart || false}
           onCheckedChange={(checked) => setLocalOption(prev => ({ ...prev, editable_in_cart: checked }))}
         />
         <label htmlFor="editable_in_cart">Editável no carrinho</label>
@@ -68,12 +68,19 @@ const ExtraOptionForm = ({ extraOption, onSave, onOpenSelectOptions }) => {
         <Checkbox
           id="required"
           name="required"
-          checked={localOption.required}
+          checked={localOption.required || false}
           onCheckedChange={(checked) => setLocalOption(prev => ({ ...prev, required: checked }))}
         />
         <label htmlFor="required">Obrigatório</label>
       </div>
-      <Button type="submit">Salvar</Button>
+      <div className="flex justify-between">
+        <Button type="submit">{extraOption.id ? 'Atualizar' : 'Adicionar'}</Button>
+        {extraOption.id && (
+          <Button type="button" variant="destructive" onClick={() => onDelete(extraOption.id)}>
+            Excluir
+          </Button>
+        )}
+      </div>
     </form>
   );
 };

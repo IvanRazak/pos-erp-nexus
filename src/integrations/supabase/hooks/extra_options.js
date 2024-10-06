@@ -10,13 +10,17 @@ const fromSupabase = async (query) => {
 /*
 ### extra_options
 
-| name       | type                    | format                    | required |
-|------------|-------------------------|---------------------------|----------|
-| id         | uuid                    | uuid                      | true     |
-| name       | text                    | string                    | true     |
-| price      | numeric                 | number                    | true     |
-| created_at | timestamp with time zone| string                    | false    |
-| updated_at | timestamp with time zone| string                    | false    |
+| name             | type                    | format                    | required |
+|------------------|-------------------------|---------------------------|----------|
+| id               | uuid                    | uuid                      | true     |
+| name             | text                    | string                    | true     |
+| price            | numeric                 | number                    | true     |
+| type             | text                    | string                    | true     |
+| options          | jsonb                   | json                      | false    |
+| editable_in_cart | boolean                 | boolean                   | true     |
+| required         | boolean                 | boolean                   | true     |
+| created_at       | timestamp with time zone| string                    | false    |
+| updated_at       | timestamp with time zone| string                    | false    |
 */
 
 export const useExtraOption = (id) => useQuery({
