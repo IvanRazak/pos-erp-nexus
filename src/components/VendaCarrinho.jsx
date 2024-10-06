@@ -10,7 +10,7 @@ import { CalendarIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import CarrinhoItem from './CarrinhoItem';
 
-const VendaCarrinho = ({ carrinho, onDelete, onEdit, desconto, setDesconto, dataEntrega, setDataEntrega, opcaoPagamento, setOpcaoPagamento, opcoesPagamento, valorPago, setValorPago, calcularTotal, finalizarVenda }) => {
+const VendaCarrinho = ({ carrinho, onDelete, onEdit, onExtraEdit, desconto, setDesconto, dataEntrega, setDataEntrega, opcaoPagamento, setOpcaoPagamento, opcoesPagamento, valorPago, setValorPago, calcularTotal, finalizarVenda }) => {
   const subtotal = carrinho.reduce((total, item) => total + item.total, 0);
   const total = calcularTotal();
 
@@ -37,6 +37,7 @@ const VendaCarrinho = ({ carrinho, onDelete, onEdit, desconto, setDesconto, data
               item={item}
               onDelete={onDelete}
               onEdit={onEdit}
+              onExtraEdit={onExtraEdit}
             />
           ))}
         </TableBody>
