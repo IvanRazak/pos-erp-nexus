@@ -1,11 +1,14 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 
 const ExtraOptionForm = ({ extraOption = {}, onSave, onDelete, onOpenSelectOptions }) => {
-  const [localOption, setLocalOption] = React.useState(extraOption);
+  const [localOption, setLocalOption] = useState({
+    ...extraOption,
+    options: extraOption.options ? JSON.parse(extraOption.options) : []
+  });
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -17,7 +20,10 @@ const ExtraOptionForm = ({ extraOption = {}, onSave, onDelete, onOpenSelectOptio
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    onSave(localOption);
+    onSave({
+      ...localOption,
+      options: JSON.stringify(localOption.options)
+    });
   };
 
   return (

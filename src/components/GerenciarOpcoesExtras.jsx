@@ -78,7 +78,7 @@ const GerenciarOpcoesExtras = ({ isOpen, onClose }) => {
           <div className="space-y-2">
             {filteredOptions?.map((option) => (
               <div key={option.id} className="flex justify-between items-center p-2 bg-gray-100 rounded">
-                <span>{option.name} - R$ {option.price.toFixed(2)}</span>
+                <span>{option.name} - R$ {option.price?.toFixed(2)}</span>
                 <Button onClick={() => setEditingOption(option)}>Editar</Button>
               </div>
             ))}
