@@ -23,8 +23,15 @@ const GerenciarOpcoesExtras = ({ isOpen, onClose }) => {
   );
 
   const handleSaveExtraOption = (extraOption) => {
+    const optionsToSave = extraOption.type === 'select' ? 
+      (Array.isArray(extraOption.options) ? extraOption.options : JSON.parse(extraOption.options || '[]')) : 
+      [];
+    
     const saveFunction = extraOption.id ? updateExtraOption : addExtraOption;
-    saveFunction.mutate(extraOption, {
+    saveFunction.mutate({
+      ...extraOption,
+      options: optionsToSave
+    }, {
       onSuccess: () => {
         toast({ title: `Opção extra ${extraOption.id ? 'atualizada' : 'cadastrada'} com sucesso!` });
         setEditingOption(null);
@@ -55,10 +62,10 @@ const GerenciarOpcoesExtras = ({ isOpen, onClose }) => {
   };
 
   const handleSaveSelectOptions = (options) => {
-    setCurrentExtraOption(prev => ({ ...prev, options: JSON.stringify(options) }));
+    setCurrentExtraOption(prev => ({ ...prev, options }));
     setIsSelectOptionsModalOpen(false);
     if (editingOption) {
-      handleSaveExtraOption({ ...editingOption, options: JSON.stringify(options) });
+      handleSaveExtraOption({ ...editingOption, options });
     }
   };
 
@@ -78,7 +85,7 @@ const GerenciarOpcoesExtras = ({ isOpen, onClose }) => {
           <div className="space-y-2">
             {filteredOptions?.map((option) => (
               <div key={option.id} className="flex justify-between items-center p-2 bg-gray-100 rounded">
-                <span>{option.name} - R$ {option.price.toFixed(2)}</span>
+                <span>{option.name} - {option.type === 'select' ? 'Seleção' : `R$ ${option.price?.toFixed(2)}`}</span>
                 <Button onClick={() => setEditingOption(option)}>Editar</Button>
               </div>
             ))}
@@ -105,7 +112,7 @@ const GerenciarOpcoesExtras = ({ isOpen, onClose }) => {
         isOpen={isSelectOptionsModalOpen}
         onClose={() => setIsSelectOptionsModalOpen(false)}
         onSave={handleSaveSelectOptions}
-        initialOptions={currentExtraOption?.options ? JSON.parse(currentExtraOption.options) : []}
+        initialOptions={Array.isArray(currentExtraOption?.options) ? currentExtraOption.options : []}
       />
     </Dialog>
   );

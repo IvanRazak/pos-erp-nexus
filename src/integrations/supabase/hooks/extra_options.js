@@ -7,22 +7,6 @@ const fromSupabase = async (query) => {
   return data;
 };
 
-/*
-### extra_options
-
-| name             | type                    | format                    | required |
-|------------------|-------------------------|---------------------------|----------|
-| id               | uuid                    | uuid                      | true     |
-| name             | text                    | string                    | true     |
-| price            | numeric                 | number                    | true     |
-| type             | text                    | string                    | true     |
-| options          | jsonb                   | json                      | false    |
-| editable_in_cart | boolean                 | boolean                   | true     |
-| required         | boolean                 | boolean                   | true     |
-| created_at       | timestamp with time zone| string                    | false    |
-| updated_at       | timestamp with time zone| string                    | false    |
-*/
-
 export const useExtraOption = (id) => useQuery({
   queryKey: ['extra_options', id],
   queryFn: () => fromSupabase(supabase.from('extra_options').select('*').eq('id', id).single()),
@@ -30,13 +14,22 @@ export const useExtraOption = (id) => useQuery({
 
 export const useExtraOptions = () => useQuery({
   queryKey: ['extra_options'],
-  queryFn: () => fromSupabase(supabase.from('extra_options').select('*')),
+  queryFn: async () => {
+    const data = await fromSupabase(supabase.from('extra_options').select('*'));
+    return data.map(option => ({
+      ...option,
+      options: Array.isArray(option.options) ? option.options : JSON.parse(option.options || '[]')
+    }));
+  },
 });
 
 export const useAddExtraOption = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (newExtraOption) => fromSupabase(supabase.from('extra_options').insert([newExtraOption])),
+    mutationFn: (newExtraOption) => fromSupabase(supabase.from('extra_options').insert([{
+      ...newExtraOption,
+      options: JSON.stringify(newExtraOption.options)
+    }])),
     onSuccess: () => {
       queryClient.invalidateQueries(['extra_options']);
     },
@@ -46,7 +39,10 @@ export const useAddExtraOption = () => {
 export const useUpdateExtraOption = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ id, ...updateData }) => fromSupabase(supabase.from('extra_options').update(updateData).eq('id', id)),
+    mutationFn: ({ id, ...updateData }) => fromSupabase(supabase.from('extra_options').update({
+      ...updateData,
+      options: JSON.stringify(updateData.options)
+    }).eq('id', id)),
     onSuccess: () => {
       queryClient.invalidateQueries(['extra_options']);
     },
@@ -57,9 +53,7 @@ export const useDeleteExtraOption = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (id) => {
-      // First, delete related order_item_extras (this should now cascade)
       await supabase.from('order_item_extras').delete().eq('extra_option_id', id);
-      // Then delete the extra_option
       return fromSupabase(supabase.from('extra_options').delete().eq('id', id));
     },
     onSuccess: () => {
