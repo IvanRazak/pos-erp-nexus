@@ -3,9 +3,10 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 
-const SelectOptionsModal = ({ isOpen, onClose, onSave, initialOptions = [] }) => {
+const SelectOptionsModal = ({ isOpen, onClose, onSave, initialOptions = [], title = 'Opções de Seleção' }) => {
   const [options, setOptions] = useState(initialOptions);
   const [newOption, setNewOption] = useState({ name: '', price: '' });
+  const [selectionName, setSelectionName] = useState('');
 
   const handleAddOption = () => {
     if (newOption.name.trim() && newOption.price.trim()) {
@@ -19,7 +20,7 @@ const SelectOptionsModal = ({ isOpen, onClose, onSave, initialOptions = [] }) =>
   };
 
   const handleSave = () => {
-    onSave(options);
+    onSave({ name: selectionName, items: options });
     onClose();
   };
 
@@ -27,9 +28,14 @@ const SelectOptionsModal = ({ isOpen, onClose, onSave, initialOptions = [] }) =>
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Opções de Seleção</DialogTitle>
+          <DialogTitle>{title}</DialogTitle>
         </DialogHeader>
         <div className="space-y-4">
+          <Input
+            value={selectionName}
+            onChange={(e) => setSelectionName(e.target.value)}
+            placeholder="Nome da opção de seleção"
+          />
           <div className="flex space-x-2">
             <Input
               value={newOption.name}

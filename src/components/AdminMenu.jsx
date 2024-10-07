@@ -7,9 +7,11 @@ import { useAddPaymentOption, useAddCustomerType, useAddUser } from '../integrat
 import { toast } from "@/components/ui/use-toast";
 import bcrypt from 'bcryptjs';
 import GerenciarOpcoesExtras from './GerenciarOpcoesExtras';
+import GerenciarOpcoesSelecao from './GerenciarOpcoesSelecao';
 
 const AdminMenu = () => {
   const [isGerenciarOpcoesExtrasOpen, setIsGerenciarOpcoesExtrasOpen] = useState(false);
+  const [isGerenciarOpcoesSelecaoOpen, setIsGerenciarOpcoesSelecaoOpen] = useState(false);
   const addPaymentOption = useAddPaymentOption();
   const addCustomerType = useAddCustomerType();
   const addUser = useAddUser();
@@ -134,11 +136,20 @@ const AdminMenu = () => {
         <Button className="w-full" onClick={() => setIsGerenciarOpcoesExtrasOpen(true)}>
           Gerenciar Opções Extras
         </Button>
+
+        <Button className="w-full" onClick={() => setIsGerenciarOpcoesSelecaoOpen(true)}>
+          Gerenciar Opções de Seleção
+        </Button>
       </div>
 
       <GerenciarOpcoesExtras
         isOpen={isGerenciarOpcoesExtrasOpen}
         onClose={() => setIsGerenciarOpcoesExtrasOpen(false)}
+      />
+
+      <GerenciarOpcoesSelecao
+        isOpen={isGerenciarOpcoesSelecaoOpen}
+        onClose={() => setIsGerenciarOpcoesSelecaoOpen(false)}
       />
     </div>
   );
