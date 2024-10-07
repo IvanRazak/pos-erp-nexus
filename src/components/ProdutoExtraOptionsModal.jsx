@@ -20,11 +20,19 @@ const ProdutoExtraOptionsModal = ({ produto, opcoesExtras, onClose, onConfirm })
         if (value === null || value === undefined) {
           updatedExtras.splice(existingIndex, 1);
         } else {
-          updatedExtras[existingIndex] = { ...updatedExtras[existingIndex], value };
+          updatedExtras[existingIndex] = { 
+            ...updatedExtras[existingIndex], 
+            value,
+            totalPrice: extra.type === 'number' ? extra.price * parseFloat(value) : extra.price
+          };
         }
         return updatedExtras;
       } else if (value !== null && value !== undefined) {
-        return [...prev, { ...extra, value }];
+        return [...prev, { 
+          ...extra, 
+          value,
+          totalPrice: extra.type === 'number' ? extra.price * parseFloat(value) : extra.price
+        }];
       }
       return prev;
     });
@@ -87,6 +95,9 @@ const ProdutoExtraOptionsModal = ({ produto, opcoesExtras, onClose, onConfirm })
             <div key={opcao.id} className="flex items-center space-x-2">
               <label htmlFor={`extra-${opcao.id}`} className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
                 {opcao.name} - R$ {opcao.price.toFixed(2)}
+                {opcao.type === 'number' && extrasEscolhidas.find(e => e.id === opcao.id)?.value && 
+                  ` (Total: R$ ${(opcao.price * parseFloat(extrasEscolhidas.find(e => e.id === opcao.id).value)).toFixed(2)})`
+                }
               </label>
               {renderExtraOption(opcao)}
             </div>
