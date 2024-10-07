@@ -52,35 +52,13 @@ export const useDeleteExtraOption = () => {
 
 export const useSelectionOptions = () => useQuery({
   queryKey: ['selection_options'],
-  queryFn: () => fromSupabase(supabase.from('selection_options').select('*, items:selection_option_items(*)'))
+  queryFn: () => fromSupabase(supabase.from('selection_options').select('*'))
 });
 
 export const useAddSelectionOption = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async (newSelectionOption) => {
-      const { data: selectionOption, error: selectionError } = await supabase
-        .from('selection_options')
-        .insert([{ name: newSelectionOption.name }])
-        .select()
-        .single();
-
-      if (selectionError) throw new Error(selectionError.message);
-
-      const items = newSelectionOption.items.map(item => ({
-        selection_option_id: selectionOption.id,
-        name: item.name,
-        price: item.price
-      }));
-
-      const { error: itemsError } = await supabase
-        .from('selection_option_items')
-        .insert(items);
-
-      if (itemsError) throw new Error(itemsError.message);
-
-      return selectionOption;
-    },
+    mutationFn: (newSelectionOption) => fromSupabase(supabase.from('selection_options').insert([newSelectionOption])),
     onSuccess: () => {
       queryClient.invalidateQueries(['selection_options']);
     },
@@ -90,33 +68,7 @@ export const useAddSelectionOption = () => {
 export const useUpdateSelectionOption = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async ({ id, name, items }) => {
-      const { error: updateError } = await supabase
-        .from('selection_options')
-        .update({ name })
-        .eq('id', id);
-
-      if (updateError) throw new Error(updateError.message);
-
-      const { error: deleteError } = await supabase
-        .from('selection_option_items')
-        .delete()
-        .eq('selection_option_id', id);
-
-      if (deleteError) throw new Error(deleteError.message);
-
-      const newItems = items.map(item => ({
-        selection_option_id: id,
-        name: item.name,
-        price: item.price
-      }));
-
-      const { error: insertError } = await supabase
-        .from('selection_option_items')
-        .insert(newItems);
-
-      if (insertError) throw new Error(insertError.message);
-    },
+    mutationFn: ({ id, ...updateData }) => fromSupabase(supabase.from('selection_options').update(updateData).eq('id', id)),
     onSuccess: () => {
       queryClient.invalidateQueries(['selection_options']);
     },
