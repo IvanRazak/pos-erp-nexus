@@ -7,6 +7,20 @@ const fromSupabase = async (query) => {
   return data;
 };
 
+const ensureValidOptions = (options) => {
+  if (Array.isArray(options)) {
+    return options;
+  }
+  if (typeof options === 'string') {
+    try {
+      return JSON.parse(options);
+    } catch {
+      return [];
+    }
+  }
+  return [];
+};
+
 export const useExtraOption = (id) => useQuery({
   queryKey: ['extra_options', id],
   queryFn: () => fromSupabase(supabase.from('extra_options').select('*').eq('id', id).single()),
@@ -18,7 +32,7 @@ export const useExtraOptions = () => useQuery({
     const data = await fromSupabase(supabase.from('extra_options').select('*'));
     return data.map(option => ({
       ...option,
-      options: Array.isArray(option.options) ? option.options : JSON.parse(option.options || '[]')
+      options: ensureValidOptions(option.options)
     }));
   },
 });
@@ -26,10 +40,13 @@ export const useExtraOptions = () => useQuery({
 export const useAddExtraOption = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (newExtraOption) => fromSupabase(supabase.from('extra_options').insert([{
-      ...newExtraOption,
-      options: JSON.stringify(newExtraOption.options)
-    }])),
+    mutationFn: (newExtraOption) => {
+      const validOptions = ensureValidOptions(newExtraOption.options);
+      return fromSupabase(supabase.from('extra_options').insert([{
+        ...newExtraOption,
+        options: validOptions
+      }]));
+    },
     onSuccess: () => {
       queryClient.invalidateQueries(['extra_options']);
     },
@@ -39,10 +56,13 @@ export const useAddExtraOption = () => {
 export const useUpdateExtraOption = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ id, ...updateData }) => fromSupabase(supabase.from('extra_options').update({
-      ...updateData,
-      options: JSON.stringify(updateData.options)
-    }).eq('id', id)),
+    mutationFn: ({ id, ...updateData }) => {
+      const validOptions = ensureValidOptions(updateData.options);
+      return fromSupabase(supabase.from('extra_options').update({
+        ...updateData,
+        options: validOptions
+      }).eq('id', id));
+    },
     onSuccess: () => {
       queryClient.invalidateQueries(['extra_options']);
     },
