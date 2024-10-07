@@ -24,11 +24,7 @@ const GerenciarOpcoesExtras = ({ isOpen, onClose }) => {
 
   const handleSaveExtraOption = (extraOption) => {
     const saveFunction = extraOption.id ? updateExtraOption : addExtraOption;
-    const optionToSave = {
-      ...extraOption,
-      options: extraOption.options ? JSON.stringify(extraOption.options) : null
-    };
-    saveFunction.mutate(optionToSave, {
+    saveFunction.mutate(extraOption, {
       onSuccess: () => {
         toast({ title: `Opção extra ${extraOption.id ? 'atualizada' : 'cadastrada'} com sucesso!` });
         setEditingOption(null);
@@ -59,19 +55,10 @@ const GerenciarOpcoesExtras = ({ isOpen, onClose }) => {
   };
 
   const handleSaveSelectOptions = (options) => {
-    setCurrentExtraOption(prev => ({ ...prev, options }));
+    setCurrentExtraOption(prev => ({ ...prev, options: JSON.stringify(options) }));
     setIsSelectOptionsModalOpen(false);
     if (editingOption) {
-      handleSaveExtraOption({ ...editingOption, options });
-    }
-  };
-
-  const parseOptions = (optionsString) => {
-    try {
-      return optionsString ? JSON.parse(optionsString) : [];
-    } catch (error) {
-      console.error("Error parsing options:", error);
-      return [];
+      handleSaveExtraOption({ ...editingOption, options: JSON.stringify(options) });
     }
   };
 
@@ -91,7 +78,7 @@ const GerenciarOpcoesExtras = ({ isOpen, onClose }) => {
           <div className="space-y-2">
             {filteredOptions?.map((option) => (
               <div key={option.id} className="flex justify-between items-center p-2 bg-gray-100 rounded">
-                <span>{option.name} - R$ {option.price?.toFixed(2)}</span>
+                <span>{option.name} - R$ {option.price.toFixed(2)}</span>
                 <Button onClick={() => setEditingOption(option)}>Editar</Button>
               </div>
             ))}
@@ -106,7 +93,7 @@ const GerenciarOpcoesExtras = ({ isOpen, onClose }) => {
               <DialogTitle>{editingOption.id ? 'Editar' : 'Adicionar'} Opção Extra</DialogTitle>
             </DialogHeader>
             <ExtraOptionForm
-              extraOption={{...editingOption, options: parseOptions(editingOption.options)}}
+              extraOption={editingOption}
               onSave={handleSaveExtraOption}
               onDelete={editingOption.id ? () => handleDeleteExtraOption(editingOption.id) : undefined}
               onOpenSelectOptions={handleOpenSelectOptions}
@@ -118,7 +105,7 @@ const GerenciarOpcoesExtras = ({ isOpen, onClose }) => {
         isOpen={isSelectOptionsModalOpen}
         onClose={() => setIsSelectOptionsModalOpen(false)}
         onSave={handleSaveSelectOptions}
-        initialOptions={parseOptions(currentExtraOption?.options)}
+        initialOptions={currentExtraOption?.options ? JSON.parse(currentExtraOption.options) : []}
       />
     </Dialog>
   );

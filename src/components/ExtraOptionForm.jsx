@@ -1,14 +1,11 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 
 const ExtraOptionForm = ({ extraOption = {}, onSave, onDelete, onOpenSelectOptions }) => {
-  const [localOption, setLocalOption] = useState({
-    ...extraOption,
-    options: Array.isArray(extraOption.options) ? extraOption.options : []
-  });
+  const [localOption, setLocalOption] = React.useState(extraOption);
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
