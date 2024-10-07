@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 
-const ExtraOptionForm = ({ extraOption = {}, onSave, onDelete, onOpenSelectOptions }) => {
+const ExtraOptionForm = ({ extraOption = {}, onSave, onDelete, onOpenSelectOptions, selectionOptions }) => {
   const [localOption, setLocalOption] = React.useState(extraOption);
 
   const handleChange = (e) => {
@@ -42,7 +42,7 @@ const ExtraOptionForm = ({ extraOption = {}, onSave, onDelete, onOpenSelectOptio
       )}
       <Select
         value={localOption.type || 'number'}
-        onValueChange={(value) => setLocalOption(prev => ({ ...prev, type: value }))}
+        onValueChange={(value) => setLocalOption(prev => ({ ...prev, type: value, selection_option_id: value === 'select' ? prev.selection_option_id : null }))}
       >
         <SelectTrigger>
           <SelectValue placeholder="Tipo" />
@@ -54,9 +54,19 @@ const ExtraOptionForm = ({ extraOption = {}, onSave, onDelete, onOpenSelectOptio
         </SelectContent>
       </Select>
       {localOption.type === 'select' && (
-        <Button type="button" onClick={() => onOpenSelectOptions(localOption)}>
-          Configurar Opções de Seleção
-        </Button>
+        <Select
+          value={localOption.selection_option_id || ''}
+          onValueChange={(value) => setLocalOption(prev => ({ ...prev, selection_option_id: value }))}
+        >
+          <SelectTrigger>
+            <SelectValue placeholder="Opção de Seleção" />
+          </SelectTrigger>
+          <SelectContent>
+            {selectionOptions?.map((option) => (
+              <SelectItem key={option.id} value={option.id}>{option.name}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       )}
       <div className="flex items-center space-x-2">
         <Checkbox

@@ -3,7 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { useExtraOptions, useAddExtraOption, useUpdateExtraOption, useDeleteExtraOption } from '../integrations/supabase';
+import { useExtraOptions, useSelectionOptions, useAddExtraOption, useUpdateExtraOption, useDeleteExtraOption } from '../integrations/supabase';
 import { toast } from "@/components/ui/use-toast";
 import ExtraOptionForm from './ExtraOptionForm';
 import SelectOptionsModal from './SelectOptionsModal';
@@ -14,6 +14,7 @@ const GerenciarOpcoesExtras = ({ isOpen, onClose }) => {
   const [isSelectOptionsModalOpen, setIsSelectOptionsModalOpen] = useState(false);
   const [currentExtraOption, setCurrentExtraOption] = useState(null);
   const { data: extraOptions, refetch } = useExtraOptions();
+  const { data: selectionOptions } = useSelectionOptions();
   const addExtraOption = useAddExtraOption();
   const updateExtraOption = useUpdateExtraOption();
   const deleteExtraOption = useDeleteExtraOption();
@@ -23,15 +24,8 @@ const GerenciarOpcoesExtras = ({ isOpen, onClose }) => {
   );
 
   const handleSaveExtraOption = (extraOption) => {
-    const optionsToSave = extraOption.type === 'select' ? 
-      (Array.isArray(extraOption.options) ? extraOption.options : JSON.parse(extraOption.options || '[]')) : 
-      [];
-    
     const saveFunction = extraOption.id ? updateExtraOption : addExtraOption;
-    saveFunction.mutate({
-      ...extraOption,
-      options: optionsToSave
-    }, {
+    saveFunction.mutate(extraOption, {
       onSuccess: () => {
         toast({ title: `Opção extra ${extraOption.id ? 'atualizada' : 'cadastrada'} com sucesso!` });
         setEditingOption(null);
@@ -104,6 +98,7 @@ const GerenciarOpcoesExtras = ({ isOpen, onClose }) => {
               onSave={handleSaveExtraOption}
               onDelete={editingOption.id ? () => handleDeleteExtraOption(editingOption.id) : undefined}
               onOpenSelectOptions={handleOpenSelectOptions}
+              selectionOptions={selectionOptions}
             />
           </DialogContent>
         </Dialog>
@@ -112,7 +107,7 @@ const GerenciarOpcoesExtras = ({ isOpen, onClose }) => {
         isOpen={isSelectOptionsModalOpen}
         onClose={() => setIsSelectOptionsModalOpen(false)}
         onSave={handleSaveSelectOptions}
-        initialOptions={Array.isArray(currentExtraOption?.options) ? currentExtraOption.options : []}
+        initialOptions={currentExtraOption?.selection_option?.items || []}
       />
     </Dialog>
   );

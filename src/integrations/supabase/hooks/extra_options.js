@@ -9,12 +9,12 @@ const fromSupabase = async (query) => {
 
 export const useExtraOption = (id) => useQuery({
   queryKey: ['extra_options', id],
-  queryFn: () => fromSupabase(supabase.from('extra_options').select('*, selection_option:selection_options(*)').eq('id', id).single()),
+  queryFn: () => fromSupabase(supabase.from('extra_options').select('*').eq('id', id).single()),
 });
 
 export const useExtraOptions = () => useQuery({
   queryKey: ['extra_options'],
-  queryFn: () => fromSupabase(supabase.from('extra_options').select('*, selection_option:selection_options(*)'))
+  queryFn: () => fromSupabase(supabase.from('extra_options').select('*'))
 });
 
 export const useAddExtraOption = () => {
