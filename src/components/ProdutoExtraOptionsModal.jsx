@@ -12,7 +12,7 @@ const ProdutoExtraOptionsModal = ({ produto, opcoesExtras, onClose, onConfirm })
 
   const produtoOpcoesExtras = opcoesExtras?.filter(opcao => 
     produto.extra_options?.includes(opcao.id)
-  );
+  ) || [];
 
   const handleExtraChange = (extra, value) => {
     setExtrasEscolhidas(prev => {
@@ -61,7 +61,7 @@ const ProdutoExtraOptionsModal = ({ produto, opcoesExtras, onClose, onConfirm })
   const renderExtraOption = (opcao) => {
     switch (opcao.type) {
       case 'select':
-        const selectionOption = selectionOptions?.find(option => opcao.selection_options.includes(option.id));
+        const selectionOption = selectionOptions?.find(option => opcao.selection_options?.includes(option.id));
         return (
           <Select
             onValueChange={(value) => handleExtraChange(opcao, value)}
@@ -71,11 +71,11 @@ const ProdutoExtraOptionsModal = ({ produto, opcoesExtras, onClose, onConfirm })
               <SelectValue placeholder="Selecione uma opção" />
             </SelectTrigger>
             <SelectContent>
-              {selectionOption?.items.map((item, index) => (
+              {selectionOption?.items?.map((item, index) => (
                 <SelectItem key={index} value={item.name}>
                   {item.name} - R$ {item.price.toFixed(2)}
                 </SelectItem>
-              ))}
+              )) || <SelectItem value="">Nenhuma opção disponível</SelectItem>}
             </SelectContent>
           </Select>
         );
@@ -106,7 +106,7 @@ const ProdutoExtraOptionsModal = ({ produto, opcoesExtras, onClose, onConfirm })
           <DialogTitle>Opções Extras para {produto.name}</DialogTitle>
         </DialogHeader>
         <div className="space-y-4">
-          {produtoOpcoesExtras?.map((opcao) => (
+          {produtoOpcoesExtras.map((opcao) => (
             <div key={opcao.id} className="flex items-center space-x-2">
               <label htmlFor={`extra-${opcao.id}`} className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
                 {opcao.name}
