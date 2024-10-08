@@ -23,7 +23,7 @@ const ProdutoExtraOptionsModal = ({ produto, opcoesExtras, onClose, onConfirm })
           updatedExtras[existingIndex] = { 
             ...updatedExtras[existingIndex], 
             value,
-            totalPrice: extra.type === 'number' ? extra.price * parseFloat(value) : extra.price
+            totalPrice: extra.type === 'number' ? (extra.price ?? 0) * parseFloat(value) : (extra.price ?? 0)
           };
         }
         return updatedExtras;
@@ -31,7 +31,7 @@ const ProdutoExtraOptionsModal = ({ produto, opcoesExtras, onClose, onConfirm })
         return [...prev, { 
           ...extra, 
           value,
-          totalPrice: extra.type === 'number' ? extra.price * parseFloat(value) : extra.price
+          totalPrice: extra.type === 'number' ? (extra.price ?? 0) * parseFloat(value) : (extra.price ?? 0)
         }];
       }
       return prev;
@@ -94,9 +94,9 @@ const ProdutoExtraOptionsModal = ({ produto, opcoesExtras, onClose, onConfirm })
           {produtoOpcoesExtras?.map((opcao) => (
             <div key={opcao.id} className="flex items-center space-x-2">
               <label htmlFor={`extra-${opcao.id}`} className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                {opcao.name} - R$ {opcao.price.toFixed(2)}
+                {opcao.name} - R$ {opcao.price?.toFixed(2) ?? 'N/A'}
                 {opcao.type === 'number' && extrasEscolhidas.find(e => e.id === opcao.id)?.value && 
-                  ` (Total: R$ ${(opcao.price * parseFloat(extrasEscolhidas.find(e => e.id === opcao.id).value)).toFixed(2)})`
+                  ` (Total: R$ ${((opcao.price ?? 0) * parseFloat(extrasEscolhidas.find(e => e.id === opcao.id).value)).toFixed(2)})`
                 }
               </label>
               {renderExtraOption(opcao)}
