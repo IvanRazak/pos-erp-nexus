@@ -15,14 +15,14 @@ const ProdutoExtraOptionsModal = ({ produto, opcoesExtras, onClose, onConfirm })
   );
 
   useEffect(() => {
-    // Initialize extrasEscolhidas with default values
     const initialExtras = produtoOpcoesExtras?.map(opcao => ({
       id: opcao.id,
       name: opcao.name,
       type: opcao.type,
       value: opcao.type === 'checkbox' ? false : '',
       price: opcao.price || 0,
-      totalPrice: 0
+      totalPrice: 0,
+      selectedOption: null
     }));
     setExtrasEscolhidas(initialExtras || []);
   }, [produtoOpcoesExtras]);
@@ -31,22 +31,30 @@ const ProdutoExtraOptionsModal = ({ produto, opcoesExtras, onClose, onConfirm })
     setExtrasEscolhidas(prev => prev.map(item => {
       if (item.id === extra.id) {
         let totalPrice = 0;
+        let selectedOption = null;
         if (extra.type === 'number') {
           totalPrice = (extra.price || 0) * parseFloat(value || 0);
         } else if (extra.type === 'checkbox') {
           totalPrice = value ? (extra.price || 0) : 0;
         } else if (extra.type === 'select') {
-          const selectedOption = selectionOptions?.find(opt => opt.id === value);
-          totalPrice = selectedOption ? selectedOption.value : 0;
+          selectedOption = selectionOptions?.find(opt => opt.id === value);
+          totalPrice = selectedOption ? selectedOption.value + (extra.price || 0) : 0;
         }
-        return { ...item, value, totalPrice };
+        return { ...item, value, totalPrice, selectedOption };
       }
       return item;
     }));
   };
 
   const handleConfirm = () => {
-    onConfirm(extrasEscolhidas.filter(extra => extra.value !== '' && extra.value !== false));
+    const filteredExtras = extrasEscolhidas.filter(extra => 
+      extra.value !== '' && extra.value !== false
+    ).map(extra => ({
+      ...extra,
+      name: extra.selectedOption ? `${extra.name} - ${extra.selectedOption.name}` : extra.name,
+      price: extra.totalPrice
+    }));
+    onConfirm(filteredExtras);
     onClose();
   };
 
