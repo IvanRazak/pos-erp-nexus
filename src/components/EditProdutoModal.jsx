@@ -111,7 +111,7 @@ const EditProdutoModal = ({ produto, onClose, extraOptions }) => {
                   })}
                 />
                 <label htmlFor={`extra-${option.id}`}>
-                  {option.name} - R$ {option.price.toFixed(2)}
+                  {option.name} - R$ {option.price?.toFixed(2) ?? 'N/A'}
                 </label>
               </div>
             ))}
