@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
@@ -22,22 +22,25 @@ const ProdutoExtraOptionsModal = ({ produto, opcoesExtras, onClose, onConfirm })
         if (value === null || value === undefined) {
           updatedExtras.splice(existingIndex, 1);
         } else {
-          updatedExtras[existingIndex] = { 
-            ...updatedExtras[existingIndex], 
-            value,
-            totalPrice: extra.type === 'number' ? (extra.price ?? 0) * parseFloat(value) : (extra.price ?? 0)
-          };
+          updatedExtras[existingIndex] = calculateExtraPrice(extra, value);
         }
         return updatedExtras;
       } else if (value !== null && value !== undefined) {
-        return [...prev, { 
-          ...extra, 
-          value,
-          totalPrice: extra.type === 'number' ? (extra.price ?? 0) * parseFloat(value) : (extra.price ?? 0)
-        }];
+        return [...prev, calculateExtraPrice(extra, value)];
       }
       return prev;
     });
+  };
+
+  const calculateExtraPrice = (extra, value) => {
+    let totalPrice = extra.price ?? 0;
+    if (extra.type === 'select') {
+      const selectedOption = selectionOptions?.find(so => so.id === value);
+      totalPrice += selectedOption?.value ?? 0;
+    } else if (extra.type === 'number') {
+      totalPrice *= parseFloat(value);
+    }
+    return { ...extra, value, totalPrice };
   };
 
   const handleConfirm = () => {
@@ -98,8 +101,8 @@ const ProdutoExtraOptionsModal = ({ produto, opcoesExtras, onClose, onConfirm })
               <label htmlFor={`extra-${opcao.id}`} className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
                 {opcao.name}
                 {opcao.type !== 'select' && ` - R$ ${opcao.price?.toFixed(2) ?? 'N/A'}`}
-                {opcao.type === 'number' && extrasEscolhidas.find(e => e.id === opcao.id)?.value && 
-                  ` (Total: R$ ${((opcao.price ?? 0) * parseFloat(extrasEscolhidas.find(e => e.id === opcao.id).value)).toFixed(2)})`
+                {extrasEscolhidas.find(e => e.id === opcao.id)?.totalPrice && 
+                  ` (Total: R$ ${extrasEscolhidas.find(e => e.id === opcao.id).totalPrice.toFixed(2)})`
                 }
               </label>
               {renderExtraOption(opcao)}
