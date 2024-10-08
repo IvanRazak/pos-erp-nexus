@@ -46,11 +46,6 @@ const ProdutoExtraOptionsModal = ({ produto, opcoesExtras, onClose, onConfirm })
   const renderExtraOption = (opcao) => {
     switch (opcao.type) {
       case 'select':
-        const selectionOptions = opcao.selection_options?.map(optionId => {
-          const option = opcoesExtras.find(o => o.id === optionId);
-          return option ? { id: option.id, name: option.name, value: option.value } : null;
-        }).filter(Boolean);
-
         return (
           <Select
             onValueChange={(value) => handleExtraChange(opcao, value)}
@@ -60,11 +55,14 @@ const ProdutoExtraOptionsModal = ({ produto, opcoesExtras, onClose, onConfirm })
               <SelectValue placeholder="Selecione uma opção" />
             </SelectTrigger>
             <SelectContent>
-              {selectionOptions.map((option) => (
-                <SelectItem key={option.id} value={option.id}>
-                  {option.name} - R$ {option.value.toFixed(2)}
-                </SelectItem>
-              ))}
+              {opcao.selection_options?.map((optionId) => {
+                const option = opcoesExtras.find(o => o.id === optionId);
+                return option ? (
+                  <SelectItem key={option.id} value={option.id}>
+                    {option.name} - R$ {option.value?.toFixed(2)}
+                  </SelectItem>
+                ) : null;
+              })}
             </SelectContent>
           </Select>
         );
