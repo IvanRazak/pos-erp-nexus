@@ -1,15 +1,6 @@
 export const calcularSubtotalItem = (item) => {
   const precoUnitarioBase = item.unit_price;
-  const precoExtras = item.extras.reduce((sum, extra) => {
-    const extraOption = extra.extra_option;
-    if (extraOption.type === 'select') {
-      return sum + extraOption.price;
-    } else if (extraOption.type === 'number') {
-      return sum + (extraOption.value * extraOption.price);
-    } else {
-      return sum + extraOption.price;
-    }
-  }, 0);
+  const precoExtras = item.extras.reduce((sum, extra) => sum + extra.extra_option.price, 0);
   const precoUnitarioTotal = precoUnitarioBase + precoExtras;
   return item.quantity * precoUnitarioTotal;
 };
