@@ -15,7 +15,7 @@ const PedidoDetalhesModal = ({ pedido, onClose }) => {
         .select(`
           *,
           product:products(*),
-          extras:order_item_extras(extra_option:extra_options(*))
+          extras:order_item_extras(id, value, extra_option:extra_options(*))
         `)
         .eq('order_id', pedido.id);
 
@@ -27,10 +27,28 @@ const PedidoDetalhesModal = ({ pedido, onClose }) => {
   if (isLoading) return <div>Carregando detalhes do pedido...</div>;
 
   const renderExtras = (extras) => {
-    return extras.map((extra) => (
-      <div key={extra.id}>{extra.extra_option.name}: R$ {extra.extra_option.price.toFixed(2)}</div>
-    ));
+    return extras.map((extra) => {
+      const { extra_option, value } = extra;
+      let displayText = `${extra_option.name}: `;
+      
+      if (extra_option.type === 'number' && value) {
+        displayText += `${value} x R$ ${extra_option.price.toFixed(2)} = R$ ${(value * extra_option.price).toFixed(2)}`;
+      } else if (extra_option.type === 'select' && extra_option.options) {
+        const selectedOption = extra_option.options.find(opt => opt.id === value);
+        if (selectedOption) {
+          displayText += `${selectedOption.name} - R$ ${selectedOption.value.toFixed(2)}`;
+        } else {
+          displayText += `R$ ${extra_option.price.toFixed(2)}`;
+        }
+      } else {
+        displayText += `R$ ${extra_option.price.toFixed(2)}`;
+      }
+      
+      return <div key={extra.id}>{displayText}</div>;
+    });
   };
+
+
 
   return (
     <Dialog open={true} onOpenChange={onClose}>
