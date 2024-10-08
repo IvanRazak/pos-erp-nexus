@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useProducts, useCustomers, useExtraOptions, usePaymentOptions, useAddOrder } from '../integrations/supabase';
+import { useProducts, useCustomers, useExtraOptions, usePaymentOptions, useAddOrder, useSelectionOptions } from '../integrations/supabase';
 import { useAuth } from '../hooks/useAuth';
 import { toast } from "@/components/ui/use-toast";
 import { format } from "date-fns";
@@ -30,6 +30,7 @@ const Venda = () => {
   const { data: clientes } = useCustomers();
   const { data: opcoesExtras } = useExtraOptions();
   const { data: opcoesPagamento } = usePaymentOptions();
+  const { data: selectionOptions } = useSelectionOptions();
   const addOrder = useAddOrder();
 
   useEffect(() => {
