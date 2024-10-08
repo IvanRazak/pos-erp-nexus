@@ -14,14 +14,7 @@ export const useExtraOption = (id) => useQuery({
 
 export const useExtraOptions = () => useQuery({
   queryKey: ['extra_options'],
-  queryFn: () => fromSupabase(supabase.from('extra_options').select(`
-    *,
-    selection_options (
-      id,
-      name,
-      value
-    )
-  `))
+  queryFn: () => fromSupabase(supabase.from('extra_options').select('*'))
 });
 
 export const useAddExtraOption = () => {
