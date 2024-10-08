@@ -1,11 +1,15 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
+import SelectionOptionsModal from './SelectionOptionsModal';
+import { useSelectionOptions } from '../integrations/supabase';
 
-const ExtraOptionForm = ({ extraOption = {}, onSave, onDelete, onOpenSelectOptions, selectionOptions }) => {
-  const [localOption, setLocalOption] = React.useState(extraOption);
+const ExtraOptionForm = ({ extraOption = {}, onSave, onDelete }) => {
+  const [localOption, setLocalOption] = useState(extraOption);
+  const [isSelectionModalOpen, setIsSelectionModalOpen] = useState(false);
+  const { data: selectionOptions } = useSelectionOptions();
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -20,6 +24,10 @@ const ExtraOptionForm = ({ extraOption = {}, onSave, onDelete, onOpenSelectOptio
     onSave(localOption);
   };
 
+  const handleSelectionOptionsSave = (selectedOptions) => {
+    setLocalOption(prev => ({ ...prev, selection_options: selectedOptions }));
+  };
+
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <Input
@@ -29,6 +37,19 @@ const ExtraOptionForm = ({ extraOption = {}, onSave, onDelete, onOpenSelectOptio
         placeholder="Nome da opção extra"
         required
       />
+      <Select
+        value={localOption.type || 'number'}
+        onValueChange={(value) => setLocalOption(prev => ({ ...prev, type: value }))}
+      >
+        <SelectTrigger>
+          <SelectValue placeholder="Tipo" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="number">Número</SelectItem>
+          <SelectItem value="select">Seleção</SelectItem>
+          <SelectItem value="checkbox">Checkbox</SelectItem>
+        </SelectContent>
+      </Select>
       {localOption.type !== 'select' && (
         <Input
           name="price"
@@ -40,33 +61,10 @@ const ExtraOptionForm = ({ extraOption = {}, onSave, onDelete, onOpenSelectOptio
           required
         />
       )}
-      <Select
-        value={localOption.type || 'number'}
-        onValueChange={(value) => setLocalOption(prev => ({ ...prev, type: value, selection_option_id: value === 'select' ? prev.selection_option_id : null }))}
-      >
-        <SelectTrigger>
-          <SelectValue placeholder="Tipo" />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="number">Número</SelectItem>
-          <SelectItem value="select">Seleção</SelectItem>
-          <SelectItem value="checkbox">Checkbox</SelectItem>
-        </SelectContent>
-      </Select>
       {localOption.type === 'select' && (
-        <Select
-          value={localOption.selection_option_id || ''}
-          onValueChange={(value) => setLocalOption(prev => ({ ...prev, selection_option_id: value }))}
-        >
-          <SelectTrigger>
-            <SelectValue placeholder="Opção de Seleção" />
-          </SelectTrigger>
-          <SelectContent>
-            {selectionOptions?.map((option) => (
-              <SelectItem key={option.id} value={option.id}>{option.name}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        <Button type="button" onClick={() => setIsSelectionModalOpen(true)}>
+          Gerenciar Opções de Seleção
+        </Button>
       )}
       <div className="flex items-center space-x-2">
         <Checkbox
@@ -94,6 +92,13 @@ const ExtraOptionForm = ({ extraOption = {}, onSave, onDelete, onOpenSelectOptio
           </Button>
         )}
       </div>
+      <SelectionOptionsModal
+        isOpen={isSelectionModalOpen}
+        onClose={() => setIsSelectionModalOpen(false)}
+        onSave={handleSelectionOptionsSave}
+        selectionOptions={selectionOptions}
+        selectedOptions={localOption.selection_options || []}
+      />
     </form>
   );
 };
