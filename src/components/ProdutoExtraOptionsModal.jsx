@@ -1,64 +1,71 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
+import { useSelectionOptions } from '../integrations/supabase';
 
 const ProdutoExtraOptionsModal = ({ produto, opcoesExtras, onClose, onConfirm }) => {
   const [extrasEscolhidas, setExtrasEscolhidas] = useState([]);
+  const { data: selectionOptions } = useSelectionOptions();
 
   const produtoOpcoesExtras = opcoesExtras?.filter(opcao => 
     produto.extra_options?.includes(opcao.id)
   );
 
+  useEffect(() => {
+    // Initialize extrasEscolhidas with default values
+    const initialExtras = produtoOpcoesExtras?.map(opcao => ({
+      id: opcao.id,
+      name: opcao.name,
+      type: opcao.type,
+      value: opcao.type === 'checkbox' ? false : '',
+      price: opcao.price || 0,
+      totalPrice: 0
+    }));
+    setExtrasEscolhidas(initialExtras || []);
+  }, [produtoOpcoesExtras]);
+
   const handleExtraChange = (extra, value) => {
-    setExtrasEscolhidas(prev => {
-      const existingIndex = prev.findIndex(item => item.id === extra.id);
-      if (existingIndex !== -1) {
-        const updatedExtras = [...prev];
-        if (value === null || value === undefined) {
-          updatedExtras.splice(existingIndex, 1);
-        } else {
-          updatedExtras[existingIndex] = { 
-            ...updatedExtras[existingIndex], 
-            value,
-            totalPrice: extra.type === 'number' ? (extra.price ?? 0) * parseFloat(value) : (extra.price ?? 0)
-          };
+    setExtrasEscolhidas(prev => prev.map(item => {
+      if (item.id === extra.id) {
+        let totalPrice = 0;
+        if (extra.type === 'number') {
+          totalPrice = (extra.price || 0) * parseFloat(value || 0);
+        } else if (extra.type === 'checkbox') {
+          totalPrice = value ? (extra.price || 0) : 0;
+        } else if (extra.type === 'select') {
+          const selectedOption = selectionOptions?.find(opt => opt.id === value);
+          totalPrice = selectedOption ? selectedOption.value : 0;
         }
-        return updatedExtras;
-      } else if (value !== null && value !== undefined) {
-        return [...prev, { 
-          ...extra, 
-          value,
-          totalPrice: extra.type === 'number' ? (extra.price ?? 0) * parseFloat(value) : (extra.price ?? 0)
-        }];
+        return { ...item, value, totalPrice };
       }
-      return prev;
-    });
+      return item;
+    }));
   };
 
   const handleConfirm = () => {
-    onConfirm(extrasEscolhidas);
+    onConfirm(extrasEscolhidas.filter(extra => extra.value !== '' && extra.value !== false));
     onClose();
   };
 
   const renderExtraOption = (opcao) => {
     switch (opcao.type) {
       case 'select':
-        const options = JSON.parse(opcao.options || '[]');
+        const options = selectionOptions?.filter(opt => opcao.selection_options?.includes(opt.id)) || [];
         return (
           <Select
             onValueChange={(value) => handleExtraChange(opcao, value)}
-            defaultValue={extrasEscolhidas.find(e => e.id === opcao.id)?.value}
+            value={extrasEscolhidas.find(e => e.id === opcao.id)?.value || ''}
           >
             <SelectTrigger>
               <SelectValue placeholder="Selecione uma opção" />
             </SelectTrigger>
             <SelectContent>
-              {options.map((option, index) => (
-                <SelectItem key={index} value={option}>
-                  {option}
+              {options.map((option) => (
+                <SelectItem key={option.id} value={option.id}>
+                  {option.name} - R$ {option.value.toFixed(2)}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -69,15 +76,15 @@ const ProdutoExtraOptionsModal = ({ produto, opcoesExtras, onClose, onConfirm })
           <Input
             type="number"
             placeholder="Valor"
+            value={extrasEscolhidas.find(e => e.id === opcao.id)?.value || ''}
             onChange={(e) => handleExtraChange(opcao, e.target.value)}
-            defaultValue={extrasEscolhidas.find(e => e.id === opcao.id)?.value}
           />
         );
       default:
         return (
           <Checkbox
             id={`extra-${opcao.id}`}
-            checked={extrasEscolhidas.some(item => item.id === opcao.id)}
+            checked={extrasEscolhidas.find(e => e.id === opcao.id)?.value || false}
             onCheckedChange={(checked) => handleExtraChange(opcao, checked)}
           />
         );
@@ -94,12 +101,15 @@ const ProdutoExtraOptionsModal = ({ produto, opcoesExtras, onClose, onConfirm })
           {produtoOpcoesExtras?.map((opcao) => (
             <div key={opcao.id} className="flex items-center space-x-2">
               <label htmlFor={`extra-${opcao.id}`} className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                {opcao.name} - R$ {opcao.price?.toFixed(2) ?? 'N/A'}
-                {opcao.type === 'number' && extrasEscolhidas.find(e => e.id === opcao.id)?.value && 
-                  ` (Total: R$ ${((opcao.price ?? 0) * parseFloat(extrasEscolhidas.find(e => e.id === opcao.id).value)).toFixed(2)})`
-                }
+                {opcao.name}
+                {opcao.type !== 'select' && ` - R$ ${opcao.price?.toFixed(2) ?? 'N/A'}`}
               </label>
               {renderExtraOption(opcao)}
+              {extrasEscolhidas.find(e => e.id === opcao.id)?.totalPrice > 0 && (
+                <span className="text-sm text-gray-500">
+                  Total: R$ {extrasEscolhidas.find(e => e.id === opcao.id).totalPrice.toFixed(2)}
+                </span>
+              )}
             </div>
           ))}
         </div>
