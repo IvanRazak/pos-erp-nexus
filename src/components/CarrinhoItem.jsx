@@ -14,9 +14,11 @@ const CarrinhoItem = ({ item, onDelete, onEdit }) => {
         {item.extras.map((extra, i) => (
           <div key={i}>
             {extra.name}: 
-            {extra.type === 'number' 
-              ? `${extra.value} x R$ ${extra.price.toFixed(2)} = R$ ${(extra.value * extra.price).toFixed(2)}`
-              : `R$ ${extra.price.toFixed(2)}`
+            {extra.type === 'select' 
+              ? `${extra.selectedOptionName} - R$ ${extra.totalPrice.toFixed(2)}`
+              : extra.type === 'number' 
+                ? `${extra.value} x R$ ${extra.price.toFixed(2)} = R$ ${extra.totalPrice.toFixed(2)}`
+                : `R$ ${extra.totalPrice.toFixed(2)}`
             }
           </div>
         ))}
