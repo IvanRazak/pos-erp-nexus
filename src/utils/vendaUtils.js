@@ -1,7 +1,10 @@
 export const calcularTotalItem = (item, extras) => {
   const precoBase = item.unitPrice || item.sale_price;
   const precoExtras = Array.isArray(extras) ? extras.reduce((total, extra) => {
-    return total + (extra.totalPrice || 0);
+    if (extra.type === 'number') {
+      return total + (extra.price * parseFloat(extra.value));
+    }
+    return total + extra.price;
   }, 0) : 0;
   return (precoBase + precoExtras) * item.quantidade;
 };
