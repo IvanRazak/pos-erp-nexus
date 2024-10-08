@@ -1,12 +1,14 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
+import { useSelectionOptions } from '../integrations/supabase/hooks/extra_options';
 
 const ProdutoExtraOptionsModal = ({ produto, opcoesExtras, onClose, onConfirm }) => {
   const [extrasEscolhidas, setExtrasEscolhidas] = useState([]);
+  const { data: selectionOptions } = useSelectionOptions();
 
   const produtoOpcoesExtras = opcoesExtras?.filter(opcao => 
     produto.extra_options?.includes(opcao.id)
@@ -46,7 +48,7 @@ const ProdutoExtraOptionsModal = ({ produto, opcoesExtras, onClose, onConfirm })
   const renderExtraOption = (opcao) => {
     switch (opcao.type) {
       case 'select':
-        const options = JSON.parse(opcao.options || '[]');
+        const options = selectionOptions?.filter(so => opcao.selection_options?.includes(so.id)) || [];
         return (
           <Select
             onValueChange={(value) => handleExtraChange(opcao, value)}
@@ -56,9 +58,9 @@ const ProdutoExtraOptionsModal = ({ produto, opcoesExtras, onClose, onConfirm })
               <SelectValue placeholder="Selecione uma opção" />
             </SelectTrigger>
             <SelectContent>
-              {options.map((option, index) => (
-                <SelectItem key={index} value={option}>
-                  {option}
+              {options.map((option) => (
+                <SelectItem key={option.id} value={option.id}>
+                  {option.name} - R$ {option.value.toFixed(2)}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -94,7 +96,8 @@ const ProdutoExtraOptionsModal = ({ produto, opcoesExtras, onClose, onConfirm })
           {produtoOpcoesExtras?.map((opcao) => (
             <div key={opcao.id} className="flex items-center space-x-2">
               <label htmlFor={`extra-${opcao.id}`} className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                {opcao.name} - R$ {opcao.price?.toFixed(2) ?? 'N/A'}
+                {opcao.name}
+                {opcao.type !== 'select' && ` - R$ ${opcao.price?.toFixed(2) ?? 'N/A'}`}
                 {opcao.type === 'number' && extrasEscolhidas.find(e => e.id === opcao.id)?.value && 
                   ` (Total: R$ ${((opcao.price ?? 0) * parseFloat(extrasEscolhidas.find(e => e.id === opcao.id).value)).toFixed(2)})`
                 }
