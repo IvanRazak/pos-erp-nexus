@@ -5,12 +5,10 @@ import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useSelectionOptions, useAddSelectionOption, useUpdateSelectionOption, useDeleteSelectionOption } from '../integrations/supabase';
 import { toast } from "@/components/ui/use-toast";
-import SelectOptionsModal from './SelectOptionsModal';
 
 const GerenciarOpcoesSelecao = ({ isOpen, onClose }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [editingOption, setEditingOption] = useState(null);
-  const [isSelectOptionsModalOpen, setIsSelectOptionsModalOpen] = useState(false);
   const { data: selectionOptions, refetch } = useSelectionOptions();
   const addSelectionOption = useAddSelectionOption();
   const updateSelectionOption = useUpdateSelectionOption();
@@ -47,10 +45,24 @@ const GerenciarOpcoesSelecao = ({ isOpen, onClose }) => {
     });
   };
 
-  const handleOpenSelectOptions = (option) => {
-    setEditingOption(option);
-    setIsSelectOptionsModalOpen(true);
-  };
+  const renderOptionForm = () => (
+    <div className="space-y-4">
+      <Input
+        placeholder="Nome da opção"
+        value={editingOption?.name || ''}
+        onChange={(e) => setEditingOption({ ...editingOption, name: e.target.value })}
+      />
+      <Input
+        type="number"
+        placeholder="Valor"
+        value={editingOption?.value || ''}
+        onChange={(e) => setEditingOption({ ...editingOption, value: parseFloat(e.target.value) })}
+      />
+      <Button onClick={() => handleSaveSelectionOption(editingOption)}>
+        {editingOption?.id ? 'Atualizar' : 'Adicionar'}
+      </Button>
+    </div>
+  );
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -68,27 +80,18 @@ const GerenciarOpcoesSelecao = ({ isOpen, onClose }) => {
           <div className="space-y-2">
             {filteredOptions?.map((option) => (
               <div key={option.id} className="flex justify-between items-center p-2 bg-gray-100 rounded">
-                <span>{option.name}</span>
+                <span>{option.name} - R$ {option.value.toFixed(2)}</span>
                 <div>
-                  <Button onClick={() => handleOpenSelectOptions(option)} className="mr-2">Editar</Button>
+                  <Button onClick={() => setEditingOption(option)} className="mr-2">Editar</Button>
                   <Button variant="destructive" onClick={() => handleDeleteSelectionOption(option.id)}>Excluir</Button>
                 </div>
               </div>
             ))}
           </div>
         </ScrollArea>
-        <Button onClick={() => handleOpenSelectOptions({ name: '', items: [] })} className="mt-4">Adicionar Nova Opção de Seleção</Button>
+        <Button onClick={() => setEditingOption({ name: '', value: '' })} className="mt-4">Adicionar Nova Opção de Seleção</Button>
+        {editingOption && renderOptionForm()}
       </DialogContent>
-      <SelectOptionsModal
-        isOpen={isSelectOptionsModalOpen}
-        onClose={() => setIsSelectOptionsModalOpen(false)}
-        onSave={(items) => {
-          handleSaveSelectionOption({ ...editingOption, items });
-          setIsSelectOptionsModalOpen(false);
-        }}
-        initialOptions={editingOption?.items || []}
-        title={editingOption?.id ? 'Editar Opção de Seleção' : 'Nova Opção de Seleção'}
-      />
     </Dialog>
   );
 };

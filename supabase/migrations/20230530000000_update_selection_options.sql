@@ -1,11 +1,9 @@
--- Remover a coluna selection_option_id da tabela extra_options
-ALTER TABLE extra_options DROP COLUMN IF EXISTS selection_option_id;
+-- Atualizar a estrutura da tabela selection_options
+ALTER TABLE selection_options
+DROP COLUMN IF EXISTS items;
 
--- Adicionar uma coluna para armazenar os itens diretamente na tabela selection_options
-ALTER TABLE selection_options ADD COLUMN items JSONB DEFAULT '[]'::jsonb;
-
--- Remover a tabela selection_option_items, já que não será mais necessária
-DROP TABLE IF EXISTS selection_option_items;
+ALTER TABLE selection_options
+ADD COLUMN IF NOT EXISTS value DECIMAL(10, 2);
 
 -- Atualizar a função de verificação para extra_options
 CREATE OR REPLACE FUNCTION check_extra_options()
