@@ -46,7 +46,11 @@ const ProdutoExtraOptionsModal = ({ produto, opcoesExtras, onClose, onConfirm })
   const renderExtraOption = (opcao) => {
     switch (opcao.type) {
       case 'select':
-        const options = JSON.parse(opcao.options || '[]');
+        const selectionOptions = opcao.selection_options?.map(optionId => {
+          const option = opcoesExtras.find(o => o.id === optionId);
+          return option ? { id: option.id, name: option.name, value: option.value } : null;
+        }).filter(Boolean);
+
         return (
           <Select
             onValueChange={(value) => handleExtraChange(opcao, value)}
@@ -56,9 +60,9 @@ const ProdutoExtraOptionsModal = ({ produto, opcoesExtras, onClose, onConfirm })
               <SelectValue placeholder="Selecione uma opção" />
             </SelectTrigger>
             <SelectContent>
-              {options.map((option, index) => (
-                <SelectItem key={index} value={option}>
-                  {option}
+              {selectionOptions.map((option) => (
+                <SelectItem key={option.id} value={option.id}>
+                  {option.name} - R$ {option.value.toFixed(2)}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -94,7 +98,8 @@ const ProdutoExtraOptionsModal = ({ produto, opcoesExtras, onClose, onConfirm })
           {produtoOpcoesExtras?.map((opcao) => (
             <div key={opcao.id} className="flex items-center space-x-2">
               <label htmlFor={`extra-${opcao.id}`} className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                {opcao.name} - R$ {opcao.price?.toFixed(2) ?? 'N/A'}
+                {opcao.name}
+                {opcao.type !== 'select' && ` - R$ ${opcao.price?.toFixed(2) ?? 'N/A'}`}
                 {opcao.type === 'number' && extrasEscolhidas.find(e => e.id === opcao.id)?.value && 
                   ` (Total: R$ ${((opcao.price ?? 0) * parseFloat(extrasEscolhidas.find(e => e.id === opcao.id).value)).toFixed(2)})`
                 }
