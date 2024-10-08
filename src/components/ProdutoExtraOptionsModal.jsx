@@ -15,14 +15,14 @@ const ProdutoExtraOptionsModal = ({ produto, opcoesExtras, onClose, onConfirm })
   );
 
   useEffect(() => {
+    // Initialize extrasEscolhidas with default values
     const initialExtras = produtoOpcoesExtras?.map(opcao => ({
       id: opcao.id,
       name: opcao.name,
       type: opcao.type,
       value: opcao.type === 'checkbox' ? false : '',
       price: opcao.price || 0,
-      totalPrice: 0,
-      selectedOption: null
+      totalPrice: 0
     }));
     setExtrasEscolhidas(initialExtras || []);
   }, [produtoOpcoesExtras]);
@@ -31,23 +31,15 @@ const ProdutoExtraOptionsModal = ({ produto, opcoesExtras, onClose, onConfirm })
     setExtrasEscolhidas(prev => prev.map(item => {
       if (item.id === extra.id) {
         let totalPrice = 0;
-        let selectedOption = null;
         if (extra.type === 'number') {
           totalPrice = (extra.price || 0) * parseFloat(value || 0);
         } else if (extra.type === 'checkbox') {
           totalPrice = value ? (extra.price || 0) : 0;
         } else if (extra.type === 'select') {
-          selectedOption = selectionOptions?.find(opt => opt.id === value);
+          const selectedOption = selectionOptions?.find(opt => opt.id === value);
           totalPrice = selectedOption ? selectedOption.value : 0;
         }
-        return { 
-          ...item, 
-          value, 
-          totalPrice,
-          selectedOption,
-          name: selectedOption ? selectedOption.name : item.name,
-          price: selectedOption ? selectedOption.value : item.price
-        };
+        return { ...item, value, totalPrice };
       }
       return item;
     }));
@@ -106,23 +98,20 @@ const ProdutoExtraOptionsModal = ({ produto, opcoesExtras, onClose, onConfirm })
           <DialogTitle>Opções Extras para {produto.name}</DialogTitle>
         </DialogHeader>
         <div className="space-y-4">
-          {produtoOpcoesExtras?.map((opcao) => {
-            const extraEscolhida = extrasEscolhidas.find(e => e.id === opcao.id);
-            return (
-              <div key={opcao.id} className="flex items-center space-x-2">
-                <label htmlFor={`extra-${opcao.id}`} className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                  {extraEscolhida?.selectedOption ? extraEscolhida.selectedOption.name : opcao.name}
-                  {opcao.type !== 'select' && ` - R$ ${extraEscolhida?.price?.toFixed(2) ?? 'N/A'}`}
-                </label>
-                {renderExtraOption(opcao)}
-                {extraEscolhida?.totalPrice > 0 && (
-                  <span className="text-sm text-gray-500">
-                    Total: R$ {extraEscolhida.totalPrice.toFixed(2)}
-                  </span>
-                )}
-              </div>
-            );
-          })}
+          {produtoOpcoesExtras?.map((opcao) => (
+            <div key={opcao.id} className="flex items-center space-x-2">
+              <label htmlFor={`extra-${opcao.id}`} className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                {opcao.name}
+                {opcao.type !== 'select' && ` - R$ ${opcao.price?.toFixed(2) ?? 'N/A'}`}
+              </label>
+              {renderExtraOption(opcao)}
+              {extrasEscolhidas.find(e => e.id === opcao.id)?.totalPrice > 0 && (
+                <span className="text-sm text-gray-500">
+                  Total: R$ {extrasEscolhidas.find(e => e.id === opcao.id).totalPrice.toFixed(2)}
+                </span>
+              )}
+            </div>
+          ))}
         </div>
         <div className="flex justify-end space-x-2 mt-4">
           <Button variant="outline" onClick={onClose}>Cancelar</Button>
