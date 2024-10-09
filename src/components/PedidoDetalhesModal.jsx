@@ -20,7 +20,8 @@ const PedidoDetalhesModal = ({ pedido, onClose }) => {
             extra_option:extra_options(id, name, type, price),
             value,
             inserted_value,
-            total_value
+            total_value,
+            selected_option:selection_options(id, name, value)
           )
         `)
         .eq('order_id', pedido.id);
@@ -38,6 +39,8 @@ const PedidoDetalhesModal = ({ pedido, onClose }) => {
         {extra.extra_option.name}:
         {extra.extra_option.type === 'number'
           ? ` ${extra.inserted_value} x R$ ${extra.extra_option.price.toFixed(2)} = R$ ${extra.total_value.toFixed(2)}`
+          : extra.extra_option.type === 'select'
+          ? ` ${extra.selected_option.name} - R$ ${extra.selected_option.value.toFixed(2)}`
           : ` R$ ${extra.extra_option.price.toFixed(2)}`
         }
       </div>

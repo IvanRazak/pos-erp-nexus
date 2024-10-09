@@ -64,6 +64,7 @@ export const useAddOrder = () => {
           value: extra.value,
           inserted_value: extra.type === 'number' ? parseFloat(extra.value) : null,
           total_value: extra.totalPrice,
+          selected_option_id: extra.type === 'select' ? extra.value : null,
         }))
       );
 
