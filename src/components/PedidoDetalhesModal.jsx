@@ -4,7 +4,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { supabase } from '../lib/supabase';
-import { calcularSubtotalItem, formatarDimensoes, formatarM2 } from '../utils/pedidoUtils';
+import { formatarDimensoes, formatarM2 } from '../utils/pedidoUtils';
 
 const PedidoDetalhesModal = ({ pedido, onClose }) => {
   const { data: itensPedido, isLoading } = useQuery({
@@ -32,6 +32,12 @@ const PedidoDetalhesModal = ({ pedido, onClose }) => {
   });
 
   if (isLoading) return <div>Carregando detalhes do pedido...</div>;
+
+  const calcularSubtotalItem = (item) => {
+    const subtotalProduto = item.quantity * item.unit_price;
+    const subtotalExtras = item.extras.reduce((sum, extra) => sum + (extra.total_value || 0), 0);
+    return subtotalProduto + subtotalExtras;
+  };
 
   const renderExtras = (extras) => {
     return extras.map((extra) => (
