@@ -1,11 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { useSelectionOptions } from '../integrations/supabase/hooks/extra_options';
-import { toast } from "@/components/ui/use-toast";
 
 const ProdutoExtraOptionsModal = ({ produto, opcoesExtras, onClose, onConfirm }) => {
   const [extrasEscolhidas, setExtrasEscolhidas] = useState([]);
@@ -14,12 +13,6 @@ const ProdutoExtraOptionsModal = ({ produto, opcoesExtras, onClose, onConfirm })
   const produtoOpcoesExtras = opcoesExtras?.filter(opcao => 
     produto.extra_options?.includes(opcao.id)
   );
-
-  useEffect(() => {
-    // Initialize extrasEscolhidas with required select options
-    const requiredSelects = produtoOpcoesExtras?.filter(opcao => opcao.type === 'select' && opcao.required);
-    setExtrasEscolhidas(requiredSelects.map(opcao => ({ id: opcao.id, value: null })));
-  }, [produtoOpcoesExtras]);
 
   const handleExtraChange = (extra, value) => {
     setExtrasEscolhidas(prev => {
@@ -53,19 +46,6 @@ const ProdutoExtraOptionsModal = ({ produto, opcoesExtras, onClose, onConfirm })
   };
 
   const handleConfirm = () => {
-    const missingRequiredSelects = produtoOpcoesExtras?.filter(
-      opcao => opcao.type === 'select' && opcao.required && !extrasEscolhidas.some(extra => extra.id === opcao.id && extra.value !== null)
-    );
-
-    if (missingRequiredSelects && missingRequiredSelects.length > 0) {
-      toast({
-        title: "Opções obrigatórias não selecionadas",
-        description: `Por favor, selecione as opções obrigatórias: ${missingRequiredSelects.map(o => o.name).join(', ')}`,
-        variant: "destructive",
-      });
-      return;
-    }
-
     onConfirm(extrasEscolhidas);
     onClose();
   };
@@ -80,7 +60,7 @@ const ProdutoExtraOptionsModal = ({ produto, opcoesExtras, onClose, onConfirm })
             defaultValue={extrasEscolhidas.find(e => e.id === opcao.id)?.value}
           >
             <SelectTrigger>
-              <SelectValue placeholder={opcao.required ? "Selecione uma opção (obrigatório)" : "Selecione uma opção"} />
+              <SelectValue placeholder="Selecione uma opção" />
             </SelectTrigger>
             <SelectContent>
               {options.map((option) => (
@@ -122,7 +102,6 @@ const ProdutoExtraOptionsModal = ({ produto, opcoesExtras, onClose, onConfirm })
             <div key={opcao.id} className="flex items-center space-x-2">
               <label htmlFor={`extra-${opcao.id}`} className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
                 {opcao.name}
-                {opcao.required && opcao.type === 'select' && ' (Obrigatório)'}
                 {opcao.type !== 'select' && ` - R$ ${opcao.price?.toFixed(2) ?? 'N/A'}`}
                 {extrasEscolhidas.find(e => e.id === opcao.id)?.totalPrice && 
                   ` (Total: R$ ${extrasEscolhidas.find(e => e.id === opcao.id).totalPrice.toFixed(2)})`
