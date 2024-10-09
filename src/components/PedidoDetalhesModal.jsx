@@ -21,10 +21,14 @@ const PedidoDetalhesModal = ({ pedido, onClose }) => {
               id,
               name,
               type,
-              price,
-              selection_options(id, name, value)
+              price
             ),
-            value
+            value,
+            selection_option:selection_options(
+              id,
+              name,
+              value
+            )
           )
         `)
         .eq('order_id', pedido.id);
@@ -38,16 +42,13 @@ const PedidoDetalhesModal = ({ pedido, onClose }) => {
 
   const renderExtras = (extras) => {
     return extras.map((extra) => {
-      const { extra_option, value } = extra;
+      const { extra_option, value, selection_option } = extra;
       let displayText = `${extra_option.name}: `;
       let totalPrice = 0;
 
-      if (extra_option.type === 'select' && extra_option.selection_options) {
-        const selectedOption = extra_option.selection_options.find(option => option.id === value);
-        if (selectedOption) {
-          displayText += `${selectedOption.name} - R$ ${selectedOption.value.toFixed(2)}`;
-          totalPrice = selectedOption.value;
-        }
+      if (extra_option.type === 'select' && selection_option) {
+        displayText += `${selection_option.name} - R$ ${selection_option.value.toFixed(2)}`;
+        totalPrice = selection_option.value;
       } else if (extra_option.type === 'number') {
         const numericValue = parseFloat(value);
         totalPrice = numericValue * extra_option.price;
@@ -64,14 +65,12 @@ const PedidoDetalhesModal = ({ pedido, onClose }) => {
   const calcularSubtotalItem = (item) => {
     const precoUnitarioBase = item.unit_price;
     const precoExtras = item.extras.reduce((sum, extra) => {
-      const { extra_option, value } = extra;
-      if (extra_option.type === 'select' && extra_option.selection_options) {
-        const selectedOption = extra_option.selection_options.find(option => option.id === value);
-        return sum + (selectedOption ? selectedOption.value : 0);
-      } else if (extra_option.type === 'number') {
-        return sum + (parseFloat(value) * extra_option.price);
+      if (extra.extra_option.type === 'select' && extra.selection_option) {
+        return sum + extra.selection_option.value;
+      } else if (extra.extra_option.type === 'number') {
+        return sum + (parseFloat(extra.value) * extra.extra_option.price);
       }
-      return sum + extra_option.price;
+      return sum + extra.extra_option.price;
     }, 0);
     return item.quantity * (precoUnitarioBase + precoExtras);
   };
