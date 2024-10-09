@@ -48,6 +48,7 @@ export const useAddOrder = () => {
         height: item.height || null,
         m2: item.m2 || null,
         cart_item_id: item.cartItemId,
+        description: item.description,
       }));
 
       const { data: insertedItems, error: itemsError } = await supabase

@@ -69,6 +69,7 @@ const PedidoDetalhesModal = ({ pedido, onClose }) => {
                 <TableHead>Opções Extras</TableHead>
                 <TableHead>Dimensões</TableHead>
                 <TableHead>M²</TableHead>
+                <TableHead>Descrição</TableHead>
                 <TableHead>Subtotal</TableHead>
               </TableRow>
             </TableHeader>
@@ -81,6 +82,7 @@ const PedidoDetalhesModal = ({ pedido, onClose }) => {
                   <TableCell>{renderExtras(item.extras)}</TableCell>
                   <TableCell>{formatarDimensoes(item)}</TableCell>
                   <TableCell>{formatarM2(item)}</TableCell>
+                  <TableCell>{item.description || 'N/A'}</TableCell>
                   <TableCell>R$ {calcularSubtotalItem(item).toFixed(2)}</TableCell>
                 </TableRow>
               ))}

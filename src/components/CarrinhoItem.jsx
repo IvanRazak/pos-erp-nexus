@@ -1,8 +1,9 @@
 import React from 'react';
 import { Button } from "@/components/ui/button";
 import { TableCell, TableRow } from "@/components/ui/table";
+import { Input } from "@/components/ui/input";
 
-const CarrinhoItem = ({ item, onDelete, onEdit }) => {
+const CarrinhoItem = ({ item, onDelete, onEdit, onDescriptionChange }) => {
   return (
     <TableRow>
       <TableCell>{item.name}</TableCell>
@@ -25,6 +26,13 @@ const CarrinhoItem = ({ item, onDelete, onEdit }) => {
       </TableCell>
       <TableCell>R$ {item.total.toFixed(2)}</TableCell>
       <TableCell>
+        <Input
+          type="text"
+          placeholder="Descrição"
+          value={item.description || ''}
+          onChange={(e) => onDescriptionChange(item, e.target.value)}
+          className="mb-2"
+        />
         <Button onClick={() => onEdit(item)} className="mr-2">Editar</Button>
         <Button onClick={() => onDelete(item)} variant="destructive">Excluir</Button>
       </TableCell>

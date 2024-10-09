@@ -56,6 +56,7 @@ const Venda = () => {
       cartItemId: Date.now().toString(),
       extras: extrasEscolhidas,
       total: calcularTotalItem(produtoSelecionado, extrasEscolhidas),
+      description: '',
     };
     setCarrinho([...carrinho, novoItem]);
     setProdutoSelecionado(null);
@@ -75,6 +76,12 @@ const Venda = () => {
     setProdutoSelecionado(produto);
     setIsBuscarProdutoModalOpen(false);
     setIsExtraOptionsModalOpen(true);
+  };
+
+  const handleDescriptionChange = (item, newDescription) => {
+    setCarrinho(carrinho.map(cartItem => 
+      cartItem === item ? { ...cartItem, description: newDescription } : cartItem
+    ));
   };
 
   const finalizarVenda = async () => {
@@ -115,6 +122,7 @@ const Venda = () => {
         height: item.altura,
         m2: item.m2,
         cartItemId: item.cartItemId,
+        description: item.description,
       })),
       created_by: user.username,
       discount: parseFloat(desconto) || 0,
@@ -164,6 +172,7 @@ const Venda = () => {
         setValorPago={setValorPago}
         calcularTotal={() => calcularTotal(carrinho, desconto)}
         finalizarVenda={finalizarVenda}
+        onDescriptionChange={handleDescriptionChange}
       />
       <BuscarClienteModal
         isOpen={isBuscarClienteModalOpen}
