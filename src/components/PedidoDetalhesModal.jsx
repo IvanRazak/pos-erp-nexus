@@ -15,7 +15,13 @@ const PedidoDetalhesModal = ({ pedido, onClose }) => {
         .select(`
           *,
           product:products(*),
-          extras:order_item_extras(extra_option:extra_options(*))
+          extras:order_item_extras(
+            id,
+            extra_option:extra_options(id, name, type, price),
+            value,
+            inserted_value,
+            total_value
+          )
         `)
         .eq('order_id', pedido.id);
 
@@ -28,7 +34,13 @@ const PedidoDetalhesModal = ({ pedido, onClose }) => {
 
   const renderExtras = (extras) => {
     return extras.map((extra) => (
-      <div key={extra.id}>{extra.extra_option.name}: R$ {extra.extra_option.price.toFixed(2)}</div>
+      <div key={extra.id}>
+        {extra.extra_option.name}:
+        {extra.extra_option.type === 'number'
+          ? ` ${extra.inserted_value} x R$ ${extra.extra_option.price.toFixed(2)} = R$ ${extra.total_value.toFixed(2)}`
+          : ` R$ ${extra.extra_option.price.toFixed(2)}`
+        }
+      </div>
     ));
   };
 
