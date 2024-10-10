@@ -88,6 +88,18 @@ const PedidoDetalhesModal = ({ pedido, onClose }) => {
               ))}
             </TableBody>
           </Table>
+          <div className="mt-4 space-y-2">
+            <p><strong>Subtotal:</strong> R$ {pedido.total_amount.toFixed(2)}</p>
+            <p><strong>Desconto:</strong> R$ {pedido.discount?.toFixed(2) || '0.00'}</p>
+            {pedido.additional_value > 0 && (
+              <p>
+                <strong>Valor Adicional:</strong> R$ {pedido.additional_value.toFixed(2)}
+                <br />
+                <span className="text-sm text-gray-500">{pedido.additional_value_description || 'Sem descrição'}</span>
+              </p>
+            )}
+            <p><strong>Total:</strong> R$ {(pedido.total_amount - (pedido.discount || 0) + (pedido.additional_value || 0)).toFixed(2)}</p>
+          </div>
         </ScrollArea>
       </DialogContent>
     </Dialog>

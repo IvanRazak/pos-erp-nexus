@@ -12,12 +12,14 @@ import PedidoDetalhesModal from './PedidoDetalhesModal';
 import { useAuth } from '../hooks/useAuth';
 
 const GerenciamentoPedidos = () => {
-  const [filtroCliente, setFiltroCliente] = useState('');
-  const [filtroNumeroPedido, setFiltroNumeroPedido] = useState('');
-  const [filtroDataInicio, setFiltroDataInicio] = useState(null);
-  const [filtroDataFim, setFiltroDataFim] = useState(null);
-  const [filtroValorMinimo, setFiltroValorMinimo] = useState('');
-  const [filtroValorMaximo, setFiltroValorMaximo] = useState('');
+  const [filtros, setFiltros] = useState({
+    cliente: '',
+    numeroPedido: '',
+    dataInicio: null,
+    dataFim: null,
+    valorMinimo: '',
+    valorMaximo: ''
+  });
   const [pedidosFiltrados, setPedidosFiltrados] = useState([]);
   const [pedidoSelecionado, setPedidoSelecionado] = useState(null);
   const navigate = useNavigate();
@@ -41,20 +43,20 @@ const GerenciamentoPedidos = () => {
     if (pedidos) {
       filtrarPedidos();
     }
-  }, [pedidos, filtroCliente, filtroNumeroPedido, filtroDataInicio, filtroDataFim, filtroValorMinimo, filtroValorMaximo]);
+  }, [pedidos, filtros]);
 
   const filtrarPedidos = () => {
     if (!pedidos) return;
     const filtered = pedidos.filter(pedido => {
       const cliente = clientes?.find(c => c.id === pedido.customer_id);
-      const matchCliente = !filtroCliente || (cliente && cliente.name && cliente.name.toLowerCase().includes(filtroCliente.toLowerCase()));
-      const matchNumeroPedido = !filtroNumeroPedido || (pedido.order_number && pedido.order_number.toString().includes(filtroNumeroPedido));
-      const matchData = (!filtroDataInicio || !filtroDataFim || (pedido.created_at && isWithinInterval(parseISO(pedido.created_at), {
-        start: startOfDay(filtroDataInicio),
-        end: endOfDay(filtroDataFim)
+      const matchCliente = !filtros.cliente || (cliente && cliente.name && cliente.name.toLowerCase().includes(filtros.cliente.toLowerCase()));
+      const matchNumeroPedido = !filtros.numeroPedido || (pedido.order_number && pedido.order_number.toString().includes(filtros.numeroPedido));
+      const matchData = (!filtros.dataInicio || !filtros.dataFim || (pedido.created_at && isWithinInterval(parseISO(pedido.created_at), {
+        start: startOfDay(filtros.dataInicio),
+        end: endOfDay(filtros.dataFim)
       })));
-      const matchValor = (!filtroValorMinimo || (pedido.total_amount && pedido.total_amount >= parseFloat(filtroValorMinimo))) &&
-                         (!filtroValorMaximo || (pedido.total_amount && pedido.total_amount <= parseFloat(filtroValorMaximo)));
+      const matchValor = (!filtros.valorMinimo || (pedido.total_amount && pedido.total_amount >= parseFloat(filtros.valorMinimo))) &&
+                         (!filtros.valorMaximo || (pedido.total_amount && pedido.total_amount <= parseFloat(filtros.valorMaximo)));
       return matchCliente && matchNumeroPedido && matchData && matchValor;
     });
     setPedidosFiltrados(filtered);
@@ -78,28 +80,28 @@ const GerenciamentoPedidos = () => {
   return (
     <div className="container mx-auto p-4">
       <h2 className="text-2xl font-bold mb-4">Gerenciamento de Pedidos</h2>
-      <div className="grid grid-cols-2 gap-4 mb-4">
+      <div className="grid grid-cols-3 gap-4 mb-4">
         <Input
           placeholder="Filtrar por nome do cliente"
-          value={filtroCliente}
-          onChange={(e) => setFiltroCliente(e.target.value)}
+          value={filtros.cliente}
+          onChange={(e) => setFiltros({...filtros, cliente: e.target.value})}
         />
         <Input
           placeholder="Filtrar por número do pedido"
-          value={filtroNumeroPedido}
-          onChange={(e) => setFiltroNumeroPedido(e.target.value)}
+          value={filtros.numeroPedido}
+          onChange={(e) => setFiltros({...filtros, numeroPedido: e.target.value})}
         />
         <div className="flex space-x-2">
           <DatePicker
-            selected={filtroDataInicio}
-            onChange={setFiltroDataInicio}
+            selected={filtros.dataInicio}
+            onChange={(date) => setFiltros({...filtros, dataInicio: date})}
             placeholderText="Data Início"
             locale={ptBR}
             dateFormat="dd/MM/yyyy"
           />
           <DatePicker
-            selected={filtroDataFim}
-            onChange={setFiltroDataFim}
+            selected={filtros.dataFim}
+            onChange={(date) => setFiltros({...filtros, dataFim: date})}
             placeholderText="Data Fim"
             locale={ptBR}
             dateFormat="dd/MM/yyyy"
@@ -108,14 +110,14 @@ const GerenciamentoPedidos = () => {
         <Input
           type="number"
           placeholder="Valor Mínimo"
-          value={filtroValorMinimo}
-          onChange={(e) => setFiltroValorMinimo(e.target.value)}
+          value={filtros.valorMinimo}
+          onChange={(e) => setFiltros({...filtros, valorMinimo: e.target.value})}
         />
         <Input
           type="number"
           placeholder="Valor Máximo"
-          value={filtroValorMaximo}
-          onChange={(e) => setFiltroValorMaximo(e.target.value)}
+          value={filtros.valorMaximo}
+          onChange={(e) => setFiltros({...filtros, valorMaximo: e.target.value})}
         />
       </div>
       <Table>
@@ -124,8 +126,9 @@ const GerenciamentoPedidos = () => {
             <TableHead>Número do Pedido</TableHead>
             <TableHead>Data e Hora</TableHead>
             <TableHead>Cliente</TableHead>
-            <TableHead>Valor</TableHead>
+            <TableHead>Valor Total</TableHead>
             <TableHead>Desconto</TableHead>
+            <TableHead>Valor Adicional</TableHead>
             <TableHead>Data de Entrega</TableHead>
             <TableHead>Status</TableHead>
             <TableHead>Criado por</TableHead>
@@ -140,6 +143,15 @@ const GerenciamentoPedidos = () => {
               <TableCell>{clientes?.find(c => c.id === pedido.customer_id)?.name || 'N/A'}</TableCell>
               <TableCell>R$ {pedido.total_amount?.toFixed(2) || 'N/A'}</TableCell>
               <TableCell>R$ {pedido.discount?.toFixed(2) || '0.00'}</TableCell>
+              <TableCell>
+                {pedido.additional_value > 0 ? (
+                  <>
+                    R$ {pedido.additional_value.toFixed(2)}
+                    <br />
+                    <span className="text-sm text-gray-500">{pedido.additional_value_description || 'Sem descrição'}</span>
+                  </>
+                ) : 'N/A'}
+              </TableCell>
               <TableCell>{pedido.delivery_date ? format(parseISO(pedido.delivery_date), 'dd/MM/yyyy', { locale: ptBR }) : 'N/A'}</TableCell>
               <TableCell>{pedido.status}</TableCell>
               <TableCell>{pedido.created_by || 'N/A'}</TableCell>
