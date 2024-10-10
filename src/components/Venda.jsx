@@ -26,6 +26,8 @@ const Venda = () => {
   const [opcaoPagamento, setOpcaoPagamento] = useState('');
   const [desconto, setDesconto] = useState(0);
   const [valorPago, setValorPago] = useState(0);
+  const [valorAdicional, setValorAdicional] = useState(0);
+  const [descricaoValorAdicional, setDescricaoValorAdicional] = useState('');
 
   const { data: clientes } = useCustomers();
   const { data: opcoesExtras } = useExtraOptions();
@@ -103,7 +105,7 @@ const Venda = () => {
       });
       return;
     }
-    const totalVenda = calcularTotal(carrinho, desconto);
+    const totalVenda = calcularTotal(carrinho, desconto) + Number(valorAdicional);
     const saldoRestante = totalVenda - valorPago;
     const novaVenda = {
       customer_id: clienteSelecionado,
@@ -126,6 +128,8 @@ const Venda = () => {
       })),
       created_by: user.username,
       discount: parseFloat(desconto) || 0,
+      additional_value: Number(valorAdicional),
+      additional_value_description: descricaoValorAdicional,
     };
     try {
       await addOrder.mutateAsync(novaVenda);
@@ -134,6 +138,8 @@ const Venda = () => {
         description: "A nova venda foi registrada no sistema.",
       });
       resetCarrinho(setCarrinho, setClienteSelecionado, setDataEntrega, setOpcaoPagamento, setDesconto, setValorPago);
+      setValorAdicional(0);
+      setDescricaoValorAdicional('');
     } catch (error) {
       toast({
         title: "Erro ao finalizar venda",
@@ -173,6 +179,10 @@ const Venda = () => {
         calcularTotal={() => calcularTotal(carrinho, desconto)}
         finalizarVenda={finalizarVenda}
         onDescriptionChange={handleDescriptionChange}
+        valorAdicional={valorAdicional}
+        setValorAdicional={setValorAdicional}
+        descricaoValorAdicional={descricaoValorAdicional}
+        setDescricaoValorAdicional={setDescricaoValorAdicional}
       />
       <BuscarClienteModal
         isOpen={isBuscarClienteModalOpen}
