@@ -18,15 +18,15 @@ const ProdutoExtraOptionsModal = ({ produto, opcoesExtras, onClose, onConfirm })
   useEffect(() => {
     const initialExtras = produtoOpcoesExtras?.map(opcao => ({
       ...opcao,
-      value: opcao.type === 'select' ? '' : undefined,
+      value: opcao.type === 'select' ? '' : (opcao.type === 'checkbox' ? false : ''),
       totalPrice: 0,
     }));
     setExtrasEscolhidas(initialExtras || []);
   }, [produtoOpcoesExtras]);
 
-  const handleExtraChange = (extra, value) => {
+  const handleExtraChange = (extraId, value) => {
     setExtrasEscolhidas(prev => prev.map(item => {
-      if (item.id === extra.id) {
+      if (item.id === extraId) {
         return calculateExtraPrice({ ...item, value });
       }
       return item;
@@ -79,8 +79,8 @@ const ProdutoExtraOptionsModal = ({ produto, opcoesExtras, onClose, onConfirm })
         const options = selectionOptions?.filter(so => opcao.selection_options?.includes(so.id)) || [];
         return (
           <Select
-            value={extrasEscolhidas.find(e => e.id === opcao.id)?.value || ''}
-            onValueChange={(value) => handleExtraChange(opcao, value)}
+            value={opcao.value}
+            onValueChange={(value) => handleExtraChange(opcao.id, value)}
           >
             <SelectTrigger className={opcao.required ? "border-red-500" : ""}>
               <SelectValue placeholder={opcao.required ? "Selecione uma opção (obrigatório)" : "Selecione uma opção"} />
@@ -99,16 +99,16 @@ const ProdutoExtraOptionsModal = ({ produto, opcoesExtras, onClose, onConfirm })
           <Input
             type="number"
             placeholder="Valor"
-            value={extrasEscolhidas.find(e => e.id === opcao.id)?.value || ''}
-            onChange={(e) => handleExtraChange(opcao, e.target.value)}
+            value={opcao.value}
+            onChange={(e) => handleExtraChange(opcao.id, e.target.value)}
           />
         );
       default:
         return (
           <Checkbox
             id={`extra-${opcao.id}`}
-            checked={extrasEscolhidas.find(e => e.id === opcao.id)?.value || false}
-            onCheckedChange={(checked) => handleExtraChange(opcao, checked)}
+            checked={opcao.value}
+            onCheckedChange={(checked) => handleExtraChange(opcao.id, checked)}
           />
         );
     }
