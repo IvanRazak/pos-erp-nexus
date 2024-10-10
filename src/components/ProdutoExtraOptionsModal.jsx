@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { useSelectionOptions } from '../integrations/supabase/hooks/extra_options';
+import { toast } from "@/components/ui/use-toast";
 
 const ProdutoExtraOptionsModal = ({ produto, opcoesExtras, onClose, onConfirm }) => {
   const [extrasEscolhidas, setExtrasEscolhidas] = useState([]);
@@ -14,38 +15,55 @@ const ProdutoExtraOptionsModal = ({ produto, opcoesExtras, onClose, onConfirm })
     produto.extra_options?.includes(opcao.id)
   );
 
-  const handleExtraChange = (extra, value) => {
-    setExtrasEscolhidas(prev => {
-      const existingIndex = prev.findIndex(item => item.id === extra.id);
-      if (existingIndex !== -1) {
-        const updatedExtras = [...prev];
-        if (value === null || value === undefined) {
-          updatedExtras.splice(existingIndex, 1);
-        } else {
-          updatedExtras[existingIndex] = calculateExtraPrice(extra, value);
-        }
-        return updatedExtras;
-      } else if (value !== null && value !== undefined) {
-        return [...prev, calculateExtraPrice(extra, value)];
+  useEffect(() => {
+    const initialExtras = produtoOpcoesExtras?.map(opcao => ({
+      ...opcao,
+      value: opcao.type === 'select' ? '' : (opcao.type === 'checkbox' ? false : ''),
+      totalPrice: 0,
+    }));
+    setExtrasEscolhidas(initialExtras || []);
+  }, [produtoOpcoesExtras]);
+
+  const handleExtraChange = (extraId, value) => {
+    setExtrasEscolhidas(prev => prev.map(item => {
+      if (item.id === extraId) {
+        return calculateExtraPrice({ ...item, value });
       }
-      return prev;
-    });
+      return item;
+    }));
   };
 
-  const calculateExtraPrice = (extra, value) => {
-    let totalPrice = extra.price ?? 0;
+  const calculateExtraPrice = (extra) => {
+    let totalPrice = 0;
     let selectedOptionName = '';
-    if (extra.type === 'select') {
-      const selectedOption = selectionOptions?.find(so => so.id === value);
-      totalPrice += selectedOption?.value ?? 0;
+
+    if (extra.type === 'select' && extra.value) {
+      const selectedOption = selectionOptions?.find(so => so.id === extra.value);
+      totalPrice = selectedOption?.value ?? 0;
       selectedOptionName = selectedOption?.name ?? '';
     } else if (extra.type === 'number') {
-      totalPrice *= parseFloat(value);
+      totalPrice = (parseFloat(extra.value) || 0) * (extra.price || 0);
+    } else if (extra.type === 'checkbox' && extra.value) {
+      totalPrice = extra.price || 0;
     }
-    return { ...extra, value, totalPrice, selectedOptionName };
+
+    return { ...extra, totalPrice, selectedOptionName };
   };
 
   const handleConfirm = () => {
+    const requiredSelectsMissing = extrasEscolhidas.some(
+      extra => extra.type === 'select' && extra.required && !extra.value
+    );
+
+    if (requiredSelectsMissing) {
+      toast({
+        title: "Seleção obrigatória",
+        description: "Por favor, selecione todas as opções extras obrigatórias.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     onConfirm(extrasEscolhidas);
     onClose();
   };
@@ -56,11 +74,11 @@ const ProdutoExtraOptionsModal = ({ produto, opcoesExtras, onClose, onConfirm })
         const options = selectionOptions?.filter(so => opcao.selection_options?.includes(so.id)) || [];
         return (
           <Select
-            onValueChange={(value) => handleExtraChange(opcao, value)}
-            defaultValue={extrasEscolhidas.find(e => e.id === opcao.id)?.value}
+            value={opcao.value}
+            onValueChange={(value) => handleExtraChange(opcao.id, value)}
           >
-            <SelectTrigger>
-              <SelectValue placeholder="Selecione uma opção" />
+            <SelectTrigger className={opcao.required ? "border-red-500" : ""}>
+              <SelectValue placeholder={opcao.required ? "Selecione uma opção (obrigatório)" : "Selecione uma opção"} />
             </SelectTrigger>
             <SelectContent>
               {options.map((option) => (
@@ -76,16 +94,16 @@ const ProdutoExtraOptionsModal = ({ produto, opcoesExtras, onClose, onConfirm })
           <Input
             type="number"
             placeholder="Valor"
-            onChange={(e) => handleExtraChange(opcao, e.target.value)}
-            defaultValue={extrasEscolhidas.find(e => e.id === opcao.id)?.value}
+            value={opcao.value}
+            onChange={(e) => handleExtraChange(opcao.id, e.target.value)}
           />
         );
       default:
         return (
           <Checkbox
             id={`extra-${opcao.id}`}
-            checked={extrasEscolhidas.some(item => item.id === opcao.id)}
-            onCheckedChange={(checked) => handleExtraChange(opcao, checked)}
+            checked={opcao.value}
+            onCheckedChange={(checked) => handleExtraChange(opcao.id, checked)}
           />
         );
     }
@@ -98,17 +116,20 @@ const ProdutoExtraOptionsModal = ({ produto, opcoesExtras, onClose, onConfirm })
           <DialogTitle>Opções Extras para {produto.name}</DialogTitle>
         </DialogHeader>
         <div className="space-y-4">
-          {produtoOpcoesExtras?.map((opcao) => (
+          {extrasEscolhidas.map((opcao) => (
             <div key={opcao.id} className="flex items-center space-x-2">
               <label htmlFor={`extra-${opcao.id}`} className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
                 {opcao.name}
                 {opcao.type !== 'select' && ` - R$ ${opcao.price?.toFixed(2) ?? 'N/A'}`}
-                {extrasEscolhidas.find(e => e.id === opcao.id)?.totalPrice && 
-                  ` (Total: R$ ${extrasEscolhidas.find(e => e.id === opcao.id).totalPrice.toFixed(2)})`
+                {opcao.totalPrice > 0 && 
+                  ` (Total: R$ ${opcao.totalPrice.toFixed(2)})`
                 }
-                {extrasEscolhidas.find(e => e.id === opcao.id)?.selectedOptionName && 
-                  ` - ${extrasEscolhidas.find(e => e.id === opcao.id).selectedOptionName}`
+                {opcao.selectedOptionName && 
+                  ` - ${opcao.selectedOptionName}`
                 }
+                {opcao.required && opcao.type === 'select' && (
+                  <span className="text-red-500 ml-1">*</span>
+                )}
               </label>
               {renderExtraOption(opcao)}
             </div>
