@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
@@ -8,40 +8,49 @@ import { useSelectionOptions } from '../integrations/supabase/hooks/extra_option
 
 const ProdutoExtraOptionsModal = ({ produto, opcoesExtras, onClose, onConfirm }) => {
   const [extrasEscolhidas, setExtrasEscolhidas] = useState([]);
+  const [isFormValid, setIsFormValid] = useState(false);
   const { data: selectionOptions } = useSelectionOptions();
 
   const produtoOpcoesExtras = opcoesExtras?.filter(opcao => 
     produto.extra_options?.includes(opcao.id)
   );
 
+  // Atualiza o estado para checar se todas as opções do tipo select estão preenchidas
+  useEffect(() => {
+    const allSelectsFilled = produtoOpcoesExtras
+      ?.filter(opcao => opcao.type === 'select')
+      ?.every(opcao => extrasEscolhidas.some(extra => extra.id === opcao.id && extra.value));
+
+    setIsFormValid(allSelectsFilled);
+  }, [extrasEscolhidas, produtoOpcoesExtras]);
+
   const handleExtraChange = (extra, value) => {
     setExtrasEscolhidas(prev => {
-      const existingIndex = prev.findIndex(item => item.id === extra.id);
-      if (existingIndex !== -1) {
-        const updatedExtras = [...prev];
-        if (value === null || value === undefined) {
-          updatedExtras.splice(existingIndex, 1);
-        } else {
-          updatedExtras[existingIndex] = calculateExtraPrice(extra, value);
-        }
-        return updatedExtras;
-      } else if (value !== null && value !== undefined) {
-        return [...prev, calculateExtraPrice(extra, value)];
-      }
-      return prev;
+      const existingExtra = prev.find(item => item.id === extra.id);
+      const updatedExtras = existingExtra
+        ? prev.map(item => (item.id === extra.id ? calculateExtraPrice(extra, value) : item))
+        : value !== null && value !== undefined 
+          ? [...prev, calculateExtraPrice(extra, value)]
+          : prev;
+
+      return updatedExtras.filter(Boolean);
     });
   };
 
   const calculateExtraPrice = (extra, value) => {
     let totalPrice = extra.price ?? 0;
     let selectedOptionName = '';
+
     if (extra.type === 'select') {
       const selectedOption = selectionOptions?.find(so => so.id === value);
       totalPrice += selectedOption?.value ?? 0;
       selectedOptionName = selectedOption?.name ?? '';
     } else if (extra.type === 'number') {
-      totalPrice *= parseFloat(value);
+      const parsedValue = parseFloat(value);
+      if (isNaN(parsedValue)) return null;
+      totalPrice *= parsedValue;
     }
+
     return { ...extra, value, totalPrice, selectedOptionName };
   };
 
@@ -116,7 +125,7 @@ const ProdutoExtraOptionsModal = ({ produto, opcoesExtras, onClose, onConfirm })
         </div>
         <div className="flex justify-end space-x-2 mt-4">
           <Button variant="outline" onClick={onClose}>Cancelar</Button>
-          <Button onClick={handleConfirm}>Confirmar</Button>
+          <Button onClick={handleConfirm} disabled={!isFormValid}>Confirmar</Button>
         </div>
       </DialogContent>
     </Dialog>
