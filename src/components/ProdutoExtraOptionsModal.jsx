@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
@@ -8,21 +8,11 @@ import { useSelectionOptions } from '../integrations/supabase/hooks/extra_option
 
 const ProdutoExtraOptionsModal = ({ produto, opcoesExtras, onClose, onConfirm }) => {
   const [extrasEscolhidas, setExtrasEscolhidas] = useState([]);
-  const [isFormValid, setIsFormValid] = useState(false);
   const { data: selectionOptions } = useSelectionOptions();
 
   const produtoOpcoesExtras = opcoesExtras?.filter(opcao => 
     produto.extra_options?.includes(opcao.id)
   );
-
-  // Atualiza o estado para checar se todas as opções do tipo select estão preenchidas
-  useEffect(() => {
-    const allSelectsFilled = produtoOpcoesExtras
-      ?.filter(opcao => opcao.type === 'select')
-      ?.every(opcao => extrasEscolhidas.some(extra => extra.id === opcao.id && extra.value));
-
-    setIsFormValid(allSelectsFilled);
-  }, [extrasEscolhidas, produtoOpcoesExtras]);
 
   const handleExtraChange = (extra, value) => {
     setExtrasEscolhidas(prev => {
@@ -55,6 +45,15 @@ const ProdutoExtraOptionsModal = ({ produto, opcoesExtras, onClose, onConfirm })
   };
 
   const handleConfirm = () => {
+    const allSelectsFilled = produtoOpcoesExtras
+      ?.filter(opcao => opcao.type === 'select')
+      ?.every(opcao => extrasEscolhidas.some(extra => extra.id === opcao.id && extra.value));
+
+    if (!allSelectsFilled) {
+      alert("Por Favor Selecione alguma opção");
+      return;
+    }
+
     onConfirm(extrasEscolhidas);
     onClose();
   };
@@ -125,7 +124,7 @@ const ProdutoExtraOptionsModal = ({ produto, opcoesExtras, onClose, onConfirm })
         </div>
         <div className="flex justify-end space-x-2 mt-4">
           <Button variant="outline" onClick={onClose}>Cancelar</Button>
-          <Button onClick={handleConfirm} disabled={!isFormValid}>Confirmar</Button>
+          <Button onClick={handleConfirm}>Confirmar</Button>
         </div>
       </DialogContent>
     </Dialog>
