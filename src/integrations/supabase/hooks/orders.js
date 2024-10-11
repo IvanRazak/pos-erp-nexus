@@ -33,8 +33,6 @@ export const useAddOrder = () => {
           payment_option: newOrder.payment_option,
           created_by: newOrder.created_by,
           discount: newOrder.discount,
-          additional_value: newOrder.additional_value,
-          additional_value_description: newOrder.additional_value_description,
         }])
         .select()
         .single();
