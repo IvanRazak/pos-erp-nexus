@@ -86,7 +86,6 @@ const Venda = () => {
     ));
   };
 
-
   const finalizarVenda = async () => {
     const erros = [];
     if (!clienteSelecionado) erros.push("Selecione um cliente");
