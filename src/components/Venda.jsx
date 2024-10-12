@@ -86,6 +86,7 @@ const Venda = () => {
     ));
   };
 
+
   const finalizarVenda = async () => {
     const erros = [];
     if (!clienteSelecionado) erros.push("Selecione um cliente");
@@ -105,6 +106,7 @@ const Venda = () => {
       });
       return;
     }
+
     const totalVenda = calcularTotal(carrinho, desconto) + Number(valorAdicional);
     const saldoRestante = totalVenda - valorPago;
     const novaVenda = {
@@ -131,6 +133,7 @@ const Venda = () => {
       additional_value: Number(valorAdicional),
       additional_value_description: descricaoValorAdicional,
     };
+
     try {
       await addOrder.mutateAsync(novaVenda);
       toast({
