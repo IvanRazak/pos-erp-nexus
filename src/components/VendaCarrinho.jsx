@@ -10,28 +10,9 @@ import { CalendarIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import CarrinhoItem from './CarrinhoItem';
 
-const VendaCarrinho = ({ 
-  carrinho, 
-  onDelete, 
-  onEdit, 
-  desconto, 
-  setDesconto, 
-  dataEntrega, 
-  setDataEntrega, 
-  opcaoPagamento, 
-  setOpcaoPagamento, 
-  opcoesPagamento, 
-  valorPago, 
-  setValorPago, 
-  calcularTotal, 
-  finalizarVenda, 
-  onDescriptionChange 
-}) => {
-  const [valorAdicional, setValorAdicional] = React.useState(0);
-  const [descricaoValorAdicional, setDescricaoValorAdicional] = React.useState('');
-
+const VendaCarrinho = ({ carrinho, onDelete, onEdit, desconto, setDesconto, dataEntrega, setDataEntrega, opcaoPagamento, setOpcaoPagamento, opcoesPagamento, valorPago, setValorPago, calcularTotal, finalizarVenda, onDescriptionChange }) => {
   const subtotal = carrinho.reduce((total, item) => total + item.total, 0);
-  const total = calcularTotal() + Number(valorAdicional);
+  const total = calcularTotal();
 
   return (
     <div className="mt-4">
@@ -62,26 +43,7 @@ const VendaCarrinho = ({
         </TableBody>
       </Table>
       <div className="mt-4 space-y-2">
-        <Input 
-          type="number" 
-          placeholder="Desconto" 
-          value={desconto} 
-          onChange={(e) => setDesconto(parseFloat(e.target.value) || 0)} 
-        />
-        <div className="flex space-x-2">
-          <Input
-            type="number"
-            placeholder="Valor Adicional"
-            value={valorAdicional}
-            onChange={(e) => setValorAdicional(parseFloat(e.target.value) || 0)}
-          />
-          <Input
-            type="text"
-            placeholder="Descrição do Valor Adicional"
-            value={descricaoValorAdicional}
-            onChange={(e) => setDescricaoValorAdicional(e.target.value)}
-          />
-        </div>
+        <Input type="number" placeholder="Desconto" value={desconto} onChange={(e) => setDesconto(parseFloat(e.target.value) || 0)} />
         <Popover>
           <PopoverTrigger asChild>
             <Button variant={"outline"} className={cn("w-[280px] justify-start text-left font-normal", !dataEntrega && "text-muted-foreground")}>
@@ -103,19 +65,9 @@ const VendaCarrinho = ({
             ))}
           </SelectContent>
         </Select>
-        <Input 
-          type="number" 
-          placeholder="Valor Pago" 
-          value={valorPago} 
-          onChange={(e) => setValorPago(parseFloat(e.target.value) || 0)} 
-        />
+        <Input type="number" placeholder="Valor Pago" value={valorPago} onChange={(e) => setValorPago(parseFloat(e.target.value) || 0)} />
         <p className="text-xl">Subtotal: R$ {subtotal.toFixed(2)}</p>
         <p className="text-xl">Desconto: R$ {desconto.toFixed(2)}</p>
-        {valorAdicional > 0 && (
-          <p className="text-xl">
-            Valor Adicional ({descricaoValorAdicional || 'Sem descrição'}): R$ {valorAdicional.toFixed(2)}
-          </p>
-        )}
         <p className="text-xl font-bold">Total: R$ {total.toFixed(2)}</p>
         <p className="text-xl font-bold">Saldo Restante: R$ {Math.max(total - valorPago, 0).toFixed(2)}</p>
         <Button onClick={finalizarVenda}>Finalizar Venda</Button>

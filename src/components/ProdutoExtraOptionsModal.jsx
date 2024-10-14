@@ -16,44 +16,36 @@ const ProdutoExtraOptionsModal = ({ produto, opcoesExtras, onClose, onConfirm })
 
   const handleExtraChange = (extra, value) => {
     setExtrasEscolhidas(prev => {
-      const existingExtra = prev.find(item => item.id === extra.id);
-      const updatedExtras = existingExtra
-        ? prev.map(item => (item.id === extra.id ? calculateExtraPrice(extra, value) : item))
-        : value !== null && value !== undefined 
-          ? [...prev, calculateExtraPrice(extra, value)]
-          : prev;
-
-      return updatedExtras.filter(Boolean);
+      const existingIndex = prev.findIndex(item => item.id === extra.id);
+      if (existingIndex !== -1) {
+        const updatedExtras = [...prev];
+        if (value === null || value === undefined) {
+          updatedExtras.splice(existingIndex, 1);
+        } else {
+          updatedExtras[existingIndex] = calculateExtraPrice(extra, value);
+        }
+        return updatedExtras;
+      } else if (value !== null && value !== undefined) {
+        return [...prev, calculateExtraPrice(extra, value)];
+      }
+      return prev;
     });
   };
 
   const calculateExtraPrice = (extra, value) => {
     let totalPrice = extra.price ?? 0;
     let selectedOptionName = '';
-
     if (extra.type === 'select') {
       const selectedOption = selectionOptions?.find(so => so.id === value);
       totalPrice += selectedOption?.value ?? 0;
       selectedOptionName = selectedOption?.name ?? '';
     } else if (extra.type === 'number') {
-      const parsedValue = parseFloat(value);
-      if (isNaN(parsedValue)) return null;
-      totalPrice *= parsedValue;
+      totalPrice *= parseFloat(value);
     }
-
     return { ...extra, value, totalPrice, selectedOptionName };
   };
 
   const handleConfirm = () => {
-    const allSelectsFilled = produtoOpcoesExtras
-      ?.filter(opcao => opcao.type === 'select')
-      ?.every(opcao => extrasEscolhidas.some(extra => extra.id === opcao.id && extra.value));
-
-    if (!allSelectsFilled) {
-      alert("Por Favor Selecione alguma opção");
-      return;
-    }
-
     onConfirm(extrasEscolhidas);
     onClose();
   };
