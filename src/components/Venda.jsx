@@ -130,7 +130,7 @@ const Venda = () => {
       created_by: user.username,
       discount: parseFloat(desconto) || 0,
       additional_value: Number(valorAdicional),
-      additional_value_description: descricaoValorAdicional, // Ensure this is being passed correctly
+      additional_value_description: descricaoValorAdicional,
     };
 
     try {

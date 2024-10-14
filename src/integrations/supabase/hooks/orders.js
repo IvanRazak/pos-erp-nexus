@@ -34,7 +34,7 @@ export const useAddOrder = () => {
           created_by: newOrder.created_by,
           discount: newOrder.discount,
           additional_value: newOrder.additional_value,
-          additional_value_description: newOrder.additional_value_description, // Ensure this is being saved
+          additional_value_description: newOrder.additional_value_description,
         }])
         .select()
         .single();
