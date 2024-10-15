@@ -159,8 +159,6 @@ const GerenciamentoPedidos = () => {
               <TableCell>R$ {pedido.additional_value?.toFixed(2) || '0.00'}</TableCell>
               <TableCell>{pedido.additional_value_description || 'N/A'}</TableCell>
               <TableCell>{pedido.delivery_date ? format(parseISO(pedido.delivery_date), 'dd/MM/yyyy', { locale: ptBR }) : 'N/A'}</TableCell>
-              <TableCell>{pedido.status}</TableCell>
-              <TableCell>{pedido.created_by || 'N/A'}</TableCell>
               <TableCell>
                 <Select defaultValue={pedido.status} onValueChange={(value) => atualizarStatus(pedido.id, value)}>
                   <SelectTrigger>
@@ -173,6 +171,9 @@ const GerenciamentoPedidos = () => {
                     <SelectItem value="delivered">Entregue</SelectItem>
                   </SelectContent>
                 </Select>
+              </TableCell>
+              <TableCell>{pedido.created_by || 'N/A'}</TableCell>
+              <TableCell>
                 <Button onClick={() => abrirModalDetalhes(pedido)} className="ml-2">
                   Ver Detalhes
                 </Button>
