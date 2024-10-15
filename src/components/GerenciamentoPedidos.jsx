@@ -127,7 +127,6 @@ const GerenciamentoPedidos = () => {
             <TableHead>Valor</TableHead>
             <TableHead>Desconto</TableHead>
             <TableHead>Valor Adicional</TableHead>
-            <TableHead>Descrição do Valor Adicional</TableHead>
             <TableHead>Data de Entrega</TableHead>
             <TableHead>Status</TableHead>
             <TableHead>Criado por</TableHead>
