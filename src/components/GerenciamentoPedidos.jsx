@@ -18,7 +18,7 @@ const GerenciamentoPedidos = () => {
   const [filtroDataFim, setFiltroDataFim] = useState(null);
   const [filtroValorMinimo, setFiltroValorMinimo] = useState('');
   const [filtroValorMaximo, setFiltroValorMaximo] = useState('');
-  const [filtroStatus, setFiltroStatus] = useState('');
+  const [filtroStatus, setFiltroStatus] = useState('all');
   const [pedidosFiltrados, setPedidosFiltrados] = useState([]);
   const [pedidoSelecionado, setPedidoSelecionado] = useState(null);
   const navigate = useNavigate();
@@ -56,7 +56,7 @@ const GerenciamentoPedidos = () => {
       })));
       const matchValor = (!filtroValorMinimo || (pedido.total_amount && pedido.total_amount >= parseFloat(filtroValorMinimo))) &&
                          (!filtroValorMaximo || (pedido.total_amount && pedido.total_amount <= parseFloat(filtroValorMaximo)));
-      const matchStatus = !filtroStatus || pedido.status === filtroStatus;
+      const matchStatus = filtroStatus === 'all' || pedido.status === filtroStatus;
       return matchCliente && matchNumeroPedido && matchData && matchValor && matchStatus;
     });
     setPedidosFiltrados(filtered);
@@ -124,7 +124,7 @@ const GerenciamentoPedidos = () => {
             <SelectValue placeholder="Filtrar por Status" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">Todos</SelectItem>
+            <SelectItem value="all">Todos</SelectItem>
             <SelectItem value="in_production">Em Produção</SelectItem>
             <SelectItem value="awaiting_approval">Aguardando Aprovação</SelectItem>
             <SelectItem value="ready_for_pickup">Pronto para Retirada</SelectItem>
