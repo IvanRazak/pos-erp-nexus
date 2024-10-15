@@ -142,8 +142,15 @@ const GerenciamentoPedidos = () => {
               <TableCell>{clientes?.find(c => c.id === pedido.customer_id)?.name || 'N/A'}</TableCell>
               <TableCell>R$ {pedido.total_amount?.toFixed(2) || 'N/A'}</TableCell>
               <TableCell>R$ {pedido.discount?.toFixed(2) || '0.00'}</TableCell>
-              <TableCell>R$ {pedido.additional_value?.toFixed(2) || '0.00'}</TableCell>
-              <TableCell>{pedido.additional_value_description || 'N/A'}</TableCell>
+              <TableCell>
+                {pedido.additional_value > 0 ? (
+                  <>
+                    R$ {pedido.additional_value.toFixed(2)}
+                    <br />
+                    <span className="text-sm text-gray-500">{pedido.additional_value_description || 'Sem descrição'}</span>
+                  </>
+                ) : 'N/A'}
+              </TableCell>
               <TableCell>{pedido.delivery_date ? format(parseISO(pedido.delivery_date), 'dd/MM/yyyy', { locale: ptBR }) : 'N/A'}</TableCell>
               <TableCell>{pedido.status}</TableCell>
               <TableCell>{pedido.created_by || 'N/A'}</TableCell>
