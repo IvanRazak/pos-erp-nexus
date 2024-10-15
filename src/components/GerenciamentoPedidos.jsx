@@ -166,7 +166,7 @@ const GerenciamentoPedidos = () => {
               <TableCell>
                 <Select defaultValue={pedido.status} onValueChange={(value) => atualizarStatus(pedido.id, value)}>
                   <SelectTrigger>
-                    <SelectValue style="min-width:max-content" placeholder="Atualizar Status" />
+                    <SelectValue placeholder="Atualizar Status" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="in_production">Em Produção</SelectItem>
