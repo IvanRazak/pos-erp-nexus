@@ -164,7 +164,7 @@ const GerenciamentoPedidos = () => {
                 ) : 'N/A'}</TableCell>
               <TableCell>{pedido.delivery_date ? format(parseISO(pedido.delivery_date), 'dd/MM/yyyy', { locale: ptBR }) : 'N/A'}</TableCell>
               <TableCell>
-                <Select style="min-width:max-content;" defaultValue={pedido.status} onValueChange={(value) => atualizarStatus(pedido.id, value)}>
+                <Select defaultValue={pedido.status} onValueChange={(value) => atualizarStatus(pedido.id, value)}>
                   <SelectTrigger>
                     <SelectValue placeholder="Atualizar Status" />
                   </SelectTrigger>
