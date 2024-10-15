@@ -10,6 +10,7 @@ import BuscarProdutoModal from './BuscarProdutoModal';
 import VendaCarrinho from './VendaCarrinho';
 import VendaHeader from './VendaHeader';
 import { calcularTotalItem, calcularTotal, resetCarrinho } from '../utils/vendaUtils';
+import { Input } from "@/components/ui/input";
 
 const Venda = () => {
   const navigate = useNavigate();
@@ -26,6 +27,8 @@ const Venda = () => {
   const [opcaoPagamento, setOpcaoPagamento] = useState('');
   const [desconto, setDesconto] = useState(0);
   const [valorPago, setValorPago] = useState(0);
+  const [valorAdicional, setValorAdicional] = useState(0);
+  const [descricaoValorAdicional, setDescricaoValorAdicional] = useState('');
 
   const { data: clientes } = useCustomers();
   const { data: opcoesExtras } = useExtraOptions();
@@ -103,7 +106,7 @@ const Venda = () => {
       });
       return;
     }
-    const totalVenda = calcularTotal(carrinho, desconto);
+    const totalVenda = calcularTotal(carrinho, desconto) + parseFloat(valorAdicional);
     const saldoRestante = totalVenda - valorPago;
     const novaVenda = {
       customer_id: clienteSelecionado,
@@ -126,6 +129,8 @@ const Venda = () => {
       })),
       created_by: user.username,
       discount: parseFloat(desconto) || 0,
+      additional_value: parseFloat(valorAdicional) || 0,
+      additional_value_description: descricaoValorAdicional,
     };
     try {
       await addOrder.mutateAsync(novaVenda);
@@ -134,6 +139,8 @@ const Venda = () => {
         description: "A nova venda foi registrada no sistema.",
       });
       resetCarrinho(setCarrinho, setClienteSelecionado, setDataEntrega, setOpcaoPagamento, setDesconto, setValorPago);
+      setValorAdicional(0);
+      setDescricaoValorAdicional('');
     } catch (error) {
       toast({
         title: "Erro ao finalizar venda",
@@ -142,8 +149,6 @@ const Venda = () => {
       });
     }
   };
-
-  if (isLoading) return <div>Carregando...</div>;
 
   return (
     <div className="container mx-auto p-4">
@@ -170,9 +175,13 @@ const Venda = () => {
         opcoesPagamento={opcoesPagamento}
         valorPago={valorPago}
         setValorPago={setValorPago}
-        calcularTotal={() => calcularTotal(carrinho, desconto)}
+        calcularTotal={() => calcularTotal(carrinho, desconto) + parseFloat(valorAdicional)}
         finalizarVenda={finalizarVenda}
         onDescriptionChange={handleDescriptionChange}
+        valorAdicional={valorAdicional}
+        setValorAdicional={setValorAdicional}
+        descricaoValorAdicional={descricaoValorAdicional}
+        setDescricaoValorAdicional={setDescricaoValorAdicional}
       />
       <BuscarClienteModal
         isOpen={isBuscarClienteModalOpen}
