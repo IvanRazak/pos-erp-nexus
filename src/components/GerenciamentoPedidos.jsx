@@ -18,6 +18,7 @@ const GerenciamentoPedidos = () => {
   const [filtroDataFim, setFiltroDataFim] = useState(null);
   const [filtroValorMinimo, setFiltroValorMinimo] = useState('');
   const [filtroValorMaximo, setFiltroValorMaximo] = useState('');
+  const [filtroStatus, setFiltroStatus] = useState('');
   const [pedidosFiltrados, setPedidosFiltrados] = useState([]);
   const [pedidoSelecionado, setPedidoSelecionado] = useState(null);
   const navigate = useNavigate();
@@ -41,7 +42,7 @@ const GerenciamentoPedidos = () => {
     if (pedidos) {
       filtrarPedidos();
     }
-  }, [pedidos, filtroCliente, filtroNumeroPedido, filtroDataInicio, filtroDataFim, filtroValorMinimo, filtroValorMaximo]);
+  }, [pedidos, filtroCliente, filtroNumeroPedido, filtroDataInicio, filtroDataFim, filtroValorMinimo, filtroValorMaximo, filtroStatus]);
 
   const filtrarPedidos = () => {
     if (!pedidos) return;
@@ -55,7 +56,8 @@ const GerenciamentoPedidos = () => {
       })));
       const matchValor = (!filtroValorMinimo || (pedido.total_amount && pedido.total_amount >= parseFloat(filtroValorMinimo))) &&
                          (!filtroValorMaximo || (pedido.total_amount && pedido.total_amount <= parseFloat(filtroValorMaximo)));
-      return matchCliente && matchNumeroPedido && matchData && matchValor;
+      const matchStatus = !filtroStatus || pedido.status === filtroStatus;
+      return matchCliente && matchNumeroPedido && matchData && matchValor && matchStatus;
     });
     setPedidosFiltrados(filtered);
   };
@@ -117,6 +119,18 @@ const GerenciamentoPedidos = () => {
           value={filtroValorMaximo}
           onChange={(e) => setFiltroValorMaximo(e.target.value)}
         />
+        <Select value={filtroStatus} onValueChange={setFiltroStatus}>
+          <SelectTrigger>
+            <SelectValue placeholder="Filtrar por Status" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="">Todos</SelectItem>
+            <SelectItem value="in_production">Em Produção</SelectItem>
+            <SelectItem value="awaiting_approval">Aguardando Aprovação</SelectItem>
+            <SelectItem value="ready_for_pickup">Pronto para Retirada</SelectItem>
+            <SelectItem value="delivered">Entregue</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
       <Table>
         <TableHeader>
@@ -127,6 +141,7 @@ const GerenciamentoPedidos = () => {
             <TableHead>Valor</TableHead>
             <TableHead>Desconto</TableHead>
             <TableHead>Valor Adicional</TableHead>
+            <TableHead>Descrição do Valor Adicional</TableHead>
             <TableHead>Data de Entrega</TableHead>
             <TableHead>Status</TableHead>
             <TableHead>Criado por</TableHead>
@@ -141,20 +156,13 @@ const GerenciamentoPedidos = () => {
               <TableCell>{clientes?.find(c => c.id === pedido.customer_id)?.name || 'N/A'}</TableCell>
               <TableCell>R$ {pedido.total_amount?.toFixed(2) || 'N/A'}</TableCell>
               <TableCell>R$ {pedido.discount?.toFixed(2) || '0.00'}</TableCell>
-              <TableCell>
-                {pedido.additional_value > 0 ? (
-                  <>
-                    R$ {pedido.additional_value.toFixed(2)}
-                    <br />
-                    <span className="text-sm text-gray-500">{pedido.additional_value_description || 'Sem descrição'}</span>
-                  </>
-                ) : 'N/A'}
-              </TableCell>
+              <TableCell>R$ {pedido.additional_value?.toFixed(2) || '0.00'}</TableCell>
+              <TableCell>{pedido.additional_value_description || 'N/A'}</TableCell>
               <TableCell>{pedido.delivery_date ? format(parseISO(pedido.delivery_date), 'dd/MM/yyyy', { locale: ptBR }) : 'N/A'}</TableCell>
               <TableCell>{pedido.status}</TableCell>
               <TableCell>{pedido.created_by || 'N/A'}</TableCell>
               <TableCell>
-                <Select onValueChange={(value) => atualizarStatus(pedido.id, value)}>
+                <Select defaultValue={pedido.status} onValueChange={(value) => atualizarStatus(pedido.id, value)}>
                   <SelectTrigger>
                     <SelectValue placeholder="Atualizar Status" />
                   </SelectTrigger>
