@@ -150,6 +150,20 @@ const Venda = () => {
     }
   };
 
+  const handleUnitPriceChange = (item, newUnitPrice) => {
+    setCarrinho(carrinho.map(cartItem => {
+      if (cartItem === item) {
+        const updatedItem = {
+          ...cartItem,
+          unitPrice: newUnitPrice,
+          total: calcularTotalItem({ ...cartItem, unitPrice: newUnitPrice }, cartItem.extras)
+        };
+        return updatedItem;
+      }
+      return cartItem;
+    }));
+  };
+
   return (
     <div className="container mx-auto p-4">
       <h2 className="text-2xl font-bold mb-4">Venda</h2>
@@ -182,6 +196,7 @@ const Venda = () => {
         setValorAdicional={setValorAdicional}
         descricaoValorAdicional={descricaoValorAdicional}
         setDescricaoValorAdicional={setDescricaoValorAdicional}
+        onUnitPriceChange={handleUnitPriceChange}
       />
       <BuscarClienteModal
         isOpen={isBuscarClienteModalOpen}
