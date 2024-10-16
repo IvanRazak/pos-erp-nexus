@@ -9,9 +9,8 @@ import BuscarClienteModal from './BuscarClienteModal';
 import BuscarProdutoModal from './BuscarProdutoModal';
 import VendaCarrinho from './VendaCarrinho';
 import VendaHeader from './VendaHeader';
-import ArteModal from './ArteModal';
 import { calcularTotalItem, calcularTotal, resetCarrinho } from '../utils/vendaUtils';
-import { handleNewClientSuccess, handleSelectCliente } from '../utils/clientUtils';
+import { Input } from "@/components/ui/input";
 
 const Venda = () => {
   const navigate = useNavigate();
@@ -30,8 +29,6 @@ const Venda = () => {
   const [valorPago, setValorPago] = useState(0);
   const [valorAdicional, setValorAdicional] = useState(0);
   const [descricaoValorAdicional, setDescricaoValorAdicional] = useState('');
-  const [isArteModalOpen, setIsArteModalOpen] = useState(false);
-  const [tempProduto, setTempProduto] = useState(null);
 
   const { data: clientes } = useCustomers();
   const { data: opcoesExtras } = useExtraOptions();
@@ -64,26 +61,18 @@ const Venda = () => {
       total: calcularTotalItem(produtoSelecionado, extrasEscolhidas),
       description: '',
     };
-    
-    if (novoItem.quantidade > 1) {
-      setTempProduto(novoItem);
-      setIsArteModalOpen(true);
-    } else {
-      adicionarAoCarrinho(novoItem);
-    }
-    
+    setCarrinho([...carrinho, novoItem]);
     setProdutoSelecionado(null);
     setIsExtraOptionsModalOpen(false);
   };
 
-  const adicionarAoCarrinho = (item, arteOption = null) => {
-    const itemFinal = arteOption ? { ...item, arteOption } : item;
-    setCarrinho([...carrinho, itemFinal]);
+  const handleNewClientSuccess = () => {
+    setIsNewClientDialogOpen(false);
   };
 
-  const handleArteModalConfirm = (arteOption) => {
-    adicionarAoCarrinho(tempProduto, arteOption);
-    setTempProduto(null);
+  const handleSelectCliente = (cliente) => {
+    setClienteSelecionado(cliente.id);
+    setIsBuscarClienteModalOpen(false);
   };
 
   const handleSelectProduto = (produto) => {
@@ -137,7 +126,6 @@ const Venda = () => {
         m2: item.m2,
         cartItemId: item.cartItemId,
         description: item.description,
-        arte_option: item.arteOption || null,
       })),
       created_by: user.username,
       discount: parseFloat(desconto) || 0,
@@ -199,7 +187,7 @@ const Venda = () => {
         setIsBuscarClienteModalOpen={setIsBuscarClienteModalOpen}
         isNewClientDialogOpen={isNewClientDialogOpen}
         setIsNewClientDialogOpen={setIsNewClientDialogOpen}
-        handleNewClientSuccess={() => handleNewClientSuccess(setIsNewClientDialogOpen)}
+        handleNewClientSuccess={handleNewClientSuccess}
         clientes={clientes}
       />
       <VendaCarrinho
@@ -228,7 +216,7 @@ const Venda = () => {
       <BuscarClienteModal
         isOpen={isBuscarClienteModalOpen}
         onClose={() => setIsBuscarClienteModalOpen(false)}
-        onSelectCliente={(cliente) => handleSelectCliente(cliente, setClienteSelecionado, setIsBuscarClienteModalOpen)}
+        onSelectCliente={handleSelectCliente}
       />
       <BuscarProdutoModal
         isOpen={isBuscarProdutoModalOpen}
@@ -243,11 +231,6 @@ const Venda = () => {
           onConfirm={handleAdicionarAoCarrinhoComExtras}
         />
       )}
-      <ArteModal
-        isOpen={isArteModalOpen}
-        onClose={() => setIsArteModalOpen(false)}
-        onConfirm={handleArteModalConfirm}
-      />
     </div>
   );
 };
