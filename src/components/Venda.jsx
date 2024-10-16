@@ -82,8 +82,9 @@ const Venda = () => {
   };
 
   const handleArteModalConfirm = (arteOption) => {
-    adicionarAoCarrinho(tempProduto, arteOption);
+    adicionarAoCarrinho({ ...tempProduto, arteOption });
     setTempProduto(null);
+    setIsArteModalOpen(false);
   };
 
   const finalizarVenda = async () => {
