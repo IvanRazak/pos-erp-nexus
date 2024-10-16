@@ -70,6 +70,7 @@ const PedidoDetalhesModal = ({ pedido, onClose }) => {
                 <TableHead>Dimensões</TableHead>
                 <TableHead>M²</TableHead>
                 <TableHead>Descrição</TableHead>
+                <TableHead>Opção de Arte</TableHead>
                 <TableHead>Subtotal</TableHead>
               </TableRow>
             </TableHeader>
@@ -83,6 +84,10 @@ const PedidoDetalhesModal = ({ pedido, onClose }) => {
                   <TableCell>{formatarDimensoes(item)}</TableCell>
                   <TableCell>{formatarM2(item)}</TableCell>
                   <TableCell>{item.description || 'N/A'}</TableCell>
+                  <TableCell>
+                    {item.arte_option === 'mesma_arte' ? 'Mesma Arte' : 
+                     item.arte_option === 'arte_diferente' ? 'Arte Diferente' : 'N/A'}
+                  </TableCell>
                   <TableCell>R$ {calcularSubtotalItem(item).toFixed(2)}</TableCell>
                 </TableRow>
               ))}
