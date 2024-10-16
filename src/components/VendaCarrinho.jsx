@@ -30,7 +30,8 @@ const VendaCarrinho = ({
   setValorAdicional,
   descricaoValorAdicional,
   setDescricaoValorAdicional,
-  onUnitPriceChange
+  onUnitPriceChange,
+  onQuantityChange
 }) => {
   const subtotal = carrinho.reduce((total, item) => total + item.total, 0);
   const total = calcularTotal();
@@ -60,6 +61,7 @@ const VendaCarrinho = ({
               onEdit={onEdit}
               onDescriptionChange={onDescriptionChange}
               onUnitPriceChange={onUnitPriceChange}
+              onQuantityChange={onQuantityChange}
             />
           ))}
         </TableBody>
