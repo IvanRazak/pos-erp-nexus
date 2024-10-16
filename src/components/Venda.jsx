@@ -11,6 +11,7 @@ import VendaCarrinho from './VendaCarrinho';
 import VendaHeader from './VendaHeader';
 import ArteModal from './ArteModal';
 import { calcularTotalItem, calcularTotal, resetCarrinho } from '../utils/vendaUtils';
+import { handleNewClientSuccess, handleSelectCliente } from '../utils/clientUtils';
 
 const Venda = () => {
   const navigate = useNavigate();
@@ -83,6 +84,18 @@ const Venda = () => {
   const handleArteModalConfirm = (arteOption) => {
     adicionarAoCarrinho(tempProduto, arteOption);
     setTempProduto(null);
+  };
+
+  const handleSelectProduto = (produto) => {
+    setProdutoSelecionado(produto);
+    setIsBuscarProdutoModalOpen(false);
+    setIsExtraOptionsModalOpen(true);
+  };
+
+  const handleDescriptionChange = (item, newDescription) => {
+    setCarrinho(carrinho.map(cartItem => 
+      cartItem === item ? { ...cartItem, description: newDescription } : cartItem
+    ));
   };
 
   const finalizarVenda = async () => {
@@ -186,7 +199,7 @@ const Venda = () => {
         setIsBuscarClienteModalOpen={setIsBuscarClienteModalOpen}
         isNewClientDialogOpen={isNewClientDialogOpen}
         setIsNewClientDialogOpen={setIsNewClientDialogOpen}
-        handleNewClientSuccess={handleNewClientSuccess}
+        handleNewClientSuccess={() => handleNewClientSuccess(setIsNewClientDialogOpen)}
         clientes={clientes}
       />
       <VendaCarrinho
@@ -215,7 +228,7 @@ const Venda = () => {
       <BuscarClienteModal
         isOpen={isBuscarClienteModalOpen}
         onClose={() => setIsBuscarClienteModalOpen(false)}
-        onSelectCliente={handleSelectCliente}
+        onSelectCliente={(cliente) => handleSelectCliente(cliente, setClienteSelecionado, setIsBuscarClienteModalOpen)}
       />
       <BuscarProdutoModal
         isOpen={isBuscarProdutoModalOpen}
