@@ -11,6 +11,7 @@ import VendaCarrinho from './VendaCarrinho';
 import VendaHeader from './VendaHeader';
 import ArteModal from './ArteModal';
 import { calcularTotalItem, calcularTotal, resetCarrinho } from '../utils/vendaUtils';
+import { handleNewClientSuccess, handleSelectCliente, handleSelectProduto } from '../utils/clientUtils';
 
 const Venda = () => {
   const navigate = useNavigate();
@@ -149,6 +150,40 @@ const Venda = () => {
     }
   };
 
+  const handleDescriptionChange = (item, newDescription) => {
+    setCarrinho(carrinho.map(cartItem => 
+      cartItem === item ? { ...cartItem, description: newDescription } : cartItem
+    ));
+  };
+
+  const handleUnitPriceChange = (item, newUnitPrice) => {
+    setCarrinho(carrinho.map(cartItem => {
+      if (cartItem === item) {
+        const updatedItem = {
+          ...cartItem,
+          unitPrice: newUnitPrice,
+          total: calcularTotalItem({ ...cartItem, unitPrice: newUnitPrice }, cartItem.extras)
+        };
+        return updatedItem;
+      }
+      return cartItem;
+    }));
+  };
+
+  const handleQuantityChange = (item, newQuantity) => {
+    setCarrinho(carrinho.map(cartItem => {
+      if (cartItem === item) {
+        const updatedItem = {
+          ...cartItem,
+          quantidade: newQuantity,
+          total: calcularTotalItem({ ...cartItem, quantidade: newQuantity }, cartItem.extras)
+        };
+        return updatedItem;
+      }
+      return cartItem;
+    }));
+  };
+
   return (
     <div className="container mx-auto p-4">
       <h2 className="text-2xl font-bold mb-4">Venda</h2>
@@ -158,7 +193,7 @@ const Venda = () => {
         setIsBuscarClienteModalOpen={setIsBuscarClienteModalOpen}
         isNewClientDialogOpen={isNewClientDialogOpen}
         setIsNewClientDialogOpen={setIsNewClientDialogOpen}
-        handleNewClientSuccess={handleNewClientSuccess}
+        handleNewClientSuccess={() => handleNewClientSuccess(setIsNewClientDialogOpen)}
         clientes={clientes}
       />
       <VendaCarrinho
@@ -187,12 +222,12 @@ const Venda = () => {
       <BuscarClienteModal
         isOpen={isBuscarClienteModalOpen}
         onClose={() => setIsBuscarClienteModalOpen(false)}
-        onSelectCliente={handleSelectCliente}
+        onSelectCliente={(cliente) => handleSelectCliente(cliente, setClienteSelecionado, setIsBuscarClienteModalOpen)}
       />
       <BuscarProdutoModal
         isOpen={isBuscarProdutoModalOpen}
         onClose={() => setIsBuscarProdutoModalOpen(false)}
-        onSelectProduto={handleSelectProduto}
+        onSelectProduto={(produto) => handleSelectProduto(produto, setProdutoSelecionado, setIsBuscarProdutoModalOpen, setIsExtraOptionsModalOpen)}
       />
       {isExtraOptionsModalOpen && produtoSelecionado && (
         <ProdutoExtraOptionsModal

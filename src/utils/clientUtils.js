@@ -6,3 +6,9 @@ export const handleSelectCliente = (cliente, setClienteSelecionado, setIsBuscarC
   setClienteSelecionado(cliente.id);
   setIsBuscarClienteModalOpen(false);
 };
+
+export const handleSelectProduto = (produto, setProdutoSelecionado, setIsBuscarProdutoModalOpen, setIsExtraOptionsModalOpen) => {
+  setProdutoSelecionado(produto);
+  setIsBuscarProdutoModalOpen(false);
+  setIsExtraOptionsModalOpen(true);
+};
