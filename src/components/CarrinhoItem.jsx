@@ -75,6 +75,7 @@ const CarrinhoItem = ({ item, onDelete, onEdit, onDescriptionChange, onUnitPrice
           </div>
         ))}
       </TableCell>
+      <TableCell>{item.arteOption || 'N/A'}</TableCell>
       <TableCell>R$ {item.total.toFixed(2)}</TableCell>
       <TableCell>
         <Input

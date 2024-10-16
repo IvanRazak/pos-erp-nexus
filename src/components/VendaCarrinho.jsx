@@ -48,6 +48,7 @@ const VendaCarrinho = ({
             <TableHead>M²</TableHead>
             <TableHead>Preço Unitário</TableHead>
             <TableHead>Extras</TableHead>
+            <TableHead>Arte</TableHead>
             <TableHead>Total</TableHead>
             <TableHead>Ações</TableHead>
           </TableRow>

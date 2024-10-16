@@ -9,8 +9,8 @@ import BuscarClienteModal from './BuscarClienteModal';
 import BuscarProdutoModal from './BuscarProdutoModal';
 import VendaCarrinho from './VendaCarrinho';
 import VendaHeader from './VendaHeader';
+import ArteModal from './ArteModal';
 import { calcularTotalItem, calcularTotal, resetCarrinho } from '../utils/vendaUtils';
-import { Input } from "@/components/ui/input";
 
 const Venda = () => {
   const navigate = useNavigate();
@@ -29,6 +29,8 @@ const Venda = () => {
   const [valorPago, setValorPago] = useState(0);
   const [valorAdicional, setValorAdicional] = useState(0);
   const [descricaoValorAdicional, setDescricaoValorAdicional] = useState('');
+  const [isArteModalOpen, setIsArteModalOpen] = useState(false);
+  const [tempProduto, setTempProduto] = useState(null);
 
   const { data: clientes } = useCustomers();
   const { data: opcoesExtras } = useExtraOptions();
@@ -61,30 +63,26 @@ const Venda = () => {
       total: calcularTotalItem(produtoSelecionado, extrasEscolhidas),
       description: '',
     };
-    setCarrinho([...carrinho, novoItem]);
+    
+    if (novoItem.quantidade > 1) {
+      setTempProduto(novoItem);
+      setIsArteModalOpen(true);
+    } else {
+      adicionarAoCarrinho(novoItem);
+    }
+    
     setProdutoSelecionado(null);
     setIsExtraOptionsModalOpen(false);
   };
 
-  const handleNewClientSuccess = () => {
-    setIsNewClientDialogOpen(false);
+  const adicionarAoCarrinho = (item, arteOption = null) => {
+    const itemComArte = arteOption ? { ...item, arteOption } : item;
+    setCarrinho([...carrinho, itemComArte]);
   };
 
-  const handleSelectCliente = (cliente) => {
-    setClienteSelecionado(cliente.id);
-    setIsBuscarClienteModalOpen(false);
-  };
-
-  const handleSelectProduto = (produto) => {
-    setProdutoSelecionado(produto);
-    setIsBuscarProdutoModalOpen(false);
-    setIsExtraOptionsModalOpen(true);
-  };
-
-  const handleDescriptionChange = (item, newDescription) => {
-    setCarrinho(carrinho.map(cartItem => 
-      cartItem === item ? { ...cartItem, description: newDescription } : cartItem
-    ));
+  const handleArteModalConfirm = (arteOption) => {
+    adicionarAoCarrinho(tempProduto, arteOption);
+    setTempProduto(null);
   };
 
   const finalizarVenda = async () => {
@@ -126,6 +124,7 @@ const Venda = () => {
         m2: item.m2,
         cartItemId: item.cartItemId,
         description: item.description,
+        arte_option: item.arteOption || null,
       })),
       created_by: user.username,
       discount: parseFloat(desconto) || 0,
@@ -148,34 +147,6 @@ const Venda = () => {
         variant: "destructive",
       });
     }
-  };
-
-  const handleUnitPriceChange = (item, newUnitPrice) => {
-    setCarrinho(carrinho.map(cartItem => {
-      if (cartItem === item) {
-        const updatedItem = {
-          ...cartItem,
-          unitPrice: newUnitPrice,
-          total: calcularTotalItem({ ...cartItem, unitPrice: newUnitPrice }, cartItem.extras)
-        };
-        return updatedItem;
-      }
-      return cartItem;
-    }));
-  };
-
-  const handleQuantityChange = (item, newQuantity) => {
-    setCarrinho(carrinho.map(cartItem => {
-      if (cartItem === item) {
-        const updatedItem = {
-          ...cartItem,
-          quantidade: newQuantity,
-          total: calcularTotalItem({ ...cartItem, quantidade: newQuantity }, cartItem.extras)
-        };
-        return updatedItem;
-      }
-      return cartItem;
-    }));
   };
 
   return (
@@ -231,6 +202,11 @@ const Venda = () => {
           onConfirm={handleAdicionarAoCarrinhoComExtras}
         />
       )}
+      <ArteModal
+        isOpen={isArteModalOpen}
+        onClose={() => setIsArteModalOpen(false)}
+        onConfirm={handleArteModalConfirm}
+      />
     </div>
   );
 };
