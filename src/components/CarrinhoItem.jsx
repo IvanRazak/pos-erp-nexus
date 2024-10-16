@@ -18,7 +18,10 @@ const CarrinhoItem = ({ item, onDelete, onEdit, onDescriptionChange, onUnitPrice
 
   const handleQuantityEdit = () => {
     if (editingQuantity) {
-      onQuantityChange(item, parseInt(tempQuantity, 10));
+      const newQuantity = parseInt(tempQuantity, 10);
+      if (newQuantity !== item.quantidade) {
+        onQuantityChange(item, newQuantity);
+      }
     }
     setEditingQuantity(!editingQuantity);
   };

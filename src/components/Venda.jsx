@@ -32,6 +32,7 @@ const Venda = () => {
   const [descricaoValorAdicional, setDescricaoValorAdicional] = useState('');
   const [isArteModalOpen, setIsArteModalOpen] = useState(false);
   const [tempProduto, setTempProduto] = useState(null);
+  const [itemToUpdateArte, setItemToUpdateArte] = useState(null);
 
   const { data: clientes } = useCustomers();
   const { data: opcoesExtras } = useExtraOptions();
@@ -82,8 +83,18 @@ const Venda = () => {
   };
 
   const handleArteModalConfirm = (arteOption) => {
-    adicionarAoCarrinho({ ...tempProduto, arteOption });
-    setTempProduto(null);
+    if (itemToUpdateArte) {
+      updateItemQuantity(itemToUpdateArte, itemToUpdateArte.quantidade);
+      setCarrinho(carrinho.map(item => 
+        item.cartItemId === itemToUpdateArte.cartItemId 
+          ? { ...item, arteOption, quantidade: itemToUpdateArte.quantidade }
+          : item
+      ));
+      setItemToUpdateArte(null);
+    } else if (tempProduto) {
+      adicionarAoCarrinho({ ...tempProduto, arteOption });
+      setTempProduto(null);
+    }
     setIsArteModalOpen(false);
   };
 
@@ -172,6 +183,15 @@ const Venda = () => {
   };
 
   const handleQuantityChange = (item, newQuantity) => {
+    if (newQuantity > 1 && newQuantity !== item.quantidade) {
+      setItemToUpdateArte({ ...item, quantidade: newQuantity });
+      setIsArteModalOpen(true);
+    } else {
+      updateItemQuantity(item, newQuantity);
+    }
+  };
+
+  const updateItemQuantity = (item, newQuantity) => {
     setCarrinho(carrinho.map(cartItem => {
       if (cartItem === item) {
         const updatedItem = {
@@ -240,7 +260,11 @@ const Venda = () => {
       )}
       <ArteModal
         isOpen={isArteModalOpen}
-        onClose={() => setIsArteModalOpen(false)}
+        onClose={() => {
+          setIsArteModalOpen(false);
+          setItemToUpdateArte(null);
+          setTempProduto(null);
+        }}
         onConfirm={handleArteModalConfirm}
       />
     </div>
