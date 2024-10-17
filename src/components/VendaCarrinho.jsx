@@ -9,6 +9,7 @@ import { format } from "date-fns";
 import { CalendarIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import CarrinhoItem from './CarrinhoItem';
+import { calcularTotal, calcularTotalItem } from '../utils/vendaUtils';
 
 const VendaCarrinho = ({ 
   carrinho, 
@@ -23,7 +24,6 @@ const VendaCarrinho = ({
   opcoesPagamento, 
   valorPago, 
   setValorPago, 
-  calcularTotal, 
   finalizarVenda, 
   onDescriptionChange,
   valorAdicional,
@@ -33,8 +33,8 @@ const VendaCarrinho = ({
   onUnitPriceChange,
   onQuantityChange
 }) => {
-  const subtotal = carrinho.reduce((total, item) => total + item.total, 0);
-  const total = calcularTotal();
+  const subtotal = carrinho.reduce((total, item) => total + calcularTotalItem(item, item.extras), 0);
+  const total = calcularTotal(carrinho, desconto, valorAdicional);
 
   return (
     <div className="mt-4">

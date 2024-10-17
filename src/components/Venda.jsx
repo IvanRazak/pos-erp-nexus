@@ -230,7 +230,7 @@ const Venda = () => {
         opcoesPagamento={opcoesPagamento}
         valorPago={valorPago}
         setValorPago={setValorPago}
-        calcularTotal={() => calcularTotal(carrinho, desconto) + parseFloat(valorAdicional)}
+        calcularTotal={() => calcularTotal(carrinho, desconto, valorAdicional)}
         finalizarVenda={finalizarVenda}
         onDescriptionChange={handleDescriptionChange}
         valorAdicional={valorAdicional}
