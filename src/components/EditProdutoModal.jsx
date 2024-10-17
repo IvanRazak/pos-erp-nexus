@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -12,6 +12,10 @@ const EditProdutoModal = ({ produto, onClose, extraOptions }) => {
   const [editedProduto, setEditedProduto] = useState(produto);
   const queryClient = useQueryClient();
   const { toast } = useToast();
+
+  useEffect(() => {
+    setEditedProduto(produto);
+  }, [produto]);
 
   const updateProdutoMutation = useMutation({
     mutationFn: async (updatedProduto) => {
@@ -40,6 +44,12 @@ const EditProdutoModal = ({ produto, onClose, extraOptions }) => {
         ? [...(editedProduto.extra_options || []), value]
         : (editedProduto.extra_options || []).filter(id => id !== value);
       setEditedProduto(prev => ({ ...prev, extra_options: updatedExtraOptions }));
+    } else if (name === 'unit_type') {
+      setEditedProduto(prev => ({ 
+        ...prev, 
+        [name]: value, 
+        valor_minimo: value === 'square_meter' ? prev.valor_minimo || 0 : null 
+      }));
     } else {
       setEditedProduto(prev => ({ ...prev, [name]: value }));
     }
@@ -83,6 +93,16 @@ const EditProdutoModal = ({ produto, onClose, extraOptions }) => {
               <SelectItem value="square_meter">Metro Quadrado</SelectItem>
             </SelectContent>
           </Select>
+          {editedProduto.unit_type === 'square_meter' && (
+            <Input
+              name="valor_minimo"
+              type="number"
+              value={editedProduto.valor_minimo || ''}
+              onChange={handleChange}
+              placeholder="Valor Mínimo"
+              required
+            />
+          )}
           <Select name="type" value={editedProduto.type} onValueChange={(value) => handleChange({ target: { name: 'type', value } })} required>
             <SelectTrigger>
               <SelectValue placeholder="Tipo de Produto" />
