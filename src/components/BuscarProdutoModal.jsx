@@ -33,7 +33,7 @@ const BuscarProdutoModal = ({ isOpen, onClose, onSelectProduto }) => {
       let unitPrice = selectedProduct.sale_price;
 
       if (selectedProduct.unit_type === 'square_meter') {
-        unitPrice = selectedProduct.sale_price * calculatedM2;
+        unitPrice = Math.max(selectedProduct.sale_price * calculatedM2, selectedProduct.valor_minimo || 0);
       }
 
       onSelectProduto({

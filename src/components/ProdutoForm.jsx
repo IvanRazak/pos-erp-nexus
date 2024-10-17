@@ -6,6 +6,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 
 const ProdutoForm = ({ onSubmit, extraOptions, initialValues = {} }) => {
   const [productType, setProductType] = useState(initialValues.type || 'standard');
+  const [unitType, setUnitType] = useState(initialValues.unit_type || 'unit');
   const [options, setOptions] = useState(initialValues.options || []);
 
   const handleSubmit = (event) => {
@@ -13,12 +14,14 @@ const ProdutoForm = ({ onSubmit, extraOptions, initialValues = {} }) => {
     const formData = new FormData(event.target);
     const novoProduto = Object.fromEntries(formData.entries());
     
-    // Convert extra_options to an array of UUIDs
     novoProduto.extra_options = Array.from(formData.getAll('extra_options'));
     
-    // Add options for custom products
     if (productType === 'custom') {
       novoProduto.options = options;
+    }
+    
+    if (unitType === 'square_meter') {
+      novoProduto.valor_minimo = parseFloat(novoProduto.valor_minimo);
     }
     
     onSubmit(novoProduto);
@@ -52,7 +55,7 @@ const ProdutoForm = ({ onSubmit, extraOptions, initialValues = {} }) => {
           <SelectItem value="front_and_back">Frente e Verso</SelectItem>
         </SelectContent>
       </Select>
-      <Select name="unit_type" required defaultValue={initialValues.unit_type}>
+      <Select name="unit_type" required value={unitType} onValueChange={(value) => setUnitType(value)}>
         <SelectTrigger>
           <SelectValue placeholder="Tipo de Unidade" />
         </SelectTrigger>
@@ -62,6 +65,9 @@ const ProdutoForm = ({ onSubmit, extraOptions, initialValues = {} }) => {
           <SelectItem value="square_meter">Metro Quadrado</SelectItem>
         </SelectContent>
       </Select>
+      {unitType === 'square_meter' && (
+        <Input name="valor_minimo" type="number" placeholder="Valor Mínimo" required defaultValue={initialValues.valor_minimo} />
+      )}
       <Select name="type" required value={productType} onValueChange={setProductType}>
         <SelectTrigger>
           <SelectValue placeholder="Tipo de Produto" />
