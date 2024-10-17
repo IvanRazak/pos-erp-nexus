@@ -26,6 +26,12 @@ const CarrinhoItem = ({ item, onDelete, onEdit, onDescriptionChange, onUnitPrice
     setEditingQuantity(!editingQuantity);
   };
 
+  const calculateItemTotal = () => {
+    const basePrice = item.unitPrice * item.quantidade;
+    const extrasTotal = item.extras.reduce((sum, extra) => sum + (extra.totalPrice || 0), 0);
+    return basePrice + extrasTotal * item.quantidade;
+  };
+
   return (
     <TableRow>
       <TableCell>{item.name}</TableCell>
@@ -79,7 +85,7 @@ const CarrinhoItem = ({ item, onDelete, onEdit, onDescriptionChange, onUnitPrice
         ))}
       </TableCell>
       <TableCell>{item.arteOption || 'N/A'}</TableCell>
-      <TableCell>R$ {item.total.toFixed(2)}</TableCell>
+      <TableCell>R$ {calculateItemTotal().toFixed(2)}</TableCell>
       <TableCell>
         <Input
           type="text"
