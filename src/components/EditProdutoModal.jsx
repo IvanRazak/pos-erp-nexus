@@ -11,26 +11,49 @@ import { useToast } from "@/components/ui/use-toast";
 
 const EditProdutoModal = ({ produto, onClose, extraOptions }) => {
   const [editedProduto, setEditedProduto] = useState(produto);
-  const [sheetPrices, setSheetPrices] = useState(produto.sheet_prices || [
-    { quantity: 1, price: 0 },
-    { quantity: 100, price: 0 },
-    { quantity: 500, price: 0 },
-    { quantity: 1000, price: 0 },
-    { quantity: 5000, price: 0 },
-  ]);
+  const [sheetPrices, setSheetPrices] = useState([]);
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
   useEffect(() => {
     setEditedProduto(produto);
-    setSheetPrices(produto.sheet_prices || [
-      { quantity: 1, price: 0 },
-      { quantity: 100, price: 0 },
-      { quantity: 500, price: 0 },
-      { quantity: 1000, price: 0 },
-      { quantity: 5000, price: 0 },
-    ]);
+    if (produto.unit_type === 'sheets') {
+      fetchSheetPrices(produto.id);
+    } else {
+      setSheetPrices([
+        { quantity: 1, price: 0 },
+        { quantity: 100, price: 0 },
+        { quantity: 500, price: 0 },
+        { quantity: 1000, price: 0 },
+        { quantity: 5000, price: 0 },
+      ]);
+    }
   }, [produto]);
+
+  const fetchSheetPrices = async (productId) => {
+    const { data, error } = await supabase
+      .from('product_sheet_prices')
+      .select('*')
+      .eq('product_id', productId)
+      .order('quantity', { ascending: true });
+
+    if (error) {
+      console.error('Error fetching sheet prices:', error);
+      return;
+    }
+
+    if (data && data.length > 0) {
+      setSheetPrices(data);
+    } else {
+      setSheetPrices([
+        { quantity: 1, price: 0 },
+        { quantity: 100, price: 0 },
+        { quantity: 500, price: 0 },
+        { quantity: 1000, price: 0 },
+        { quantity: 5000, price: 0 },
+      ]);
+    }
+  };
 
   const updateProdutoMutation = useMutation({
     mutationFn: async (updatedProduto) => {
@@ -77,6 +100,9 @@ const EditProdutoModal = ({ produto, onClose, extraOptions }) => {
         [name]: value, 
         valor_minimo: value === 'square_meter' ? prev.valor_minimo || 0 : null 
       }));
+      if (value === 'sheets') {
+        fetchSheetPrices(produto.id);
+      }
     } else {
       setEditedProduto(prev => ({ ...prev, [name]: value }));
     }
