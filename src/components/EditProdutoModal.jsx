@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '../lib/supabase';
 import { useToast } from "@/components/ui/use-toast";
@@ -122,119 +122,111 @@ const EditProdutoModal = ({ produto, onClose, extraOptions }) => {
 
   return (
     <Dialog open={true} onOpenChange={onClose}>
-      <DialogContent>
+      <DialogContent className="max-w-md w-full">
         <DialogHeader>
           <DialogTitle>Editar Produto: {produto.name}</DialogTitle>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <Input name="name" value={editedProduto.name} onChange={handleChange} placeholder="Nome do Produto" required />
-          <Input name="sale_price" type="number" value={editedProduto.sale_price} onChange={handleChange} placeholder="Preço de Venda" required />
-          <Input name="cost_price" type="number" value={editedProduto.cost_price} onChange={handleChange} placeholder="Preço de Custo" required />
-          <Input name="description" value={editedProduto.description} onChange={handleChange} placeholder="Descrição" required />
-          <Input name="number_of_copies" type="number" value={editedProduto.number_of_copies} onChange={handleChange} placeholder="Quantidade de Vias" required />
-          <Input name="colors" value={editedProduto.colors} onChange={handleChange} placeholder="Cores" required />
-          <Input name="format" value={editedProduto.format} onChange={handleChange} placeholder="Formato" required />
-          <Select name="print_type" value={editedProduto.print_type} onValueChange={(value) => handleChange({ target: { name: 'print_type', value } })} required>
-            <SelectTrigger>
-              <SelectValue placeholder="Tipo de Impressão" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="front">Frente</SelectItem>
-              <SelectItem value="front_and_back">Frente e Verso</SelectItem>
-            </SelectContent>
-          </Select>
-          <Select name="unit_type" value={editedProduto.unit_type} onValueChange={(value) => handleChange({ target: { name: 'unit_type', value } })} required>
-            <SelectTrigger>
-              <SelectValue placeholder="Tipo de Unidade" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="unit">Unidade</SelectItem>
-              <SelectItem value="package">Pacote</SelectItem>
-              <SelectItem value="square_meter">Metro Quadrado</SelectItem>
-              <SelectItem value="sheets">Folhas</SelectItem>
-            </SelectContent>
-          </Select>
-          {editedProduto.unit_type === 'square_meter' && (
-            <Input
-              name="valor_minimo"
-              type="number"
-              value={editedProduto.valor_minimo || ''}
-              onChange={handleChange}
-              placeholder="Valor Mínimo"
-              required
-            />
-          )}
-          {editedProduto.unit_type === 'sheets' && (
-            <div>
-              <h4 className="mb-2">Tabela de Preços por Quantidade</h4>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Quantidade</TableHead>
-                    <TableHead>Preço</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
+        <ScrollArea className="h-[70vh] pr-4">
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <Input name="name" value={editedProduto.name} onChange={handleChange} placeholder="Nome do Produto" required />
+            <Input name="sale_price" type="number" value={editedProduto.sale_price} onChange={handleChange} placeholder="Preço de Venda" required />
+            <Input name="cost_price" type="number" value={editedProduto.cost_price} onChange={handleChange} placeholder="Preço de Custo" required />
+            <Input name="description" value={editedProduto.description} onChange={handleChange} placeholder="Descrição" required />
+            <Input name="number_of_copies" type="number" value={editedProduto.number_of_copies} onChange={handleChange} placeholder="Quantidade de Vias" required />
+            <Input name="colors" value={editedProduto.colors} onChange={handleChange} placeholder="Cores" required />
+            <Input name="format" value={editedProduto.format} onChange={handleChange} placeholder="Formato" required />
+            <Select name="print_type" value={editedProduto.print_type} onValueChange={(value) => handleChange({ target: { name: 'print_type', value } })} required>
+              <SelectTrigger>
+                <SelectValue placeholder="Tipo de Impressão" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="front">Frente</SelectItem>
+                <SelectItem value="front_and_back">Frente e Verso</SelectItem>
+              </SelectContent>
+            </Select>
+            <Select name="unit_type" value={editedProduto.unit_type} onValueChange={(value) => handleChange({ target: { name: 'unit_type', value } })} required>
+              <SelectTrigger>
+                <SelectValue placeholder="Tipo de Unidade" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="unit">Unidade</SelectItem>
+                <SelectItem value="package">Pacote</SelectItem>
+                <SelectItem value="square_meter">Metro Quadrado</SelectItem>
+                <SelectItem value="sheets">Folhas</SelectItem>
+              </SelectContent>
+            </Select>
+            {editedProduto.unit_type === 'square_meter' && (
+              <Input
+                name="valor_minimo"
+                type="number"
+                value={editedProduto.valor_minimo || ''}
+                onChange={handleChange}
+                placeholder="Valor Mínimo"
+                required
+              />
+            )}
+            {editedProduto.unit_type === 'sheets' && (
+              <details>
+                <summary className="cursor-pointer font-semibold mb-2">Tabela de Preços por Quantidade</summary>
+                <div className="pl-4 space-y-2">
                   {sheetPrices.map((price, index) => (
-                    <TableRow key={index}>
-                      <TableCell>
-                        <Input
-                          type="number"
-                          value={price.quantity}
-                          onChange={(e) => handleSheetPriceChange(index, 'quantity', e.target.value)}
-                          min="1"
-                        />
-                      </TableCell>
-                      <TableCell>
-                        <Input
-                          type="number"
-                          value={price.price}
-                          onChange={(e) => handleSheetPriceChange(index, 'price', e.target.value)}
-                          min="0"
-                          step="0.01"
-                        />
-                      </TableCell>
-                    </TableRow>
+                    <div key={index} className="flex space-x-2">
+                      <Input
+                        type="number"
+                        value={price.quantity}
+                        onChange={(e) => handleSheetPriceChange(index, 'quantity', e.target.value)}
+                        placeholder="Quantidade"
+                        min="1"
+                      />
+                      <Input
+                        type="number"
+                        value={price.price}
+                        onChange={(e) => handleSheetPriceChange(index, 'price', e.target.value)}
+                        placeholder="Preço"
+                        min="0"
+                        step="0.01"
+                      />
+                    </div>
                   ))}
-                </TableBody>
-              </Table>
+                </div>
+              </details>
+            )}
+            <Select name="type" value={editedProduto.type} onValueChange={(value) => handleChange({ target: { name: 'type', value } })} required>
+              <SelectTrigger>
+                <SelectValue placeholder="Tipo de Produto" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="standard">Padrão</SelectItem>
+                <SelectItem value="custom">Personalizado</SelectItem>
+              </SelectContent>
+            </Select>
+            <div>
+              <h4 className="mb-2">Opções Extras</h4>
+              {extraOptions?.map((option) => (
+                <div key={option.id} className="flex items-center space-x-2">
+                  <Checkbox
+                    id={`extra-${option.id}`}
+                    name="extra_options"
+                    value={option.id}
+                    checked={(editedProduto.extra_options || []).includes(option.id)}
+                    onCheckedChange={(checked) => handleChange({
+                      target: { 
+                        type: 'checkbox', 
+                        name: 'extra_options', 
+                        value: option.id, 
+                        checked 
+                      }
+                    })}
+                  />
+                  <label htmlFor={`extra-${option.id}`}>
+                    {option.name} - R$ {option.price?.toFixed(2) ?? 'N/A'}
+                  </label>
+                </div>
+              ))}
             </div>
-          )}
-          <Select name="type" value={editedProduto.type} onValueChange={(value) => handleChange({ target: { name: 'type', value } })} required>
-            <SelectTrigger>
-              <SelectValue placeholder="Tipo de Produto" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="standard">Padrão</SelectItem>
-              <SelectItem value="custom">Personalizado</SelectItem>
-            </SelectContent>
-          </Select>
-          <div>
-            <h4 className="mb-2">Opções Extras</h4>
-            {extraOptions?.map((option) => (
-              <div key={option.id} className="flex items-center space-x-2">
-                <Checkbox
-                  id={`extra-${option.id}`}
-                  name="extra_options"
-                  value={option.id}
-                  checked={(editedProduto.extra_options || []).includes(option.id)}
-                  onCheckedChange={(checked) => handleChange({
-                    target: { 
-                      type: 'checkbox', 
-                      name: 'extra_options', 
-                      value: option.id, 
-                      checked 
-                    }
-                  })}
-                />
-                <label htmlFor={`extra-${option.id}`}>
-                  {option.name} - R$ {option.price?.toFixed(2) ?? 'N/A'}
-                </label>
-              </div>
-            ))}
-          </div>
-          <Button type="submit">Salvar Alterações</Button>
-        </form>
+            <Button type="submit">Salvar Alterações</Button>
+          </form>
+        </ScrollArea>
       </DialogContent>
     </Dialog>
   );
