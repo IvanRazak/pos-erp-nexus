@@ -4,17 +4,32 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '../lib/supabase';
 import { useToast } from "@/components/ui/use-toast";
 
 const EditProdutoModal = ({ produto, onClose, extraOptions }) => {
   const [editedProduto, setEditedProduto] = useState(produto);
+  const [sheetPrices, setSheetPrices] = useState(produto.sheet_prices || [
+    { quantity: 1, price: 0 },
+    { quantity: 100, price: 0 },
+    { quantity: 500, price: 0 },
+    { quantity: 1000, price: 0 },
+    { quantity: 5000, price: 0 },
+  ]);
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
   useEffect(() => {
     setEditedProduto(produto);
+    setSheetPrices(produto.sheet_prices || [
+      { quantity: 1, price: 0 },
+      { quantity: 100, price: 0 },
+      { quantity: 500, price: 0 },
+      { quantity: 1000, price: 0 },
+      { quantity: 5000, price: 0 },
+    ]);
   }, [produto]);
 
   const updateProdutoMutation = useMutation({
@@ -25,6 +40,18 @@ const EditProdutoModal = ({ produto, onClose, extraOptions }) => {
         .eq('id', produto.id)
         .select();
       if (error) throw error;
+      
+      if (updatedProduto.unit_type === 'sheets') {
+        await supabase.from('product_sheet_prices').delete().eq('product_id', produto.id);
+        const sheetPricesData = sheetPrices.map(price => ({
+          product_id: produto.id,
+          quantity: price.quantity,
+          price: price.price
+        }));
+        const { error: sheetPricesError } = await supabase.from('product_sheet_prices').insert(sheetPricesData);
+        if (sheetPricesError) throw sheetPricesError;
+      }
+      
       return data[0];
     },
     onSuccess: () => {
@@ -55,9 +82,19 @@ const EditProdutoModal = ({ produto, onClose, extraOptions }) => {
     }
   };
 
+  const handleSheetPriceChange = (index, field, value) => {
+    const newSheetPrices = [...sheetPrices];
+    newSheetPrices[index][field] = field === 'quantity' ? parseInt(value, 10) : parseFloat(value);
+    setSheetPrices(newSheetPrices);
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
-    updateProdutoMutation.mutate(editedProduto);
+    const updatedProduto = { ...editedProduto };
+    if (updatedProduto.unit_type === 'sheets') {
+      updatedProduto.sheet_prices = sheetPrices;
+    }
+    updateProdutoMutation.mutate(updatedProduto);
   };
 
   return (
@@ -91,6 +128,7 @@ const EditProdutoModal = ({ produto, onClose, extraOptions }) => {
               <SelectItem value="unit">Unidade</SelectItem>
               <SelectItem value="package">Pacote</SelectItem>
               <SelectItem value="square_meter">Metro Quadrado</SelectItem>
+              <SelectItem value="sheets">Folhas</SelectItem>
             </SelectContent>
           </Select>
           {editedProduto.unit_type === 'square_meter' && (
@@ -102,6 +140,42 @@ const EditProdutoModal = ({ produto, onClose, extraOptions }) => {
               placeholder="Valor Mínimo"
               required
             />
+          )}
+          {editedProduto.unit_type === 'sheets' && (
+            <div>
+              <h4 className="mb-2">Tabela de Preços por Quantidade</h4>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Quantidade</TableHead>
+                    <TableHead>Preço</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {sheetPrices.map((price, index) => (
+                    <TableRow key={index}>
+                      <TableCell>
+                        <Input
+                          type="number"
+                          value={price.quantity}
+                          onChange={(e) => handleSheetPriceChange(index, 'quantity', e.target.value)}
+                          min="1"
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <Input
+                          type="number"
+                          value={price.price}
+                          onChange={(e) => handleSheetPriceChange(index, 'price', e.target.value)}
+                          min="0"
+                          step="0.01"
+                        />
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
           )}
           <Select name="type" value={editedProduto.type} onValueChange={(value) => handleChange({ target: { name: 'type', value } })} required>
             <SelectTrigger>

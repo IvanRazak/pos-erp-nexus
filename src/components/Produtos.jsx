@@ -108,7 +108,6 @@ const Produtos = () => {
         <EditProdutoModal 
           produto={editingProduto} 
           onClose={handleCloseEditModal} 
-          onUpdate={updateProduct.mutate}
           extraOptions={extraOptions}
         />
       )}
