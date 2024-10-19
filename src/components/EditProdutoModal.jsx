@@ -117,9 +117,6 @@ const EditProdutoModal = ({ produto, onClose, extraOptions }) => {
   const handleSubmit = (e) => {
     e.preventDefault();
     const updatedProduto = { ...editedProduto };
-    if (updatedProduto.unit_type === 'sheets') {
-      updatedProduto.sheet_prices = sheetPrices;
-    }
     updateProdutoMutation.mutate(updatedProduto);
   };
 
