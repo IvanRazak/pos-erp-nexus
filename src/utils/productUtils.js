@@ -24,31 +24,25 @@ export const getSheetPrice = async (productId, quantity) => {
 };
 
 export const getExtraOptionPrice = async (extraOptionId, quantity) => {
-  const { data, error } = await supabase
-    .from('extra_option_quantity_prices')
-    .select('*')
-    .eq('extra_option_id', extraOptionId)
-    .order('quantity', { ascending: true });
+  const { data: extraOption, error } = await supabase
+    .from('extra_options')
+    .select('price, quantity_prices')
+    .eq('id', extraOptionId)
+    .single();
 
   if (error) {
-    console.error('Error fetching extra option prices:', error);
+    console.error('Error fetching extra option:', error);
     return null;
   }
 
-  if (data && data.length > 0) {
-    for (let i = data.length - 1; i >= 0; i--) {
-      if (quantity >= data[i].quantity) {
-        return data[i].price;
+  if (extraOption && extraOption.quantity_prices) {
+    const quantityPrices = extraOption.quantity_prices;
+    for (let i = quantityPrices.length - 1; i >= 0; i--) {
+      if (quantity >= quantityPrices[i].quantity) {
+        return quantityPrices[i].price;
       }
     }
   }
-
-  // Se não encontrar um preço específico para a quantidade, retorna o preço base
-  const { data: extraOption } = await supabase
-    .from('extra_options')
-    .select('price')
-    .eq('id', extraOptionId)
-    .single();
 
   return extraOption ? extraOption.price : null;
 };
