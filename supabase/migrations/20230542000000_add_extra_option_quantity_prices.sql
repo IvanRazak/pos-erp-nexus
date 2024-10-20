@@ -12,13 +12,25 @@ CREATE TABLE extra_option_quantity_prices (
 CREATE INDEX idx_extra_option_quantity_prices_extra_option_id ON extra_option_quantity_prices(extra_option_id);
 
 -- Criar trigger para atualizar o campo updated_at
+CREATE OR REPLACE FUNCTION update_extra_option_quantity_prices_modtime()
+RETURNS TRIGGER AS $$
+BEGIN
+   NEW.updated_at = NOW();
+   RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
 CREATE TRIGGER update_extra_option_quantity_prices_modtime
 BEFORE UPDATE ON extra_option_quantity_prices
 FOR EACH ROW
-EXECUTE FUNCTION update_modified_column();
+EXECUTE FUNCTION update_extra_option_quantity_prices_modtime();
 
 -- Habilitar RLS na nova tabela
 ALTER TABLE extra_option_quantity_prices ENABLE ROW LEVEL SECURITY;
 
 -- Criar política para permitir leitura para todos os usuários
 CREATE POLICY "Enable read access for all users" ON extra_option_quantity_prices FOR SELECT USING (true);
+
+-- Criar política para permitir inserção e atualização para usuários autenticados
+CREATE POLICY "Enable insert for authenticated users only" ON extra_option_quantity_prices FOR INSERT WITH CHECK (auth.role() = 'authenticated');
+CREATE POLICY "Enable update for authenticated users only" ON extra_option_quantity_prices FOR UPDATE USING (auth.role() = 'authenticated');

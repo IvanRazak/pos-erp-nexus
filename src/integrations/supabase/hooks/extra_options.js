@@ -9,18 +9,42 @@ const fromSupabase = async (query) => {
 
 export const useExtraOption = (id) => useQuery({
   queryKey: ['extra_options', id],
-  queryFn: () => fromSupabase(supabase.from('extra_options').select('*').eq('id', id).single()),
+  queryFn: async () => {
+    const extraOption = await fromSupabase(supabase.from('extra_options').select('*').eq('id', id).single());
+    const quantityPrices = await fromSupabase(supabase.from('extra_option_quantity_prices').select('*').eq('extra_option_id', id));
+    return { ...extraOption, quantityPrices };
+  },
 });
 
 export const useExtraOptions = () => useQuery({
   queryKey: ['extra_options'],
-  queryFn: () => fromSupabase(supabase.from('extra_options').select('*'))
+  queryFn: async () => {
+    const extraOptions = await fromSupabase(supabase.from('extra_options').select('*'));
+    const quantityPrices = await fromSupabase(supabase.from('extra_option_quantity_prices').select('*'));
+    return extraOptions.map(option => ({
+      ...option,
+      quantityPrices: quantityPrices.filter(qp => qp.extra_option_id === option.id)
+    }));
+  }
 });
 
 export const useAddExtraOption = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (newExtraOption) => fromSupabase(supabase.from('extra_options').insert([newExtraOption])),
+    mutationFn: async (newExtraOption) => {
+      const { quantityPrices, ...extraOptionData } = newExtraOption;
+      const { data: extraOption, error } = await supabase.from('extra_options').insert([extraOptionData]).select().single();
+      if (error) throw error;
+
+      if (quantityPrices && quantityPrices.length > 0) {
+        const { error: quantityPricesError } = await supabase.from('extra_option_quantity_prices').insert(
+          quantityPrices.map(qp => ({ ...qp, extra_option_id: extraOption.id }))
+        );
+        if (quantityPricesError) throw quantityPricesError;
+      }
+
+      return extraOption;
+    },
     onSuccess: () => {
       queryClient.invalidateQueries(['extra_options']);
     },
@@ -30,7 +54,23 @@ export const useAddExtraOption = () => {
 export const useUpdateExtraOption = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ id, ...updateData }) => fromSupabase(supabase.from('extra_options').update(updateData).eq('id', id)),
+    mutationFn: async ({ id, ...updateData }) => {
+      const { quantityPrices, ...extraOptionData } = updateData;
+      const { data: extraOption, error } = await supabase.from('extra_options').update(extraOptionData).eq('id', id).select().single();
+      if (error) throw error;
+
+      if (quantityPrices) {
+        await supabase.from('extra_option_quantity_prices').delete().eq('extra_option_id', id);
+        if (quantityPrices.length > 0) {
+          const { error: quantityPricesError } = await supabase.from('extra_option_quantity_prices').insert(
+            quantityPrices.map(qp => ({ ...qp, extra_option_id: id }))
+          );
+          if (quantityPricesError) throw quantityPricesError;
+        }
+      }
+
+      return extraOption;
+    },
     onSuccess: () => {
       queryClient.invalidateQueries(['extra_options']);
     },
@@ -41,7 +81,7 @@ export const useDeleteExtraOption = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (id) => {
-      await supabase.from('order_item_extras').delete().eq('extra_option_id', id);
+      await supabase.from('extra_option_quantity_prices').delete().eq('extra_option_id', id);
       return fromSupabase(supabase.from('extra_options').delete().eq('id', id));
     },
     onSuccess: () => {
