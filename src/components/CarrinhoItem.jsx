@@ -1,23 +1,13 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { TableCell, TableRow } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
-import { getSheetPrice } from '../utils/productUtils';
 
 const CarrinhoItem = ({ item, onDelete, onEdit, onDescriptionChange, onUnitPriceChange, onQuantityChange }) => {
   const [editingUnitPrice, setEditingUnitPrice] = useState(false);
   const [tempUnitPrice, setTempUnitPrice] = useState(item.unitPrice);
   const [editingQuantity, setEditingQuantity] = useState(false);
   const [tempQuantity, setTempQuantity] = useState(item.quantidade);
-
-  useEffect(() => {
-    if (item.unit_type === 'sheets' && Array.isArray(item.sheet_prices)) {
-      const newPrice = getSheetPrice(item.sheet_prices, item.quantidade);
-      if (newPrice !== null && newPrice !== item.unitPrice) {
-        onUnitPriceChange(item, newPrice);
-      }
-    }
-  }, [item.quantidade, item.sheet_prices, item.unitPrice, item.unit_type, onUnitPriceChange]);
 
   const handleUnitPriceEdit = () => {
     if (editingUnitPrice) {
