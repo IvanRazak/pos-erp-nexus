@@ -34,12 +34,6 @@ const BuscarProdutoModal = ({ isOpen, onClose, onSelectProduto }) => {
 
       if (selectedProduct.unit_type === 'square_meter') {
         unitPrice = Math.max(selectedProduct.sale_price * calculatedM2, selectedProduct.valor_minimo || 0);
-      } else if (selectedProduct.unit_type === 'sheets' && Array.isArray(selectedProduct.sheet_prices)) {
-        // Encontrar o preço correto baseado na quantidade
-        const sheetPrice = selectedProduct.sheet_prices.find(
-          price => quantidade >= price.quantity
-        );
-        unitPrice = sheetPrice ? sheetPrice.price : selectedProduct.sale_price;
       }
 
       onSelectProduto({

@@ -127,27 +127,18 @@ const Venda = () => {
       status: saldoRestante > 0 ? 'partial_payment' : 'in_production',
       delivery_date: format(dataEntrega, 'yyyy-MM-dd'),
       payment_option: opcaoPagamento,
-      items: carrinho.map(item => {
-        let updatedUnitPrice = item.unitPrice;
-        if (item.unit_type === 'sheets') {
-          const sheetPrice = item.sheet_prices.find(
-            price => item.quantidade >= price.quantity
-          );
-          updatedUnitPrice = sheetPrice ? sheetPrice.price : item.sale_price;
-        }
-        return {
-          product_id: item.id,
-          quantity: item.quantidade,
-          unit_price: updatedUnitPrice,
-          extras: item.extras,
-          width: item.largura,
-          height: item.altura,
-          m2: item.m2,
-          cartItemId: item.cartItemId,
-          description: item.description,
-          arte_option: item.arteOption || null,
-        };
-      }),
+      items: carrinho.map(item => ({
+        product_id: item.id,
+        quantity: item.quantidade,
+        unit_price: item.unitPrice || item.sale_price,
+        extras: item.extras,
+        width: item.largura,
+        height: item.altura,
+        m2: item.m2,
+        cartItemId: item.cartItemId,
+        description: item.description,
+        arte_option: item.arteOption || null,
+      })),
       created_by: user.username,
       discount: parseFloat(desconto) || 0,
       additional_value: parseFloat(valorAdicional) || 0,
@@ -203,18 +194,10 @@ const Venda = () => {
   const updateItemQuantity = (item, newQuantity) => {
     setCarrinho(carrinho.map(cartItem => {
       if (cartItem === item) {
-        let updatedUnitPrice = cartItem.unitPrice;
-        if (cartItem.unit_type === 'sheets') {
-          const sheetPrice = cartItem.sheet_prices.find(
-            price => newQuantity >= price.quantity
-          );
-          updatedUnitPrice = sheetPrice ? sheetPrice.price : cartItem.sale_price;
-        }
         const updatedItem = {
           ...cartItem,
           quantidade: newQuantity,
-          unitPrice: updatedUnitPrice,
-          total: calcularTotalItem({ ...cartItem, quantidade: newQuantity, unitPrice: updatedUnitPrice }, cartItem.extras)
+          total: calcularTotalItem({ ...cartItem, quantidade: newQuantity }, cartItem.extras)
         };
         return updatedItem;
       }
