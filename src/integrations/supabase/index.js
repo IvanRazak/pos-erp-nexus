@@ -44,10 +44,14 @@ export const {
   useAddExtraOption,
   useUpdateExtraOption,
   useDeleteExtraOption,
-  useSelectionOptions, // Add this line to export useSelectionOptions
+  useSelectionOptions,
   useAddSelectionOption,
   useUpdateSelectionOption,
   useDeleteSelectionOption,
+  useExtraOptionQuantityPrices,
+  useAddExtraOptionQuantityPrice,
+  useUpdateExtraOptionQuantityPrice,
+  useDeleteExtraOptionQuantityPrice,
 } = extraOptionsHooks;
 
 export const {
