@@ -11,7 +11,7 @@ const ExtraOptionForm = ({ extraOption = {}, onSave, onDelete }) => {
   const [localOption, setLocalOption] = useState(extraOption);
   const [isSelectionModalOpen, setIsSelectionModalOpen] = useState(false);
   const { data: selectionOptions } = useSelectionOptions();
-  const [quantityPrices, setQuantityPrices] = useState(extraOption.quantity_prices || [
+  const [quantityPrices, setQuantityPrices] = useState(extraOption.quantityPrices || [
     { quantity: 1, price: 0 },
     { quantity: 100, price: 0 },
     { quantity: 500, price: 0 },
@@ -29,7 +29,7 @@ const ExtraOptionForm = ({ extraOption = {}, onSave, onDelete }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    onSave({ ...localOption, quantity_prices: quantityPrices });
+    onSave({ ...localOption, quantityPrices });
   };
 
   const handleSelectionOptionsSave = (selectedOptions) => {
