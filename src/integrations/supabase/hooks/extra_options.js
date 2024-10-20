@@ -84,3 +84,38 @@ export const useDeleteSelectionOption = () => {
     },
   });
 };
+
+export const useExtraOptionQuantityPrices = (extraOptionId) => useQuery({
+  queryKey: ['extra_option_quantity_prices', extraOptionId],
+  queryFn: () => fromSupabase(supabase.from('extra_option_quantity_prices').select('*').eq('extra_option_id', extraOptionId).order('quantity', { ascending: true })),
+});
+
+export const useAddExtraOptionQuantityPrice = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (newQuantityPrice) => fromSupabase(supabase.from('extra_option_quantity_prices').insert([newQuantityPrice])),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries(['extra_option_quantity_prices', variables.extra_option_id]);
+    },
+  });
+};
+
+export const useUpdateExtraOptionQuantityPrice = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, ...updateData }) => fromSupabase(supabase.from('extra_option_quantity_prices').update(updateData).eq('id', id)),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries(['extra_option_quantity_prices', variables.extra_option_id]);
+    },
+  });
+};
+
+export const useDeleteExtraOptionQuantityPrice = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id) => fromSupabase(supabase.from('extra_option_quantity_prices').delete().eq('id', id)),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries(['extra_option_quantity_prices', variables.extra_option_id]);
+    },
+  });
+};
