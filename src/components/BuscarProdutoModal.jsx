@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useProducts } from '../integrations/supabase';
+import { getSheetPrice } from '../utils/productUtils';
 
 const BuscarProdutoModal = ({ isOpen, onClose, onSelectProduto }) => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -34,6 +35,8 @@ const BuscarProdutoModal = ({ isOpen, onClose, onSelectProduto }) => {
 
       if (selectedProduct.unit_type === 'square_meter') {
         unitPrice = Math.max(selectedProduct.sale_price * calculatedM2, selectedProduct.valor_minimo || 0);
+      } else if (selectedProduct.unit_type === 'sheets') {
+        unitPrice = getSheetPrice(selectedProduct, quantidade);
       }
 
       onSelectProduto({

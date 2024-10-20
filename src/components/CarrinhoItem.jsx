@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { TableCell, TableRow } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
+import { getSheetPrice } from '../utils/productUtils';
 
 const CarrinhoItem = ({ item, onDelete, onEdit, onDescriptionChange, onUnitPriceChange, onQuantityChange }) => {
   const [editingUnitPrice, setEditingUnitPrice] = useState(false);
@@ -20,7 +21,11 @@ const CarrinhoItem = ({ item, onDelete, onEdit, onDescriptionChange, onUnitPrice
     if (editingQuantity) {
       const newQuantity = parseInt(tempQuantity, 10);
       if (newQuantity !== item.quantidade) {
-        onQuantityChange(item, newQuantity);
+        let newUnitPrice = item.unitPrice;
+        if (item.unit_type === 'sheets') {
+          newUnitPrice = getSheetPrice(item, newQuantity);
+        }
+        onQuantityChange(item, newQuantity, newUnitPrice);
       }
     }
     setEditingQuantity(!editingQuantity);
@@ -53,22 +58,18 @@ const CarrinhoItem = ({ item, onDelete, onEdit, onDescriptionChange, onUnitPrice
       <TableCell>{item.largura && item.altura ? `${item.largura}m x ${item.altura}m` : 'N/A'}</TableCell>
       <TableCell>{item.m2 ? `${item.m2.toFixed(2)}m²` : 'N/A'}</TableCell>
       <TableCell>
-        {item.unit_type === 'square_meter' ? (
-          editingUnitPrice ? (
-            <Input
-              type="number"
-              value={tempUnitPrice}
-              onChange={(e) => setTempUnitPrice(e.target.value)}
-              onBlur={handleUnitPriceEdit}
-              className="w-24"
-            />
-          ) : (
-            <span onClick={handleUnitPriceEdit} className="cursor-pointer">
-              R$ {item.unitPrice.toFixed(2)}
-            </span>
-          )
+        {editingUnitPrice ? (
+          <Input
+            type="number"
+            value={tempUnitPrice}
+            onChange={(e) => setTempUnitPrice(e.target.value)}
+            onBlur={handleUnitPriceEdit}
+            className="w-24"
+          />
         ) : (
-          `R$ ${item.unitPrice.toFixed(2)}`
+          <span onClick={handleUnitPriceEdit} className="cursor-pointer">
+            R$ {item.unitPrice.toFixed(2)}
+          </span>
         )}
       </TableCell>
       <TableCell>

@@ -182,22 +182,23 @@ const Venda = () => {
     }));
   };
 
-  const handleQuantityChange = (item, newQuantity) => {
+  const handleQuantityChange = (item, newQuantity, newUnitPrice) => {
     if (newQuantity > 1 && newQuantity !== item.quantidade) {
-      setItemToUpdateArte({ ...item, quantidade: newQuantity });
+      setItemToUpdateArte({ ...item, quantidade: newQuantity, unitPrice: newUnitPrice });
       setIsArteModalOpen(true);
     } else {
-      updateItemQuantity(item, newQuantity);
+      updateItemQuantity(item, newQuantity, newUnitPrice);
     }
   };
 
-  const updateItemQuantity = (item, newQuantity) => {
+  const updateItemQuantity = (item, newQuantity, newUnitPrice) => {
     setCarrinho(carrinho.map(cartItem => {
       if (cartItem === item) {
         const updatedItem = {
           ...cartItem,
           quantidade: newQuantity,
-          total: calcularTotalItem({ ...cartItem, quantidade: newQuantity }, cartItem.extras)
+          unitPrice: newUnitPrice,
+          total: calcularTotalItem({ ...cartItem, quantidade: newQuantity, unitPrice: newUnitPrice }, cartItem.extras)
         };
         return updatedItem;
       }
