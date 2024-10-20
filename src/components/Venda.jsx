@@ -12,6 +12,7 @@ import VendaHeader from './VendaHeader';
 import ArteModal from './ArteModal';
 import { calcularTotalItem, calcularTotal, resetCarrinho } from '../utils/vendaUtils';
 import { handleNewClientSuccess, handleSelectCliente, handleSelectProduto } from '../utils/clientUtils';
+import { getSheetPrice } from '../utils/productUtils';
 
 const Venda = () => {
   const navigate = useNavigate();
@@ -194,10 +195,18 @@ const Venda = () => {
   const updateItemQuantity = (item, newQuantity) => {
     setCarrinho(carrinho.map(cartItem => {
       if (cartItem === item) {
+        let newUnitPrice = cartItem.unitPrice;
+        if (cartItem.unit_type === 'sheets' && Array.isArray(cartItem.sheet_prices)) {
+          const sheetPrice = getSheetPrice(cartItem.sheet_prices, newQuantity);
+          if (sheetPrice !== null) {
+            newUnitPrice = sheetPrice;
+          }
+        }
         const updatedItem = {
           ...cartItem,
           quantidade: newQuantity,
-          total: calcularTotalItem({ ...cartItem, quantidade: newQuantity }, cartItem.extras)
+          unitPrice: newUnitPrice,
+          total: calcularTotalItem({ ...cartItem, quantidade: newQuantity, unitPrice: newUnitPrice }, cartItem.extras)
         };
         return updatedItem;
       }
