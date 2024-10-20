@@ -64,6 +64,18 @@ const ExtraOptionForm = ({ extraOption = {}, onSave, onDelete }) => {
           <SelectItem value="checkbox">Checkbox</SelectItem>
         </SelectContent>
       </Select>
+      <Select
+        value={localOption.unit_type || ''}
+        onValueChange={(value) => setLocalOption(prev => ({ ...prev, unit_type: value }))}
+      >
+        <SelectTrigger>
+          <SelectValue placeholder="Tipo de Unidade" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="unit">Unidade</SelectItem>
+          <SelectItem value="square_meter">Metro Quadrado</SelectItem>
+        </SelectContent>
+      </Select>
       {localOption.type !== 'select' && (
         <>
           <Input
