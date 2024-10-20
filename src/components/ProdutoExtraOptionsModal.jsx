@@ -1,11 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { useSelectionOptions } from '../integrations/supabase/hooks/extra_options';
-import { getExtraOptionPrice } from '../utils/productUtils';
 
 const ProdutoExtraOptionsModal = ({ produto, opcoesExtras, onClose, onConfirm }) => {
   const [extrasEscolhidas, setExtrasEscolhidas] = useState([]);
@@ -15,37 +14,34 @@ const ProdutoExtraOptionsModal = ({ produto, opcoesExtras, onClose, onConfirm })
     produto.extra_options?.includes(opcao.id)
   );
 
-  const handleExtraChange = async (extra, value) => {
-    const updatedExtras = [...extrasEscolhidas];
-    const existingIndex = updatedExtras.findIndex(item => item.id === extra.id);
-
-    if (existingIndex !== -1) {
-      if (value === null || value === undefined) {
-        updatedExtras.splice(existingIndex, 1);
-      } else {
-        updatedExtras[existingIndex] = await calculateExtraPrice(extra, value);
+  const handleExtraChange = (extra, value) => {
+    setExtrasEscolhidas(prev => {
+      const existingIndex = prev.findIndex(item => item.id === extra.id);
+      if (existingIndex !== -1) {
+        const updatedExtras = [...prev];
+        if (value === null || value === undefined) {
+          updatedExtras.splice(existingIndex, 1);
+        } else {
+          updatedExtras[existingIndex] = calculateExtraPrice(extra, value);
+        }
+        return updatedExtras;
+      } else if (value !== null && value !== undefined) {
+        return [...prev, calculateExtraPrice(extra, value)];
       }
-    } else if (value !== null && value !== undefined) {
-      updatedExtras.push(await calculateExtraPrice(extra, value));
-    }
-
-    setExtrasEscolhidas(updatedExtras);
+      return prev;
+    });
   };
 
-  const calculateExtraPrice = async (extra, value) => {
-    let totalPrice = 0;
+  const calculateExtraPrice = (extra, value) => {
+    let totalPrice = extra.price ?? 0;
     let selectedOptionName = '';
-
     if (extra.type === 'select') {
       const selectedOption = selectionOptions?.find(so => so.id === value);
-      totalPrice = selectedOption?.value ?? 0;
+      totalPrice += selectedOption?.value ?? 0;
       selectedOptionName = selectedOption?.name ?? '';
-    } else {
-      const quantity = extra.type === 'number' ? parseFloat(value) : 1;
-      const price = await getExtraOptionPrice(extra.id, quantity);
-      totalPrice = price * quantity;
+    } else if (extra.type === 'number') {
+      totalPrice *= parseFloat(value);
     }
-
     return { ...extra, value, totalPrice, selectedOptionName };
   };
 

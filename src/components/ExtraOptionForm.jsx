@@ -1,9 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import SelectionOptionsModal from './SelectionOptionsModal';
 import { useSelectionOptions } from '../integrations/supabase';
 
@@ -11,13 +10,6 @@ const ExtraOptionForm = ({ extraOption = {}, onSave, onDelete }) => {
   const [localOption, setLocalOption] = useState(extraOption);
   const [isSelectionModalOpen, setIsSelectionModalOpen] = useState(false);
   const { data: selectionOptions } = useSelectionOptions();
-  const [quantityPrices, setQuantityPrices] = useState(extraOption.quantityPrices || [
-    { quantity: 1, price: 0 },
-    { quantity: 100, price: 0 },
-    { quantity: 500, price: 0 },
-    { quantity: 1000, price: 0 },
-    { quantity: 5000, price: 0 },
-  ]);
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -29,17 +21,11 @@ const ExtraOptionForm = ({ extraOption = {}, onSave, onDelete }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    onSave({ ...localOption, quantityPrices });
+    onSave(localOption);
   };
 
   const handleSelectionOptionsSave = (selectedOptions) => {
     setLocalOption(prev => ({ ...prev, selection_options: selectedOptions }));
-  };
-
-  const handleQuantityPriceChange = (index, field, value) => {
-    const newQuantityPrices = [...quantityPrices];
-    newQuantityPrices[index][field] = field === 'quantity' ? parseInt(value, 10) : parseFloat(value);
-    setQuantityPrices(newQuantityPrices);
   };
 
   return (
@@ -64,64 +50,16 @@ const ExtraOptionForm = ({ extraOption = {}, onSave, onDelete }) => {
           <SelectItem value="checkbox">Checkbox</SelectItem>
         </SelectContent>
       </Select>
-      <Select
-        value={localOption.unit_type || ''}
-        onValueChange={(value) => setLocalOption(prev => ({ ...prev, unit_type: value }))}
-      >
-        <SelectTrigger>
-          <SelectValue placeholder="Tipo de Unidade" />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="unit">Unidade</SelectItem>
-          <SelectItem value="square_meter">Metro Quadrado</SelectItem>
-        </SelectContent>
-      </Select>
       {localOption.type !== 'select' && (
-        <>
-          <Input
-            name="price"
-            type="number"
-            step="0.01"
-            value={localOption.price || ''}
-            onChange={handleChange}
-            placeholder="Preço base"
-            required
-          />
-          <details>
-            <summary className="cursor-pointer font-semibold mb-2">Tabela de Preços por Quantidade</summary>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Quantidade</TableHead>
-                  <TableHead>Preço</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {quantityPrices.map((price, index) => (
-                  <TableRow key={index}>
-                    <TableCell>
-                      <Input
-                        type="number"
-                        value={price.quantity}
-                        onChange={(e) => handleQuantityPriceChange(index, 'quantity', e.target.value)}
-                        min="1"
-                      />
-                    </TableCell>
-                    <TableCell>
-                      <Input
-                        type="number"
-                        value={price.price}
-                        onChange={(e) => handleQuantityPriceChange(index, 'price', e.target.value)}
-                        step="0.01"
-                        min="0"
-                      />
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </details>
-        </>
+        <Input
+          name="price"
+          type="number"
+          step="0.01"
+          value={localOption.price || ''}
+          onChange={handleChange}
+          placeholder="Preço"
+          required
+        />
       )}
       {localOption.type === 'select' && (
         <Button type="button" onClick={() => setIsSelectionModalOpen(true)}>
