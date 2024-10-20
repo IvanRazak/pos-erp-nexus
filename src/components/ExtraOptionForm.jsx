@@ -1,34 +1,15 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import SelectionOptionsModal from './SelectionOptionsModal';
-import { useSelectionOptions, useExtraOptionQuantityPrices, useAddExtraOptionQuantityPrice, useUpdateExtraOptionQuantityPrice, useDeleteExtraOptionQuantityPrice } from '../integrations/supabase';
+import { useSelectionOptions } from '../integrations/supabase';
 
 const ExtraOptionForm = ({ extraOption = {}, onSave, onDelete }) => {
   const [localOption, setLocalOption] = useState(extraOption);
   const [isSelectionModalOpen, setIsSelectionModalOpen] = useState(false);
   const { data: selectionOptions } = useSelectionOptions();
-  const { data: quantityPrices } = useExtraOptionQuantityPrices(extraOption.id);
-  const [localQuantityPrices, setLocalQuantityPrices] = useState([
-    { quantity: 1, price: 0 },
-    { quantity: 100, price: 0 },
-    { quantity: 500, price: 0 },
-    { quantity: 1000, price: 0 },
-    { quantity: 5000, price: 0 },
-  ]);
-
-  const addExtraOptionQuantityPrice = useAddExtraOptionQuantityPrice();
-  const updateExtraOptionQuantityPrice = useUpdateExtraOptionQuantityPrice();
-  const deleteExtraOptionQuantityPrice = useDeleteExtraOptionQuantityPrice();
-
-  useEffect(() => {
-    if (quantityPrices && quantityPrices.length > 0) {
-      setLocalQuantityPrices(quantityPrices);
-    }
-  }, [quantityPrices]);
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -38,41 +19,13 @@ const ExtraOptionForm = ({ extraOption = {}, onSave, onDelete }) => {
     }));
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
-    const savedOption = await onSave(localOption);
-    if (savedOption && savedOption.id) {
-      await handleSaveQuantityPrices(savedOption.id);
-    }
+    onSave(localOption);
   };
 
   const handleSelectionOptionsSave = (selectedOptions) => {
     setLocalOption(prev => ({ ...prev, selection_options: selectedOptions }));
-  };
-
-  const handleQuantityPriceChange = (index, field, value) => {
-    const newQuantityPrices = [...localQuantityPrices];
-    newQuantityPrices[index][field] = field === 'quantity' ? parseInt(value, 10) : parseFloat(value);
-    setLocalQuantityPrices(newQuantityPrices);
-  };
-
-  const handleSaveQuantityPrices = async (extraOptionId) => {
-    for (const quantityPrice of localQuantityPrices) {
-      if (quantityPrice.id) {
-        await updateExtraOptionQuantityPrice.mutateAsync({
-          id: quantityPrice.id,
-          extra_option_id: extraOptionId,
-          quantity: quantityPrice.quantity,
-          price: quantityPrice.price,
-        });
-      } else {
-        await addExtraOptionQuantityPrice.mutateAsync({
-          extra_option_id: extraOptionId,
-          quantity: quantityPrice.quantity,
-          price: quantityPrice.price,
-        });
-      }
-    }
   };
 
   return (
@@ -131,42 +84,6 @@ const ExtraOptionForm = ({ extraOption = {}, onSave, onDelete }) => {
         />
         <label htmlFor="required">Obrigatório</label>
       </div>
-      {(localOption.type === 'number' || localOption.type === 'checkbox') && (
-        <div>
-          <h4 className="font-semibold mb-2">Tabela de Preços por Quantidade</h4>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Quantidade</TableHead>
-                <TableHead>Preço</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {localQuantityPrices.map((price, index) => (
-                <TableRow key={index}>
-                  <TableCell>
-                    <Input
-                      type="number"
-                      value={price.quantity}
-                      onChange={(e) => handleQuantityPriceChange(index, 'quantity', e.target.value)}
-                      min="1"
-                    />
-                  </TableCell>
-                  <TableCell>
-                    <Input
-                      type="number"
-                      value={price.price}
-                      onChange={(e) => handleQuantityPriceChange(index, 'price', e.target.value)}
-                      step="0.01"
-                      min="0"
-                    />
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
-      )}
       <div className="flex justify-between">
         <Button type="submit">{extraOption.id ? 'Atualizar' : 'Adicionar'}</Button>
         {extraOption.id && (

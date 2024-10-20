@@ -23,17 +23,18 @@ const GerenciarOpcoesExtras = ({ isOpen, onClose }) => {
     option.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const handleSaveExtraOption = async (extraOption) => {
+  const handleSaveExtraOption = (extraOption) => {
     const saveFunction = extraOption.id ? updateExtraOption : addExtraOption;
-    try {
-      const { data } = await saveFunction.mutateAsync(extraOption);
-      toast({ title: `Opção extra ${extraOption.id ? 'atualizada' : 'cadastrada'} com sucesso!` });
-      setEditingOption(null);
-      refetch();
-      return data;
-    } catch (error) {
-      toast({ title: `Erro ao ${extraOption.id ? 'atualizar' : 'cadastrar'} opção extra`, description: error.message, variant: "destructive" });
-    }
+    saveFunction.mutate(extraOption, {
+      onSuccess: () => {
+        toast({ title: `Opção extra ${extraOption.id ? 'atualizada' : 'cadastrada'} com sucesso!` });
+        setEditingOption(null);
+        refetch();
+      },
+      onError: (error) => {
+        toast({ title: `Erro ao ${extraOption.id ? 'atualizar' : 'cadastrar'} opção extra`, description: error.message, variant: "destructive" });
+      }
+    });
   };
 
   const handleDeleteExtraOption = (id) => {
