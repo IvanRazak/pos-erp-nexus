@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useProducts } from '../integrations/supabase';
+import { getSheetPrice } from '../utils/productUtils';
 
 const BuscarProdutoModal = ({ isOpen, onClose, onSelectProduto }) => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -27,13 +28,18 @@ const BuscarProdutoModal = ({ isOpen, onClose, onSelectProduto }) => {
     setM2(0);
   };
 
-  const handleConfirm = () => {
+  const handleConfirm = async () => {
     if (selectedProduct) {
       const calculatedM2 = parseFloat(m2) || 0;
       let unitPrice = selectedProduct.sale_price;
 
       if (selectedProduct.unit_type === 'square_meter') {
         unitPrice = Math.max(selectedProduct.sale_price * calculatedM2, selectedProduct.valor_minimo || 0);
+      } else if (selectedProduct.unit_type === 'sheets') {
+        const sheetPrice = await getSheetPrice(selectedProduct.id, quantidade);
+        if (sheetPrice) {
+          unitPrice = sheetPrice;
+        }
       }
 
       onSelectProduto({

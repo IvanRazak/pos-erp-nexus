@@ -12,6 +12,7 @@ import VendaHeader from './VendaHeader';
 import ArteModal from './ArteModal';
 import { calcularTotalItem, calcularTotal, resetCarrinho } from '../utils/vendaUtils';
 import { handleNewClientSuccess, handleSelectCliente, handleSelectProduto } from '../utils/clientUtils';
+import { getSheetPrice } from '../utils/productUtils';
 
 const Venda = () => {
   const navigate = useNavigate();
@@ -168,7 +169,7 @@ const Venda = () => {
     ));
   };
 
-  const handleUnitPriceChange = (item, newUnitPrice) => {
+  const handleUnitPriceChange = async (item, newUnitPrice) => {
     setCarrinho(carrinho.map(cartItem => {
       if (cartItem === item) {
         const updatedItem = {
@@ -182,22 +183,31 @@ const Venda = () => {
     }));
   };
 
-  const handleQuantityChange = (item, newQuantity) => {
+  const handleQuantityChange = async (item, newQuantity) => {
     if (newQuantity > 1 && newQuantity !== item.quantidade) {
       setItemToUpdateArte({ ...item, quantidade: newQuantity });
       setIsArteModalOpen(true);
     } else {
-      updateItemQuantity(item, newQuantity);
+      await updateItemQuantity(item, newQuantity);
     }
   };
 
-  const updateItemQuantity = (item, newQuantity) => {
+  const updateItemQuantity = async (item, newQuantity) => {
+    let newUnitPrice = item.unitPrice;
+    if (item.unit_type === 'sheets') {
+      const sheetPrice = await getSheetPrice(item.id, newQuantity);
+      if (sheetPrice) {
+        newUnitPrice = sheetPrice;
+      }
+    }
+
     setCarrinho(carrinho.map(cartItem => {
       if (cartItem === item) {
         const updatedItem = {
           ...cartItem,
           quantidade: newQuantity,
-          total: calcularTotalItem({ ...cartItem, quantidade: newQuantity }, cartItem.extras)
+          unitPrice: newUnitPrice,
+          total: calcularTotalItem({ ...cartItem, quantidade: newQuantity, unitPrice: newUnitPrice }, cartItem.extras)
         };
         return updatedItem;
       }

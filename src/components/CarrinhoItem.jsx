@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { TableCell, TableRow } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
+import { getSheetPrice } from '../utils/productUtils';
 
 const CarrinhoItem = ({ item, onDelete, onEdit, onDescriptionChange, onUnitPriceChange, onQuantityChange }) => {
   const [editingUnitPrice, setEditingUnitPrice] = useState(false);
@@ -31,6 +32,19 @@ const CarrinhoItem = ({ item, onDelete, onEdit, onDescriptionChange, onUnitPrice
     const extrasTotal = item.extras.reduce((sum, extra) => sum + (extra.totalPrice || 0), 0);
     return basePrice + extrasTotal * item.quantidade;
   };
+
+  useEffect(() => {
+    const updateSheetPrice = async () => {
+      if (item.unit_type === 'sheets') {
+        const newPrice = await getSheetPrice(item.id, item.quantidade);
+        if (newPrice && newPrice !== item.unitPrice) {
+          onUnitPriceChange(item, newPrice);
+        }
+      }
+    };
+
+    updateSheetPrice();
+  }, [item.quantidade]);
 
   return (
     <TableRow>
