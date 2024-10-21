@@ -14,17 +14,19 @@ const fromSupabase = async (query) => {
 export const useExtraOption = (id) => useQuery({
   queryKey: ['extra_options', id],
   queryFn: async () => {
+    // Consulta a opção extra
     const extraOption = await fromSupabase(
       supabase.from('extra_options').select('*').eq('id', id).single()
     );
+    // Consulta os preços por quantidade
     const quantityPrices = await fromSupabase(
       supabase.from('extra_option_quantity_prices')
-        .select('quantity, price')
-        .eq('extra_option_id', id)
-        .order('quantity', { ascending: true })
+        .select('quantity, price') // Obtém as colunas quantity e price
+        .eq('extra_option_id', id)  // Filtra pelos preços relacionados à extra_option
+        .order('quantity', { ascending: true }) // Ordena por quantidade
     );
+    
+    // Retorna a opção extra com os preços por quantidade
     return { ...extraOption, quantityPrices };
   },
 });
-
-// Adicionar novas funções e mutações segue aqui como no original...
