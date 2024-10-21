@@ -12,7 +12,12 @@ export const useExtraOption = (id) => useQuery({
   queryFn: async () => {
     const extraOption = await fromSupabase(supabase.from('extra_options').select('*').eq('id', id).single());
     if (extraOption.use_quantity_pricing) {
-      const quantityPrices = await fromSupabase(supabase.from('extra_option_quantity_prices').select('*').eq('extra_option_id', id));
+      const quantityPrices = await fromSupabase(
+        supabase.from('extra_option_quantity_prices')
+          .select('*')
+          .eq('extra_option_id', id)
+          .order('quantity', { ascending: true })
+      );
       extraOption.quantityPrices = quantityPrices;
     }
     return extraOption;

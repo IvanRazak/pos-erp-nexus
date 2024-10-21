@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import SelectionOptionsModal from './SelectionOptionsModal';
 import { useSelectionOptions } from '../integrations/supabase';
 
@@ -20,16 +21,10 @@ const ExtraOptionForm = ({ extraOption = {}, onSave, onDelete }) => {
   ]);
 
   useEffect(() => {
-    if (extraOption.id) {
-      // Fetch quantity prices if they exist
-      fetchQuantityPrices(extraOption.id);
+    if (extraOption.id && extraOption.use_quantity_pricing) {
+      setQuantityPrices(extraOption.quantityPrices || []);
     }
-  }, [extraOption.id]);
-
-  const fetchQuantityPrices = async (extraOptionId) => {
-    // Implement this function to fetch quantity prices from the database
-    // and update the quantityPrices state
-  };
+  }, [extraOption]);
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -52,6 +47,14 @@ const ExtraOptionForm = ({ extraOption = {}, onSave, onDelete }) => {
     const newQuantityPrices = [...quantityPrices];
     newQuantityPrices[index][field] = field === 'quantity' ? parseInt(value, 10) : parseFloat(value);
     setQuantityPrices(newQuantityPrices);
+  };
+
+  const addQuantityPrice = () => {
+    setQuantityPrices([...quantityPrices, { quantity: 0, price: 0 }]);
+  };
+
+  const removeQuantityPrice = (index) => {
+    setQuantityPrices(quantityPrices.filter((_, i) => i !== index));
   };
 
   return (
@@ -88,37 +91,45 @@ const ExtraOptionForm = ({ extraOption = {}, onSave, onDelete }) => {
             <label htmlFor="use_quantity_pricing">Usar preços por quantidade</label>
           </div>
           {localOption.use_quantity_pricing ? (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Quantidade</TableHead>
-                  <TableHead>Preço</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {quantityPrices.map((price, index) => (
-                  <TableRow key={index}>
-                    <TableCell>
-                      <Input
-                        type="number"
-                        value={price.quantity}
-                        onChange={(e) => handleQuantityPriceChange(index, 'quantity', e.target.value)}
-                        min="1"
-                      />
-                    </TableCell>
-                    <TableCell>
-                      <Input
-                        type="number"
-                        value={price.price}
-                        onChange={(e) => handleQuantityPriceChange(index, 'price', e.target.value)}
-                        min="0"
-                        step="0.01"
-                      />
-                    </TableCell>
+            <ScrollArea className="h-[200px]">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Quantidade</TableHead>
+                    <TableHead>Preço</TableHead>
+                    <TableHead>Ações</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                </TableHeader>
+                <TableBody>
+                  {quantityPrices.map((price, index) => (
+                    <TableRow key={index}>
+                      <TableCell>
+                        <Input
+                          type="number"
+                          value={price.quantity}
+                          onChange={(e) => handleQuantityPriceChange(index, 'quantity', e.target.value)}
+                          min="1"
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <Input
+                          type="number"
+                          value={price.price}
+                          onChange={(e) => handleQuantityPriceChange(index, 'price', e.target.value)}
+                          min="0"
+                          step="0.01"
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <Button type="button" onClick={() => removeQuantityPrice(index)} variant="destructive">
+                          Remover
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </ScrollArea>
           ) : (
             <Input
               name="price"
@@ -129,6 +140,11 @@ const ExtraOptionForm = ({ extraOption = {}, onSave, onDelete }) => {
               placeholder="Preço"
               required
             />
+          )}
+          {localOption.use_quantity_pricing && (
+            <Button type="button" onClick={addQuantityPrice}>
+              Adicionar Nível de Preço
+            </Button>
           )}
         </div>
       )}
