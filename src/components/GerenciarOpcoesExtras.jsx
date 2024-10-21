@@ -3,7 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { useExtraOptions, useSelectionOptions, useAddExtraOption, useUpdateExtraOption, useDeleteExtraOption } from '../integrations/supabase';
+import { useExtraOptions, useSelectionOptions, useAddExtraOption, useUpdateExtraOption, useDeleteExtraOption, useExtraOption } from '../integrations/supabase';
 import { toast } from "@/components/ui/use-toast";
 import ExtraOptionForm from './ExtraOptionForm';
 import SelectOptionsModal from './SelectOptionsModal';
@@ -63,6 +63,11 @@ const GerenciarOpcoesExtras = ({ isOpen, onClose }) => {
     }
   };
 
+  const handleEditOption = async (option) => {
+    const { data: fullOption } = await useExtraOption(option.id);
+    setEditingOption(fullOption);
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-4xl">
@@ -80,7 +85,7 @@ const GerenciarOpcoesExtras = ({ isOpen, onClose }) => {
             {filteredOptions?.map((option) => (
               <div key={option.id} className="flex justify-between items-center p-2 bg-gray-100 rounded">
                 <span>{option.name} - {option.type === 'select' ? 'Seleção' : `R$ ${option.price?.toFixed(2)}`}</span>
-                <Button onClick={() => setEditingOption(option)}>Editar</Button>
+                <Button onClick={() => handleEditOption(option)}>Editar</Button>
               </div>
             ))}
           </div>
