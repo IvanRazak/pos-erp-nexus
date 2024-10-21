@@ -11,16 +11,13 @@ export const useExtraOption = (id) => useQuery({
   queryKey: ['extra_options', id],
   queryFn: async () => {
     const extraOption = await fromSupabase(supabase.from('extra_options').select('*').eq('id', id).single());
-    if (extraOption.use_quantity_pricing) {
-      const quantityPrices = await fromSupabase(
-        supabase.from('extra_option_quantity_prices')
-          .select('*')
-          .eq('extra_option_id', id)
-          .order('quantity', { ascending: true })
-      );
-      extraOption.quantityPrices = quantityPrices;
-    }
-    return extraOption;
+    const quantityPrices = await fromSupabase(
+      supabase.from('extra_option_quantity_prices')
+        .select('quantity, price')
+        .eq('extra_option_id', id)
+        .order('quantity', { ascending: true })
+    );
+    return { ...extraOption, quantityPrices };
   },
 });
 
@@ -65,7 +62,7 @@ export const useUpdateExtraOption = () => {
       
       if (extraOption.use_quantity_pricing) {
         await supabase.from('extra_option_quantity_prices').delete().eq('extra_option_id', id);
-        if (quantityPrices) {
+        if (quantityPrices && quantityPrices.length > 0) {
           const quantityPricesData = quantityPrices.map(price => ({
             extra_option_id: id,
             quantity: price.quantity,
@@ -78,8 +75,9 @@ export const useUpdateExtraOption = () => {
       
       return extraOption;
     },
-    onSuccess: () => {
+    onSuccess: (data, variables) => {
       queryClient.invalidateQueries(['extra_options']);
+      queryClient.invalidateQueries(['extra_options', variables.id]);
     },
   });
 };
