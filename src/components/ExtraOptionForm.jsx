@@ -12,17 +12,19 @@ const ExtraOptionForm = ({ extraOption = {}, onSave, onDelete }) => {
   const [localOption, setLocalOption] = useState(extraOption);
   const [isSelectionModalOpen, setIsSelectionModalOpen] = useState(false);
   const { data: selectionOptions } = useSelectionOptions();
-  const [quantityPrices, setQuantityPrices] = useState([
-    { quantity: 1, price: 0 },
-    { quantity: 100, price: 0 },
-    { quantity: 500, price: 0 },
-    { quantity: 1000, price: 0 },
-    { quantity: 5000, price: 0 },
-  ]);
+  const [quantityPrices, setQuantityPrices] = useState([]);
 
   useEffect(() => {
     if (extraOption.id && extraOption.use_quantity_pricing) {
       setQuantityPrices(extraOption.quantityPrices || []);
+    } else {
+      setQuantityPrices([
+        { quantity: 1, price: 0 },
+        { quantity: 100, price: 0 },
+        { quantity: 500, price: 0 },
+        { quantity: 1000, price: 0 },
+        { quantity: 5000, price: 0 },
+      ]);
     }
   }, [extraOption]);
 
