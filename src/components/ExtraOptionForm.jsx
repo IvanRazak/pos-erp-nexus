@@ -8,11 +8,18 @@ const ExtraOptionForm = ({ extraOption = {}, onSave, onDelete }) => {
   const [localOption, setLocalOption] = useState(extraOption);
   const [quantityPrices, setQuantityPrices] = useState(extraOption.quantityPrices || []);
 
-  // Atualiza os estados locais quando o extraOption muda
+  // Log para verificar se os dados estão sendo recebidos corretamente
+  console.log("ExtraOption Recebida:", extraOption);
+  console.log("Quantity Prices Recebidos:", extraOption.quantityPrices);
+
+  // Atualiza os estados locais quando o extraOption mudar
   useEffect(() => {
     setLocalOption(extraOption);
-    setQuantityPrices(extraOption.quantityPrices || []);  // Preenche os valores de quantityPrices
-  }, [extraOption]);
+    if (extraOption.quantityPrices) {
+      setQuantityPrices(extraOption.quantityPrices);  // Preenche os valores de quantityPrices
+      console.log("QuantityPrices atualizados:", extraOption.quantityPrices);
+    }
+  }, [extraOption]); // Dependência do extraOption
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -92,13 +99,13 @@ const ExtraOptionForm = ({ extraOption = {}, onSave, onDelete }) => {
           </Table>
         </ScrollArea>
       )}
-      
+
       <Button type="button" onClick={addQuantityPrice}>
         Adicionar Nível de Preço
       </Button>
       
       <Button type="submit">{extraOption.id ? 'Atualizar' : 'Adicionar'}</Button>
-      
+
       {extraOption.id && (
         <Button type="button" variant="destructive" onClick={() => onDelete(extraOption.id)}>
           Excluir
