@@ -63,8 +63,8 @@ const GerenciarOpcoesExtras = ({ isOpen, onClose }) => {
     }
   };
 
-  const handleEditOption = async (option) => {
-    const { data: fullOption } = await useExtraOption(option.id);
+  const handleEditOption = (option) => {
+    const { data: fullOption } = useExtraOption(option.id);
     setEditingOption(fullOption);
   };
 
