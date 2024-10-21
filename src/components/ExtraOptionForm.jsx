@@ -20,16 +20,11 @@ const ExtraOptionForm = ({ extraOption = {}, onSave, onDelete }) => {
   ]);
 
   useEffect(() => {
-    if (extraOption.id) {
-      // Fetch quantity prices if they exist
-      fetchQuantityPrices(extraOption.id);
+    setLocalOption(extraOption);
+    if (extraOption.quantityPrices && extraOption.quantityPrices.length > 0) {
+      setQuantityPrices(extraOption.quantityPrices);
     }
-  }, [extraOption.id]);
-
-  const fetchQuantityPrices = async (extraOptionId) => {
-    // Implement this function to fetch quantity prices from the database
-    // and update the quantityPrices state
-  };
+  }, [extraOption]);
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
