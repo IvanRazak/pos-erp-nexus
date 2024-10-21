@@ -10,7 +10,7 @@ const fromSupabase = async (query) => {
   return data;
 };
 
-// Consultar uma opção extra por ID
+// Consultar uma opção extra por ID e preços por quantidade
 export const useExtraOption = (id) => useQuery({
   queryKey: ['extra_options', id],
   queryFn: async () => {
@@ -18,7 +18,8 @@ export const useExtraOption = (id) => useQuery({
     const extraOption = await fromSupabase(
       supabase.from('extra_options').select('*').eq('id', id).single()
     );
-    // Consulta os preços por quantidade
+    
+    // Consulta os preços por quantidade da tabela extra_option_quantity_prices
     const quantityPrices = await fromSupabase(
       supabase.from('extra_option_quantity_prices')
         .select('quantity, price') // Obtém as colunas quantity e price
@@ -30,3 +31,33 @@ export const useExtraOption = (id) => useQuery({
     return { ...extraOption, quantityPrices };
   },
 });
+
+// Adicionar nova opção extra e gerenciar preços por quantidade
+export const useAddExtraOption = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (newExtraOption) => {
+      const { quantityPrices, ...extraOptionData } = newExtraOption;
+      const { data: extraOption, error } = await supabase.from('extra_options').insert([extraOptionData]).select().single();
+      if (error) throw error;
+
+      // Insere os preços por quantidade, se necessário
+      if (extraOption.use_quantity_pricing && quantityPrices) {
+        const quantityPricesData = quantityPrices.map(price => ({
+          extra_option_id: extraOption.id,
+          quantity: price.quantity,
+          price: price.price
+        }));
+        const { error: quantityPricesError } = await supabase.from('extra_option_quantity_prices').insert(quantityPricesData);
+        if (quantityPricesError) throw quantityPricesError;
+      }
+      
+      return extraOption;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries(['extra_options']);
+    },
+  });
+};
+
+// Outras funções como update e delete seguem o mesmo padrão...
