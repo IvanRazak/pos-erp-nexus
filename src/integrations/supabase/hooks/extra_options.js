@@ -19,6 +19,7 @@ export const useExtraOption = (id) => useQuery({
     );
     return { ...extraOption, quantityPrices };
   },
+  enabled: !!id,
 });
 
 export const useExtraOptions = () => useQuery({

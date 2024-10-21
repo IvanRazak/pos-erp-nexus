@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -64,9 +64,18 @@ const GerenciarOpcoesExtras = ({ isOpen, onClose }) => {
   };
 
   const handleEditOption = (option) => {
-    const { data: fullOption } = useExtraOption(option.id);
-    setEditingOption(fullOption);
+    setEditingOption(option);
   };
+
+  useEffect(() => {
+    if (editingOption) {
+      const fetchFullOption = async () => {
+        const { data: fullOption } = await useExtraOption(editingOption.id);
+        setEditingOption(fullOption);
+      };
+      fetchFullOption();
+    }
+  }, [editingOption]);
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
