@@ -1,25 +1,23 @@
 import React, { useState, useEffect } from 'react';
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import SelectionOptionsModal from './SelectionOptionsModal';
+import { useSelectionOptions } from '../integrations/supabase';
 
 const ExtraOptionForm = ({ extraOption = {}, onSave, onDelete }) => {
   const [localOption, setLocalOption] = useState(extraOption);
+  const [isSelectionModalOpen, setIsSelectionModalOpen] = useState(false);
+  const { data: selectionOptions } = useSelectionOptions();
   const [quantityPrices, setQuantityPrices] = useState(extraOption.quantityPrices || []);
 
-  // Log para verificar se os dados estão sendo recebidos corretamente
-  console.log("Dados extraOption recebidos no componente:", extraOption);
-  console.log("QuantityPrices recebidos no componente:", extraOption.quantityPrices);
-
-  // Atualiza os estados locais quando o extraOption mudar
   useEffect(() => {
     setLocalOption(extraOption);
-    if (extraOption.quantityPrices) {
-      setQuantityPrices(extraOption.quantityPrices);  // Preenche os valores de quantityPrices
-      console.log("QuantityPrices atualizados no estado:", extraOption.quantityPrices);
-    }
-  }, [extraOption]); // Dependência do extraOption
+    setQuantityPrices(extraOption.quantityPrices || []);
+  }, [extraOption]);
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -27,6 +25,15 @@ const ExtraOptionForm = ({ extraOption = {}, onSave, onDelete }) => {
       ...prev,
       [name]: type === 'checkbox' ? checked : value
     }));
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    onSave({ ...localOption, quantityPrices });
+  };
+
+  const handleSelectionOptionsSave = (selectedOptions) => {
+    setLocalOption(prev => ({ ...prev, selection_options: selectedOptions }));
   };
 
   const handleQuantityPriceChange = (index, field, value) => {
@@ -43,11 +50,6 @@ const ExtraOptionForm = ({ extraOption = {}, onSave, onDelete }) => {
     setQuantityPrices(quantityPrices.filter((_, i) => i !== index));
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    onSave({ ...localOption, quantityPrices });
-  };
-
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <Input
@@ -57,60 +59,126 @@ const ExtraOptionForm = ({ extraOption = {}, onSave, onDelete }) => {
         placeholder="Nome da opção extra"
         required
       />
-
-      {localOption.use_quantity_pricing && (
-        <ScrollArea className="h-[200px]">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Quantidade</TableHead>
-                <TableHead>Preço</TableHead>
-                <TableHead>Ações</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {quantityPrices.map((price, index) => (
-                <TableRow key={index}>
-                  <TableCell>
-                    <Input
-                      type="number"
-                      value={price.quantity} // Mostra a quantidade correta
-                      onChange={(e) => handleQuantityPriceChange(index, 'quantity', e.target.value)}
-                      min="1"
-                    />
-                  </TableCell>
-                  <TableCell>
-                    <Input
-                      type="number"
-                      value={price.price} // Mostra o preço correto
-                      onChange={(e) => handleQuantityPriceChange(index, 'price', e.target.value)}
-                      min="0"
-                      step="0.01"
-                    />
-                  </TableCell>
-                  <TableCell>
-                    <Button type="button" onClick={() => removeQuantityPrice(index)} variant="destructive">
-                      Remover
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </ScrollArea>
+      <Select
+        value={localOption.type || 'number'}
+        onValueChange={(value) => setLocalOption(prev => ({ ...prev, type: value }))}
+      >
+        <SelectTrigger>
+          <SelectValue placeholder="Tipo" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="number">Número</SelectItem>
+          <SelectItem value="checkbox">Checkbox</SelectItem>
+          <SelectItem value="select">Seleção</SelectItem>
+        </SelectContent>
+      </Select>
+      {localOption.type !== 'select' && (
+        <div className="space-y-2">
+          <div className="flex items-center space-x-2">
+            <Checkbox
+              id="use_quantity_pricing"
+              name="use_quantity_pricing"
+              checked={localOption.use_quantity_pricing || false}
+              onCheckedChange={(checked) => setLocalOption(prev => ({ ...prev, use_quantity_pricing: checked }))}
+            />
+            <label htmlFor="use_quantity_pricing">Usar preços por quantidade</label>
+          </div>
+          {localOption.use_quantity_pricing ? (
+            <ScrollArea className="h-[200px]">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Quantidade</TableHead>
+                    <TableHead>Preço</TableHead>
+                    <TableHead>Ações</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {quantityPrices.map((price, index) => (
+                    <TableRow key={index}>
+                      <TableCell>
+                        <Input
+                          type="number"
+                          value={price.quantity}
+                          onChange={(e) => handleQuantityPriceChange(index, 'quantity', e.target.value)}
+                          min="1"
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <Input
+                          type="number"
+                          value={price.price}
+                          onChange={(e) => handleQuantityPriceChange(index, 'price', e.target.value)}
+                          min="0"
+                          step="0.01"
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <Button type="button" onClick={() => removeQuantityPrice(index)} variant="destructive">
+                          Remover
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </ScrollArea>
+          ) : (
+            <Input
+              name="price"
+              type="number"
+              step="0.01"
+              value={localOption.price || ''}
+              onChange={handleChange}
+              placeholder="Preço"
+              required
+            />
+          )}
+          {localOption.use_quantity_pricing && (
+            <Button type="button" onClick={addQuantityPrice}>
+              Adicionar Nível de Preço
+            </Button>
+          )}
+        </div>
       )}
-
-      <Button type="button" onClick={addQuantityPrice}>
-        Adicionar Nível de Preço
-      </Button>
-
-      <Button type="submit">{extraOption.id ? 'Atualizar' : 'Adicionar'}</Button>
-
-      {extraOption.id && (
-        <Button type="button" variant="destructive" onClick={() => onDelete(extraOption.id)}>
-          Excluir
+      {localOption.type === 'select' && (
+        <Button type="button" onClick={() => setIsSelectionModalOpen(true)}>
+          Gerenciar Opções de Seleção
         </Button>
       )}
+      <div className="flex items-center space-x-2">
+        <Checkbox
+          id="editable_in_cart"
+          name="editable_in_cart"
+          checked={localOption.editable_in_cart || false}
+          onCheckedChange={(checked) => setLocalOption(prev => ({ ...prev, editable_in_cart: checked }))}
+        />
+        <label htmlFor="editable_in_cart">Editável no carrinho</label>
+      </div>
+      <div className="flex items-center space-x-2">
+        <Checkbox
+          id="required"
+          name="required"
+          checked={localOption.required || false}
+          onCheckedChange={(checked) => setLocalOption(prev => ({ ...prev, required: checked }))}
+        />
+        <label htmlFor="required">Obrigatório</label>
+      </div>
+      <div className="flex justify-between">
+        <Button type="submit">{extraOption.id ? 'Atualizar' : 'Adicionar'}</Button>
+        {extraOption.id && (
+          <Button type="button" variant="destructive" onClick={() => onDelete(extraOption.id)}>
+            Excluir
+          </Button>
+        )}
+      </div>
+      <SelectionOptionsModal
+        isOpen={isSelectionModalOpen}
+        onClose={() => setIsSelectionModalOpen(false)}
+        onSave={handleSelectionOptionsSave}
+        selectionOptions={selectionOptions}
+        selectedOptions={localOption.selection_options || []}
+      />
     </form>
   );
 };
