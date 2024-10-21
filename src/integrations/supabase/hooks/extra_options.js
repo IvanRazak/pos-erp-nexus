@@ -20,7 +20,10 @@ export const useExtraOptions = () => useQuery({
 export const useAddExtraOption = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (newExtraOption) => fromSupabase(supabase.from('extra_options').insert([newExtraOption])),
+    mutationFn: (newExtraOption) => {
+      const { unit_type, ...optionToAdd } = newExtraOption; // Remove unit_type from the data being added
+      return fromSupabase(supabase.from('extra_options').insert([optionToAdd]));
+    },
     onSuccess: () => {
       queryClient.invalidateQueries(['extra_options']);
     },
@@ -30,7 +33,10 @@ export const useAddExtraOption = () => {
 export const useUpdateExtraOption = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ id, ...updateData }) => fromSupabase(supabase.from('extra_options').update(updateData).eq('id', id)),
+    mutationFn: ({ id, ...updateData }) => {
+      const { unit_type, ...dataToUpdate } = updateData; // Remove unit_type from the data being updated
+      return fromSupabase(supabase.from('extra_options').update(dataToUpdate).eq('id', id));
+    },
     onSuccess: () => {
       queryClient.invalidateQueries(['extra_options']);
     },

@@ -21,7 +21,8 @@ const ExtraOptionForm = ({ extraOption = {}, onSave, onDelete }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    onSave(localOption);
+    const { unit_type, ...optionToSave } = localOption; // Remove unit_type from the data being saved
+    onSave(optionToSave);
   };
 
   const handleSelectionOptionsSave = (selectedOptions) => {
