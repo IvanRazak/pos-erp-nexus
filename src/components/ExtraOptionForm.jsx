@@ -42,7 +42,7 @@ const ExtraOptionForm = ({ extraOption = {}, onSave, onDelete }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    onSave({ ...localOption, quantityPrices: localQuantityPrices });
+    onSave(localOption, localQuantityPrices);
   };
 
   const handleSelectionOptionsSave = (selectedOptions) => {

@@ -3,7 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { useExtraOptions, useSelectionOptions, useAddExtraOption, useUpdateExtraOption, useDeleteExtraOption } from '../integrations/supabase';
+import { useExtraOptions, useSelectionOptions, useAddExtraOption, useUpdateExtraOption, useDeleteExtraOption, useAddExtraOptionQuantityPrice, useUpdateExtraOptionQuantityPrice, useDeleteExtraOptionQuantityPrice } from '../integrations/supabase';
 import { toast } from "@/components/ui/use-toast";
 import ExtraOptionForm from './ExtraOptionForm';
 import SelectOptionsModal from './SelectOptionsModal';
@@ -19,22 +19,37 @@ const GerenciarOpcoesExtras = ({ isOpen, onClose }) => {
   const updateExtraOption = useUpdateExtraOption();
   const deleteExtraOption = useDeleteExtraOption();
 
-  const filteredOptions = extraOptions?.filter(option => 
-    option.name.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
-  const handleSaveExtraOption = (extraOption) => {
+  const handleSaveExtraOption = async (extraOption, quantityPrices) => {
     const saveFunction = extraOption.id ? updateExtraOption : addExtraOption;
-    saveFunction.mutate(extraOption, {
-      onSuccess: () => {
-        toast({ title: `Opção extra ${extraOption.id ? 'atualizada' : 'cadastrada'} com sucesso!` });
-        setEditingOption(null);
-        refetch();
-      },
-      onError: (error) => {
-        toast({ title: `Erro ao ${extraOption.id ? 'atualizar' : 'cadastrar'} opção extra`, description: error.message, variant: "destructive" });
+    try {
+      const savedExtraOption = await saveFunction.mutateAsync(extraOption);
+      
+      // Handle quantity prices
+      if (savedExtraOption.type === 'number' || savedExtraOption.type === 'checkbox') {
+        for (const price of quantityPrices) {
+          if (price.id) {
+            await updateExtraOptionQuantityPrice.mutateAsync({
+              id: price.id,
+              extra_option_id: savedExtraOption.id,
+              quantity: price.quantity,
+              price: price.price
+            });
+          } else {
+            await addExtraOptionQuantityPrice.mutateAsync({
+              extra_option_id: savedExtraOption.id,
+              quantity: price.quantity,
+              price: price.price
+            });
+          }
+        }
       }
-    });
+
+      toast({ title: `Opção extra ${extraOption.id ? 'atualizada' : 'cadastrada'} com sucesso!` });
+      setEditingOption(null);
+      refetch();
+    } catch (error) {
+      toast({ title: `Erro ao ${extraOption.id ? 'atualizar' : 'cadastrar'} opção extra`, description: error.message, variant: "destructive" });
+    }
   };
 
   const handleDeleteExtraOption = (id) => {
