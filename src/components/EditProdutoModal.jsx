@@ -57,9 +57,10 @@ const EditProdutoModal = ({ produto, onClose, extraOptions }) => {
 
   const updateProdutoMutation = useMutation({
     mutationFn: async (updatedProduto) => {
+      const { sheet_prices, ...productData } = updatedProduto;
       const { data, error } = await supabase
         .from('products')
-        .update(updatedProduto)
+        .update(productData)
         .eq('id', produto.id)
         .select();
       if (error) throw error;
@@ -116,7 +117,7 @@ const EditProdutoModal = ({ produto, onClose, extraOptions }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    const updatedProduto = { ...editedProduto };
+    const updatedProduto = { ...editedProduto, sheet_prices: sheetPrices };
     updateProdutoMutation.mutate(updatedProduto);
   };
 
