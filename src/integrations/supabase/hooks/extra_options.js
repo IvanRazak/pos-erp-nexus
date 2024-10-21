@@ -13,7 +13,7 @@ export const useExtraOption = (id) => useQuery({
     const extraOption = await fromSupabase(supabase.from('extra_options').select('*').eq('id', id).single());
     const quantityPrices = await fromSupabase(
       supabase.from('extra_option_quantity_prices')
-        .select('quantity, price')
+        .select('*')
         .eq('extra_option_id', id)
         .order('quantity', { ascending: true })
     );
