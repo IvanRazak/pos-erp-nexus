@@ -72,6 +72,7 @@ const ExtraOptionForm = ({ extraOption = {}, onSave, onDelete }) => {
           <SelectItem value="select">Seleção</SelectItem>
         </SelectContent>
       </Select>
+
       {localOption.type !== 'select' && (
         <div className="space-y-2">
           <div className="flex items-center space-x-2">
@@ -141,11 +142,13 @@ const ExtraOptionForm = ({ extraOption = {}, onSave, onDelete }) => {
           )}
         </div>
       )}
+
       {localOption.type === 'select' && (
         <Button type="button" onClick={() => setIsSelectionModalOpen(true)}>
           Gerenciar Opções de Seleção
         </Button>
       )}
+
       <div className="flex items-center space-x-2">
         <Checkbox
           id="editable_in_cart"
@@ -155,6 +158,7 @@ const ExtraOptionForm = ({ extraOption = {}, onSave, onDelete }) => {
         />
         <label htmlFor="editable_in_cart">Editável no carrinho</label>
       </div>
+
       <div className="flex items-center space-x-2">
         <Checkbox
           id="required"
@@ -164,6 +168,7 @@ const ExtraOptionForm = ({ extraOption = {}, onSave, onDelete }) => {
         />
         <label htmlFor="required">Obrigatório</label>
       </div>
+
       <div className="flex justify-between">
         <Button type="submit">{extraOption.id ? 'Atualizar' : 'Adicionar'}</Button>
         {extraOption.id && (
@@ -172,6 +177,7 @@ const ExtraOptionForm = ({ extraOption = {}, onSave, onDelete }) => {
           </Button>
         )}
       </div>
+
       <SelectionOptionsModal
         isOpen={isSelectionModalOpen}
         onClose={() => setIsSelectionModalOpen(false)}
