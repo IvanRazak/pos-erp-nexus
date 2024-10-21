@@ -12,7 +12,12 @@ export const useExtraOption = (id) => useQuery({
   queryFn: async () => {
     const extraOption = await fromSupabase(supabase.from('extra_options').select('*').eq('id', id).single());
     if (extraOption.use_quantity_pricing) {
-      const quantityPrices = await fromSupabase(supabase.from('extra_option_quantity_prices').select('*').eq('extra_option_id', id).order('quantity', { ascending: true }));
+      const quantityPrices = await fromSupabase(
+        supabase.from('extra_option_quantity_prices')
+          .select('*')
+          .eq('extra_option_id', id)
+          .order('price_level', { ascending: true })
+      );
       extraOption.quantityPrices = quantityPrices;
     }
     return extraOption;
@@ -61,10 +66,11 @@ export const useUpdateExtraOption = () => {
       if (extraOption.use_quantity_pricing) {
         await supabase.from('extra_option_quantity_prices').delete().eq('extra_option_id', id);
         if (quantityPrices) {
-          const quantityPricesData = quantityPrices.map(price => ({
+          const quantityPricesData = quantityPrices.map((price, index) => ({
             extra_option_id: id,
             quantity: price.quantity,
-            price: price.price
+            price: price.price,
+            price_level: index + 1
           }));
           const { error: quantityPricesError } = await supabase.from('extra_option_quantity_prices').insert(quantityPricesData);
           if (quantityPricesError) throw quantityPricesError;
