@@ -3,20 +3,19 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import SelectionOptionsModal from './SelectionOptionsModal';
+import QuantityPricesModal from './QuantityPricesModal';
 import { useSelectionOptions } from '../integrations/supabase';
 
 const ExtraOptionForm = ({ extraOption = {}, onSave, onDelete }) => {
   const [localOption, setLocalOption] = useState(extraOption);
   const [isSelectionModalOpen, setIsSelectionModalOpen] = useState(false);
+  const [isQuantityPricesModalOpen, setIsQuantityPricesModalOpen] = useState(false);
   const { data: selectionOptions } = useSelectionOptions();
-  const [quantityPrices, setQuantityPrices] = useState(extraOption.quantityPrices || []);
 
   useEffect(() => {
     setLocalOption(extraOption);
-    setQuantityPrices(extraOption.quantityPrices || []);
   }, [extraOption]);
 
   const handleChange = (e) => {
@@ -29,25 +28,15 @@ const ExtraOptionForm = ({ extraOption = {}, onSave, onDelete }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    onSave({ ...localOption, quantityPrices });
+    onSave(localOption);
   };
 
   const handleSelectionOptionsSave = (selectedOptions) => {
     setLocalOption(prev => ({ ...prev, selection_options: selectedOptions }));
   };
 
-  const handleQuantityPriceChange = (index, field, value) => {
-    const newQuantityPrices = [...quantityPrices];
-    newQuantityPrices[index][field] = field === 'quantity' ? parseInt(value, 10) : parseFloat(value);
-    setQuantityPrices(newQuantityPrices);
-  };
-
-  const addQuantityPrice = () => {
-    setQuantityPrices([...quantityPrices, { quantity: 0, price: 0 }]);
-  };
-
-  const removeQuantityPrice = (index) => {
-    setQuantityPrices(quantityPrices.filter((_, i) => i !== index));
+  const handleQuantityPricesSave = (quantityPrices) => {
+    setLocalOption(prev => ({ ...prev, quantityPrices }));
   };
 
   return (
@@ -84,45 +73,9 @@ const ExtraOptionForm = ({ extraOption = {}, onSave, onDelete }) => {
             <label htmlFor="use_quantity_pricing">Usar preços por quantidade</label>
           </div>
           {localOption.use_quantity_pricing ? (
-            <ScrollArea className="h-[200px]">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Quantidade</TableHead>
-                    <TableHead>Preço</TableHead>
-                    <TableHead>Ações</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {quantityPrices.map((price, index) => (
-                    <TableRow key={index}>
-                      <TableCell>
-                        <Input
-                          type="number"
-                          value={price.quantity}
-                          onChange={(e) => handleQuantityPriceChange(index, 'quantity', e.target.value)}
-                          min="1"
-                        />
-                      </TableCell>
-                      <TableCell>
-                        <Input
-                          type="number"
-                          value={price.price}
-                          onChange={(e) => handleQuantityPriceChange(index, 'price', e.target.value)}
-                          min="0"
-                          step="0.01"
-                        />
-                      </TableCell>
-                      <TableCell>
-                        <Button type="button" onClick={() => removeQuantityPrice(index)} variant="destructive">
-                          Remover
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </ScrollArea>
+            <Button type="button" onClick={() => setIsQuantityPricesModalOpen(true)}>
+              Gerenciar Preços por Quantidade
+            </Button>
           ) : (
             <Input
               name="price"
@@ -133,11 +86,6 @@ const ExtraOptionForm = ({ extraOption = {}, onSave, onDelete }) => {
               placeholder="Preço"
               required
             />
-          )}
-          {localOption.use_quantity_pricing && (
-            <Button type="button" onClick={addQuantityPrice}>
-              Adicionar Nível de Preço
-            </Button>
           )}
         </div>
       )}
@@ -178,6 +126,12 @@ const ExtraOptionForm = ({ extraOption = {}, onSave, onDelete }) => {
         onSave={handleSelectionOptionsSave}
         selectionOptions={selectionOptions}
         selectedOptions={localOption.selection_options || []}
+      />
+      <QuantityPricesModal
+        isOpen={isQuantityPricesModalOpen}
+        onClose={() => setIsQuantityPricesModalOpen(false)}
+        quantityPrices={localOption.quantityPrices || []}
+        onSave={handleQuantityPricesSave}
       />
     </form>
   );
