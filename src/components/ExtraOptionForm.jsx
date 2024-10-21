@@ -14,6 +14,14 @@ const ExtraOptionForm = ({ extraOption = {}, onSave, onDelete }) => {
     setQuantityPrices(extraOption.quantityPrices || []);  // Preenche os valores de quantityPrices
   }, [extraOption]);
 
+  const handleChange = (e) => {
+    const { name, value, type, checked } = e.target;
+    setLocalOption(prev => ({
+      ...prev,
+      [name]: type === 'checkbox' ? checked : value
+    }));
+  };
+
   const handleQuantityPriceChange = (index, field, value) => {
     const newQuantityPrices = [...quantityPrices];
     newQuantityPrices[index][field] = field === 'quantity' ? parseInt(value, 10) : parseFloat(value);
@@ -35,7 +43,14 @@ const ExtraOptionForm = ({ extraOption = {}, onSave, onDelete }) => {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      {/* Outros campos do formulário */}
+      <Input
+        name="name"
+        value={localOption.name || ''}
+        onChange={handleChange}
+        placeholder="Nome da opção extra"
+        required
+      />
+
       {localOption.use_quantity_pricing && (
         <ScrollArea className="h-[200px]">
           <Table>
@@ -77,10 +92,18 @@ const ExtraOptionForm = ({ extraOption = {}, onSave, onDelete }) => {
           </Table>
         </ScrollArea>
       )}
+      
       <Button type="button" onClick={addQuantityPrice}>
         Adicionar Nível de Preço
       </Button>
+      
       <Button type="submit">{extraOption.id ? 'Atualizar' : 'Adicionar'}</Button>
+      
+      {extraOption.id && (
+        <Button type="button" variant="destructive" onClick={() => onDelete(extraOption.id)}>
+          Excluir
+        </Button>
+      )}
     </form>
   );
 };
