@@ -29,8 +29,24 @@ const CarrinhoItem = ({ item, onDelete, onEdit, onDescriptionChange, onUnitPrice
 
   const calculateItemTotal = () => {
     const basePrice = item.unitPrice * item.quantidade;
-    const extrasTotal = item.extras.reduce((sum, extra) => sum + (extra.totalPrice || 0), 0);
+    const extrasTotal = item.extras?.reduce((sum, extra) => sum + (extra.totalPrice || 0), 0) || 0;
     return basePrice + extrasTotal * item.quantidade;
+  };
+
+  const renderExtras = () => {
+    if (!item.extras || item.extras.length === 0) return 'Nenhuma';
+
+    return item.extras.map((extra, index) => (
+      <div key={index} className="text-sm">
+        {extra.name}: 
+        {extra.type === 'select' 
+          ? ` ${extra.selectedOptionName} - R$ ${extra.totalPrice?.toFixed(2)}`
+          : extra.type === 'number'
+            ? ` ${extra.value} x R$ ${extra.price?.toFixed(2)} = R$ ${extra.totalPrice?.toFixed(2)}`
+            : ` R$ ${extra.totalPrice?.toFixed(2)}`
+        }
+      </div>
+    ));
   };
 
   useEffect(() => {
@@ -85,19 +101,7 @@ const CarrinhoItem = ({ item, onDelete, onEdit, onDescriptionChange, onUnitPrice
           `R$ ${item.unitPrice.toFixed(2)}`
         )}
       </TableCell>
-      <TableCell>
-        {item.extras.map((extra, i) => (
-          <div key={i}>
-            {extra.name}: 
-            {extra.type === 'select' 
-              ? `${extra.selectedOptionName} - R$ ${extra.totalPrice.toFixed(2)}`
-              : extra.type === 'number' 
-                ? `${extra.value} x R$ ${extra.price.toFixed(2)} = R$ ${extra.totalPrice.toFixed(2)}`
-                : `R$ ${extra.totalPrice.toFixed(2)}`
-            }
-          </div>
-        ))}
-      </TableCell>
+      <TableCell>{renderExtras()}</TableCell>
       <TableCell>{item.arteOption || 'N/A'}</TableCell>
       <TableCell>R$ {calculateItemTotal().toFixed(2)}</TableCell>
       <TableCell>
