@@ -40,7 +40,8 @@ export const calcularTotalItem = async (item, extras) => {
 export const calcularTotal = async (carrinho) => {
   let total = 0;
   for (const item of carrinho) {
-    total += await calcularTotalItem(item, item.extras);
+    const itemTotal = await calcularTotalItem(item, item.extras);
+    total += itemTotal;
   }
   return total;
 };
