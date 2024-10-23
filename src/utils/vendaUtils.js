@@ -11,16 +11,12 @@ export const getExtraOptionPrice = async (extraOption, quantity) => {
     if (quantityPrices && quantityPrices.length > 0) {
       for (let i = quantityPrices.length - 1; i >= 0; i--) {
         if (quantity >= quantityPrices[i].quantity) {
-          return extraOption.type === 'number' 
-            ? quantityPrices[i].price * (extraOption.value || 1)
-            : quantityPrices[i].price;
+          return quantityPrices[i].price;
         }
       }
     }
   }
-  return extraOption.type === 'number' 
-    ? extraOption.price * (extraOption.value || 1)
-    : extraOption.price;
+  return extraOption.price;
 };
 
 export const calcularTotalItem = async (item, extras) => {
