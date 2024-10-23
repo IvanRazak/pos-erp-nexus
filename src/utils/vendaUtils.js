@@ -1,14 +1,48 @@
-export const calcularTotalItem = (item, extras) => {
+import { supabase } from '../lib/supabase';
+
+export const getExtraOptionPrice = async (extraOption, quantity) => {
+  if (extraOption.use_quantity_pricing) {
+    const { data: quantityPrices } = await supabase
+      .from('extra_option_quantity_prices')
+      .select('*')
+      .eq('extra_option_id', extraOption.id)
+      .order('quantity', { ascending: true });
+
+    if (quantityPrices && quantityPrices.length > 0) {
+      for (let i = quantityPrices.length - 1; i >= 0; i--) {
+        if (quantity >= quantityPrices[i].quantity) {
+          return extraOption.type === 'number' 
+            ? quantityPrices[i].price * (extraOption.value || 1)
+            : quantityPrices[i].price;
+        }
+      }
+    }
+  }
+  return extraOption.type === 'number' 
+    ? extraOption.price * (extraOption.value || 1)
+    : extraOption.price;
+};
+
+export const calcularTotalItem = async (item, extras) => {
   const precoBase = item.unitPrice || item.sale_price;
-  const precoExtras = Array.isArray(extras) ? extras.reduce((total, extra) => {
-    return total + (extra.totalPrice || 0);
-  }, 0) : 0;
+  let precoExtras = 0;
+  
+  if (Array.isArray(extras)) {
+    for (const extra of extras) {
+      const preco = await getExtraOptionPrice(extra, item.quantidade);
+      precoExtras += preco;
+    }
+  }
+  
   return (precoBase + precoExtras) * item.quantidade;
 };
 
-export const calcularTotal = (carrinho, desconto, valorAdicional) => {
-  const subtotal = carrinho.reduce((total, item) => total + calcularTotalItem(item, item.extras), 0);
-  return Math.max(subtotal - (desconto || 0) + (valorAdicional || 0), 0);
+export const calcularTotal = async (carrinho) => {
+  let total = 0;
+  for (const item of carrinho) {
+    total += await calcularTotalItem(item, item.extras);
+  }
+  return total;
 };
 
 export const resetCarrinho = (setCarrinho, setClienteSelecionado, setDataEntrega, setOpcaoPagamento, setDesconto, setValorPago) => {

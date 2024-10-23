@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -9,7 +9,7 @@ import { format } from "date-fns";
 import { CalendarIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import CarrinhoItem from './CarrinhoItem';
-import { calcularTotal, calcularTotalItem } from '../utils/vendaUtils';
+import { calcularTotal } from '../utils/vendaUtils';
 
 const VendaCarrinho = ({ 
   carrinho, 
@@ -33,8 +33,15 @@ const VendaCarrinho = ({
   onUnitPriceChange,
   onQuantityChange
 }) => {
-  const subtotal = carrinho.reduce((total, item) => total + calcularTotalItem(item, item.extras), 0);
-  const total = calcularTotal(carrinho, desconto, valorAdicional);
+  const [total, setTotal] = useState(0);
+
+  useEffect(() => {
+    const updateTotal = async () => {
+      const calculatedTotal = await calcularTotal(carrinho);
+      setTotal(calculatedTotal - (desconto || 0) + (valorAdicional || 0));
+    };
+    updateTotal();
+  }, [carrinho, desconto, valorAdicional]);
 
   return (
     <div className="mt-4">
@@ -103,7 +110,6 @@ const VendaCarrinho = ({
           </SelectContent>
         </Select>
         <Input type="number" placeholder="Valor Pago" value={valorPago} onChange={(e) => setValorPago(parseFloat(e.target.value) || 0)} />
-        <p className="text-xl">Subtotal: R$ {subtotal.toFixed(2)}</p>
         <p className="text-xl">Desconto: R$ {desconto.toFixed(2)}</p>
         <p className="text-xl">Valor Adicional: R$ {valorAdicional.toFixed(2)}</p>
         <p className="text-xl font-bold">Total: R$ {total.toFixed(2)}</p>
