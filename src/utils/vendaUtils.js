@@ -30,11 +30,17 @@ export const calcularTotalItem = async (item, extras) => {
   if (Array.isArray(extras)) {
     for (const extra of extras) {
       const preco = await getExtraOptionPrice(extra, item.quantidade);
-      precoExtras += preco;
+      // If fixed_value is true, don't multiply by quantity
+      if (extra.fixed_value) {
+        precoExtras += preco;
+      } else {
+        precoExtras += preco * item.quantidade;
+      }
     }
   }
   
-  return (precoBase + precoExtras) * item.quantidade;
+  // Return base price multiplied by quantity plus extras
+  return (precoBase * item.quantidade) + precoExtras;
 };
 
 export const calcularTotal = async (carrinho) => {
