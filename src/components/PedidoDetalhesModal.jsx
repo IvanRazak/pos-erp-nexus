@@ -36,7 +36,7 @@ const PedidoDetalhesModal = ({ pedido, onClose }) => {
   const calcularSubtotalItem = (item) => {
     const subtotalProduto = item.quantity * item.unit_price;
     const subtotalExtras = item.extras.reduce((sum, extra) => sum + (extra.total_value || 0), 0);
-    return subtotalProduto + subtotalExtras;
+    return subtotalProduto + subtotalExtras - (item.discount || 0);
   };
 
   const renderExtras = (extras) => {
@@ -71,6 +71,7 @@ const PedidoDetalhesModal = ({ pedido, onClose }) => {
                 <TableHead>M²</TableHead>
                 <TableHead>Descrição</TableHead>
                 <TableHead>Arte</TableHead>
+                <TableHead>Desconto Individual</TableHead>
                 <TableHead>Subtotal</TableHead>
               </TableRow>
             </TableHeader>
@@ -85,11 +86,17 @@ const PedidoDetalhesModal = ({ pedido, onClose }) => {
                   <TableCell>{formatarM2(item)}</TableCell>
                   <TableCell>{item.description || 'N/A'}</TableCell>
                   <TableCell>{item.arte_option || 'N/A'}</TableCell>
+                  <TableCell>R$ {(item.discount || 0).toFixed(2)}</TableCell>
                   <TableCell>R$ {calcularSubtotalItem(item).toFixed(2)}</TableCell>
                 </TableRow>
               ))}
             </TableBody>
           </Table>
+          <div className="mt-4 p-4 bg-gray-50 rounded">
+            <p className="text-sm font-medium">Desconto Geral: R$ {pedido.discount?.toFixed(2) || '0.00'}</p>
+            <p className="text-sm font-medium">Valor Adicional: R$ {pedido.additional_value?.toFixed(2) || '0.00'}</p>
+            <p className="text-lg font-bold mt-2">Total Final: R$ {pedido.total_amount?.toFixed(2) || '0.00'}</p>
+          </div>
         </ScrollArea>
       </DialogContent>
     </Dialog>

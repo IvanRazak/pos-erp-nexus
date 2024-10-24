@@ -30,7 +30,6 @@ export const calcularTotalItem = async (item, extras) => {
   if (Array.isArray(extras)) {
     for (const extra of extras) {
       const preco = await getExtraOptionPrice(extra, item.quantidade);
-      // If fixed_value is true, don't multiply by quantity
       if (extra.fixed_value) {
         precoExtras += preco;
       } else {
@@ -44,13 +43,16 @@ export const calcularTotalItem = async (item, extras) => {
   return subtotal - discount;
 };
 
-export const calcularTotal = async (carrinho) => {
+export const calcularTotal = async (carrinho, descontoGeral = 0) => {
   let total = 0;
+  const descontosIndividuais = carrinho.reduce((acc, item) => acc + (item.discount || 0), 0);
+  
   for (const item of carrinho) {
     const itemTotal = await calcularTotalItem(item, item.extras);
     total += itemTotal;
   }
-  return total;
+  
+  return total - descontoGeral;
 };
 
 export const resetCarrinho = (setCarrinho, setClienteSelecionado, setDataEntrega, setOpcaoPagamento, setDesconto, setValorPago) => {

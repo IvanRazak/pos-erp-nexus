@@ -52,6 +52,7 @@ export const useAddOrder = () => {
         cart_item_id: item.cartItemId,
         description: item.description,
         arte_option: item.arte_option,
+        discount: item.discount || 0,
       }));
 
       const { data: insertedItems, error: itemsError } = await supabase
