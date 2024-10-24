@@ -128,7 +128,8 @@ const Venda = () => {
     }
 
     try {
-      const totalVenda = await calcularTotal(carrinho, desconto) + parseFloat(valorAdicional);
+      const descontosIndividuais = carrinho.reduce((acc, item) => acc + (parseFloat(item.discount) || 0), 0);
+      const totalVenda = await calcularTotal(carrinho) - descontosIndividuais - parseFloat(desconto);
       const saldoRestante = totalVenda - valorPago;
 
       const novaVenda = {
@@ -150,6 +151,7 @@ const Venda = () => {
           cartItemId: item.cartItemId,
           description: item.description,
           arte_option: item.arteOption || null,
+          discount: parseFloat(item.discount) || 0,
         })),
         created_by: user.username,
         discount: parseFloat(desconto) || 0,
