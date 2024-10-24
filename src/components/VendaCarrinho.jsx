@@ -35,11 +35,18 @@ const VendaCarrinho = ({
   onDiscountChange
 }) => {
   const [total, setTotal] = useState(0);
+  const [descontosIndividuais, setDescontosIndividuais] = useState(0);
 
   useEffect(() => {
     const updateTotal = async () => {
       const calculatedTotal = await calcularTotal(carrinho);
       setTotal(calculatedTotal - (desconto || 0) + (valorAdicional || 0));
+      
+      // Calcular soma dos descontos individuais
+      const somaDescontosIndividuais = carrinho.reduce((acc, item) => 
+        acc + (parseFloat(item.discount) || 0), 0
+      );
+      setDescontosIndividuais(somaDescontosIndividuais);
     };
     updateTotal();
   }, [carrinho, desconto, valorAdicional]);
@@ -113,10 +120,14 @@ const VendaCarrinho = ({
           </SelectContent>
         </Select>
         <Input type="number" placeholder="Valor Pago" value={valorPago} onChange={(e) => setValorPago(parseFloat(e.target.value) || 0)} />
-        <p className="text-xl">Desconto Geral: R$ {desconto.toFixed(2)}</p>
-        <p className="text-xl">Valor Adicional: R$ {valorAdicional.toFixed(2)}</p>
-        <p className="text-xl font-bold">Total: R$ {total.toFixed(2)}</p>
-        <p className="text-xl font-bold">Saldo Restante: R$ {Math.max(total - valorPago, 0).toFixed(2)}</p>
+        <div className="space-y-1">
+          <p className="text-xl">Descontos Individuais: R$ {descontosIndividuais.toFixed(2)}</p>
+          <p className="text-xl">Desconto Geral: R$ {desconto.toFixed(2)}</p>
+          <p className="text-xl">Total de Descontos: R$ {(descontosIndividuais + parseFloat(desconto || 0)).toFixed(2)}</p>
+          <p className="text-xl">Valor Adicional: R$ {valorAdicional.toFixed(2)}</p>
+          <p className="text-xl font-bold">Total: R$ {total.toFixed(2)}</p>
+          <p className="text-xl font-bold">Saldo Restante: R$ {Math.max(total - valorPago, 0).toFixed(2)}</p>
+        </div>
         <Button onClick={finalizarVenda}>Finalizar Venda</Button>
       </div>
     </div>
