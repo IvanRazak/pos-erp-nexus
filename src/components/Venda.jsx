@@ -128,8 +128,7 @@ const Venda = () => {
     }
 
     try {
-      const descontosIndividuais = carrinho.reduce((acc, item) => acc + (parseFloat(item.discount) || 0), 0);
-      const totalVenda = await calcularTotal(carrinho) - descontosIndividuais - parseFloat(desconto);
+      const totalVenda = await calcularTotal(carrinho) - parseFloat(desconto) + parseFloat(valorAdicional);
       const saldoRestante = totalVenda - valorPago;
 
       const novaVenda = {

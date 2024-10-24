@@ -38,21 +38,19 @@ export const calcularTotalItem = async (item, extras) => {
     }
   }
   
-  const subtotal = (precoBase * item.quantidade) + precoExtras;
-  const discount = parseFloat(item.discount) || 0;
-  return subtotal - discount;
+  return (precoBase * item.quantidade) + precoExtras;
 };
 
-export const calcularTotal = async (carrinho, descontoGeral = 0) => {
+export const calcularTotal = async (carrinho) => {
   let total = 0;
-  const descontosIndividuais = carrinho.reduce((acc, item) => acc + (parseFloat(item.discount) || 0), 0);
   
   for (const item of carrinho) {
     const itemTotal = await calcularTotalItem(item, item.extras);
-    total += itemTotal;
+    const discount = parseFloat(item.discount) || 0;
+    total += itemTotal - discount;
   }
   
-  return total - descontoGeral;
+  return total;
 };
 
 export const resetCarrinho = (setCarrinho, setClienteSelecionado, setDataEntrega, setOpcaoPagamento, setDesconto, setValorPago) => {
