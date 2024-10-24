@@ -39,8 +39,9 @@ export const calcularTotalItem = async (item, extras) => {
     }
   }
   
-  // Return base price multiplied by quantity plus extras
-  return (precoBase * item.quantidade) + precoExtras;
+  const subtotal = (precoBase * item.quantidade) + precoExtras;
+  const discount = item.discount || 0;
+  return subtotal - discount;
 };
 
 export const calcularTotal = async (carrinho) => {

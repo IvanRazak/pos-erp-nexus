@@ -4,7 +4,15 @@ import { TableCell, TableRow } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
 import { getExtraOptionPrice } from '../utils/vendaUtils';
 
-const CarrinhoItem = ({ item, onDelete, onEdit, onDescriptionChange, onUnitPriceChange, onQuantityChange }) => {
+const CarrinhoItem = ({ 
+  item, 
+  onDelete, 
+  onEdit, 
+  onDescriptionChange, 
+  onUnitPriceChange, 
+  onQuantityChange,
+  onDiscountChange 
+}) => {
   const [editingUnitPrice, setEditingUnitPrice] = useState(false);
   const [tempUnitPrice, setTempUnitPrice] = useState(item.unitPrice);
   const [editingQuantity, setEditingQuantity] = useState(false);
@@ -43,9 +51,14 @@ const CarrinhoItem = ({ item, onDelete, onEdit, onDescriptionChange, onUnitPrice
     const basePrice = item.unitPrice * item.quantidade;
     const extrasTotal = item.extras.reduce((sum, extra) => {
       const extraPrice = extrasPrices[extra.id] || extra.price || 0;
-      return sum + extraPrice;
+      if (extra.fixed_value) {
+        return sum + extraPrice;
+      }
+      return sum + extraPrice * item.quantidade;
     }, 0);
-    return basePrice + extrasTotal * item.quantidade;
+    const subtotal = basePrice + extrasTotal;
+    const discount = item.discount || 0;
+    return subtotal - discount;
   };
 
   return (
@@ -78,7 +91,7 @@ const CarrinhoItem = ({ item, onDelete, onEdit, onDescriptionChange, onUnitPrice
             className="w-24"
           />
         ) : (
-          <span onClick={handleUnitPriceEdit} className="cursor-pointer">
+          <span onClick={() => setEditingUnitPrice(true)} className="cursor-pointer">
             R$ {item.unitPrice.toFixed(2)}
           </span>
         )}
@@ -97,6 +110,15 @@ const CarrinhoItem = ({ item, onDelete, onEdit, onDescriptionChange, onUnitPrice
         ))}
       </TableCell>
       <TableCell>{item.arteOption || 'N/A'}</TableCell>
+      <TableCell>
+        <Input
+          type="number"
+          placeholder="Desconto"
+          value={item.discount || ''}
+          onChange={(e) => onDiscountChange(item, parseFloat(e.target.value) || 0)}
+          className="w-24 mb-2"
+        />
+      </TableCell>
       <TableCell>R$ {calculateItemTotal().toFixed(2)}</TableCell>
       <TableCell>
         <Input
