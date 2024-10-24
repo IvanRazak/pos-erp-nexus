@@ -48,6 +48,12 @@ const Venda = () => {
     return () => clearTimeout(timer);
   }, [user, navigate]);
 
+  const handleDiscountChange = (item, newDiscount) => {
+    setCarrinho(carrinho.map(cartItem => 
+      cartItem === item ? { ...cartItem, discount: newDiscount } : cartItem
+    ));
+  };
+
   const handleDeleteFromCart = (itemToDelete) => {
     setCarrinho(carrinho.filter(item => item !== itemToDelete));
   };
@@ -122,7 +128,6 @@ const Venda = () => {
     }
 
     try {
-      // Calculate total before creating the order
       const totalVenda = await calcularTotal(carrinho, desconto) + parseFloat(valorAdicional);
       const saldoRestante = totalVenda - valorPago;
 
@@ -248,7 +253,7 @@ const Venda = () => {
         opcoesPagamento={opcoesPagamento}
         valorPago={valorPago}
         setValorPago={setValorPago}
-        calcularTotal={() => calcularTotal(carrinho, desconto, valorAdicional)}
+        calcularTotal={() => calcularTotal(carrinho, desconto)}
         finalizarVenda={finalizarVenda}
         onDescriptionChange={handleDescriptionChange}
         valorAdicional={valorAdicional}
@@ -257,6 +262,7 @@ const Venda = () => {
         setDescricaoValorAdicional={setDescricaoValorAdicional}
         onUnitPriceChange={handleUnitPriceChange}
         onQuantityChange={handleQuantityChange}
+        onDiscountChange={handleDiscountChange}
       />
       <BuscarClienteModal
         isOpen={isBuscarClienteModalOpen}
