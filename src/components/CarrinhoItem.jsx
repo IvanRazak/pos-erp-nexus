@@ -61,6 +61,28 @@ const CarrinhoItem = ({
     return subtotal - discount;
   };
 
+  const renderUnitPrice = () => {
+    if (item.type === 'custom') {
+      if (editingUnitPrice) {
+        return (
+          <Input
+            type="number"
+            value={tempUnitPrice}
+            onChange={(e) => setTempUnitPrice(e.target.value)}
+            onBlur={handleUnitPriceEdit}
+            className="w-24"
+          />
+        );
+      }
+      return (
+        <span onClick={() => setEditingUnitPrice(true)} className="cursor-pointer">
+          R$ {item.unitPrice.toFixed(2)}
+        </span>
+      );
+    }
+    return `R$ ${item.unitPrice.toFixed(2)}`;
+  };
+
   return (
     <TableRow>
       <TableCell>{item.name}</TableCell>
@@ -81,21 +103,7 @@ const CarrinhoItem = ({
       </TableCell>
       <TableCell>{item.largura && item.altura ? `${item.largura}m x ${item.altura}m` : 'N/A'}</TableCell>
       <TableCell>{item.m2 ? `${item.m2.toFixed(2)}m²` : 'N/A'}</TableCell>
-      <TableCell>
-        {editingUnitPrice ? (
-          <Input
-            type="number"
-            value={tempUnitPrice}
-            onChange={(e) => setTempUnitPrice(e.target.value)}
-            onBlur={handleUnitPriceEdit}
-            className="w-24"
-          />
-        ) : (
-          <span onClick={() => setEditingUnitPrice(true)} className="cursor-pointer">
-            R$ {item.unitPrice.toFixed(2)}
-          </span>
-        )}
-      </TableCell>
+      <TableCell>{renderUnitPrice()}</TableCell>
       <TableCell>
         {item.extras.map((extra, i) => (
           <div key={i}>
