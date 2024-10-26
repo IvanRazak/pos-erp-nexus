@@ -39,6 +39,12 @@ const PedidoDetalhesModal = ({ pedido, onClose }) => {
     return subtotalProduto + subtotalExtras - (item.discount || 0);
   };
 
+  const calcularTotalDescontos = () => {
+    const descontosIndividuais = itensPedido.reduce((sum, item) => sum + (item.discount || 0), 0);
+    const descontoGeral = pedido.discount || 0;
+    return descontosIndividuais + descontoGeral;
+  };
+
   const renderExtras = (extras) => {
     return extras.map((extra) => (
       <div key={extra.id}>
@@ -93,7 +99,7 @@ const PedidoDetalhesModal = ({ pedido, onClose }) => {
             </TableBody>
           </Table>
           <div className="mt-4 p-4 bg-gray-50 rounded">
-            <p className="text-sm font-medium">Desconto Geral: R$ {pedido.discount?.toFixed(2) || '0.00'}</p>
+            <p className="text-sm font-medium">Total Descontos (Individuais + Geral): R$ {calcularTotalDescontos().toFixed(2)}</p>
             <p className="text-sm font-medium">Valor Adicional: R$ {pedido.additional_value?.toFixed(2) || '0.00'}</p>
             <p className="text-lg font-bold mt-2">Total Final: R$ {pedido.total_amount?.toFixed(2) || '0.00'}</p>
           </div>
