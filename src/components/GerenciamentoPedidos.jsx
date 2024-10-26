@@ -10,6 +10,7 @@ import { format, isWithinInterval, parseISO, startOfDay, endOfDay } from "date-f
 import { ptBR } from 'date-fns/locale';
 import PedidoDetalhesModal from './PedidoDetalhesModal';
 import { useAuth } from '../hooks/useAuth';
+import { supabase } from '../lib/supabase';
 
 const GerenciamentoPedidos = () => {
   const [filtroCliente, setFiltroCliente] = useState('');
@@ -159,7 +160,7 @@ const GerenciamentoPedidos = () => {
               <TableCell>{pedido.created_at ? format(parseISO(pedido.created_at), 'dd/MM/yyyy HH:mm', { locale: ptBR }) : 'N/A'}</TableCell>
               <TableCell>{clientes?.find(c => c.id === pedido.customer_id)?.name || 'N/A'}</TableCell>
               <TableCell>R$ {pedido.total_amount?.toFixed(2) || 'N/A'}</TableCell>
-              <TableCell>R$ {calcularDescontosIndividuais(pedido).toFixed(2)}</TableCell>
+              <TableCell>R$ {(calcularDescontosIndividuais(pedido)).toFixed(2)}</TableCell>
               <TableCell>R$ {pedido.discount?.toFixed(2) || '0.00'}</TableCell>
               <TableCell>{pedido.additional_value > 0 ? (
                 <>
