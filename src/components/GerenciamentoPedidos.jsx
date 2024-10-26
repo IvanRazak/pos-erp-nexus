@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useOrders, useUpdateOrder, useCustomers } from '../integrations/supabase';
+import { useOrderDiscounts } from '../integrations/supabase/hooks/order_discounts';
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -10,7 +11,6 @@ import { format, isWithinInterval, parseISO, startOfDay, endOfDay } from "date-f
 import { ptBR } from 'date-fns/locale';
 import PedidoDetalhesModal from './PedidoDetalhesModal';
 import { useAuth } from '../hooks/useAuth';
-import { supabase } from '../lib/supabase';
 
 const GerenciamentoPedidos = () => {
   const [filtroCliente, setFiltroCliente] = useState('');
@@ -25,9 +25,14 @@ const GerenciamentoPedidos = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
 
-  const { data: pedidos, isLoading: isLoadingPedidos, error: errorPedidos } = useOrders();
+  const { data: pedidos, isLoading: isLoadingPedidos } = useOrders();
   const { data: clientes, isLoading: isLoadingClientes } = useCustomers();
   const updateOrder = useUpdateOrder();
+
+  // Busca os descontos usando o novo hook
+  const { data: descontosIndividuais = {} } = useOrderDiscounts(
+    pedidos?.map(pedido => pedido.id) || []
+  );
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -44,32 +49,6 @@ const GerenciamentoPedidos = () => {
       filtrarPedidos();
     }
   }, [pedidos, filtroCliente, filtroNumeroPedido, filtroDataInicio, filtroDataFim, filtroValorMinimo, filtroValorMaximo, filtroStatus]);
-
-  const [descontosIndividuais, setDescontosIndividuais] = useState({});
-
-  useEffect(() => {
-    const buscarDescontosIndividuais = async () => {
-      if (!pedidos) return;
-      
-      const descontos = {};
-      for (const pedido of pedidos) {
-        const { data: orderItems } = await supabase
-          .from('order_items')
-          .select('discount')
-          .eq('order_id', pedido.id);
-          
-        const totalDescontos = orderItems?.reduce((sum, item) => sum + (parseFloat(item.discount) || 0), 0) || 0;
-        descontos[pedido.id] = totalDescontos;
-      }
-      setDescontosIndividuais(descontos);
-    };
-
-    buscarDescontosIndividuais();
-  }, [pedidos]);
-
-  const calcularDescontosIndividuais = (pedido) => {
-    return pedido.items?.reduce((sum, item) => sum + (item.discount || 0), 0) || 0;
-  };
 
   const filtrarPedidos = () => {
     if (!pedidos) return;
@@ -102,7 +81,6 @@ const GerenciamentoPedidos = () => {
   };
 
   if (isLoadingPedidos || isLoadingClientes) return <div>Carregando...</div>;
-  if (errorPedidos) return <div>Erro ao carregar pedidos: {errorPedidos.message}</div>;
 
   return (
     <div className="container mx-auto p-4">
