@@ -45,6 +45,28 @@ const GerenciamentoPedidos = () => {
     }
   }, [pedidos, filtroCliente, filtroNumeroPedido, filtroDataInicio, filtroDataFim, filtroValorMinimo, filtroValorMaximo, filtroStatus]);
 
+  const [descontosIndividuais, setDescontosIndividuais] = useState({});
+
+  useEffect(() => {
+    const buscarDescontosIndividuais = async () => {
+      if (!pedidos) return;
+      
+      const descontos = {};
+      for (const pedido of pedidos) {
+        const { data: orderItems } = await supabase
+          .from('order_items')
+          .select('discount')
+          .eq('order_id', pedido.id);
+          
+        const totalDescontos = orderItems?.reduce((sum, item) => sum + (parseFloat(item.discount) || 0), 0) || 0;
+        descontos[pedido.id] = totalDescontos;
+      }
+      setDescontosIndividuais(descontos);
+    };
+
+    buscarDescontosIndividuais();
+  }, [pedidos]);
+
   const calcularDescontosIndividuais = (pedido) => {
     return pedido.items?.reduce((sum, item) => sum + (item.discount || 0), 0) || 0;
   };
@@ -160,7 +182,7 @@ const GerenciamentoPedidos = () => {
               <TableCell>{pedido.created_at ? format(parseISO(pedido.created_at), 'dd/MM/yyyy HH:mm', { locale: ptBR }) : 'N/A'}</TableCell>
               <TableCell>{clientes?.find(c => c.id === pedido.customer_id)?.name || 'N/A'}</TableCell>
               <TableCell>R$ {pedido.total_amount?.toFixed(2) || 'N/A'}</TableCell>
-              <TableCell>R$ {(calcularDescontosIndividuais(pedido)).toFixed(2)}</TableCell>
+              <TableCell>R$ {(descontosIndividuais[pedido.id] || 0).toFixed(2)}</TableCell>
               <TableCell>R$ {pedido.discount?.toFixed(2) || '0.00'}</TableCell>
               <TableCell>{pedido.additional_value > 0 ? (
                 <>
