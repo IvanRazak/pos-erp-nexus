@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useOrders, useUpdateOrder, useCustomers } from '../integrations/supabase';
 import { Input } from "@/components/ui/input";
@@ -44,10 +44,8 @@ const GerenciamentoPedidos = () => {
     }
   }, [pedidos, filtroCliente, filtroNumeroPedido, filtroDataInicio, filtroDataFim, filtroValorMinimo, filtroValorMaximo, filtroStatus]);
 
-  const calcularTotalDescontos = (pedido, itensPedido) => {
-    const descontosIndividuais = itensPedido?.reduce((sum, item) => sum + (item.discount || 0), 0) || 0;
-    const descontoGeral = pedido.discount || 0;
-    return descontosIndividuais + descontoGeral;
+  const calcularDescontosIndividuais = (pedido) => {
+    return pedido.items?.reduce((sum, item) => sum + (item.discount || 0), 0) || 0;
   };
 
   const filtrarPedidos = () => {
@@ -145,7 +143,8 @@ const GerenciamentoPedidos = () => {
             <TableHead>Data e Hora</TableHead>
             <TableHead>Cliente</TableHead>
             <TableHead>Valor</TableHead>
-            <TableHead>Total Descontos</TableHead>
+            <TableHead>Descontos Individuais</TableHead>
+            <TableHead>Desconto Geral</TableHead>
             <TableHead>Valor Adicional</TableHead>
             <TableHead>Data de Entrega</TableHead>
             <TableHead>Status</TableHead>
@@ -160,7 +159,8 @@ const GerenciamentoPedidos = () => {
               <TableCell>{pedido.created_at ? format(parseISO(pedido.created_at), 'dd/MM/yyyy HH:mm', { locale: ptBR }) : 'N/A'}</TableCell>
               <TableCell>{clientes?.find(c => c.id === pedido.customer_id)?.name || 'N/A'}</TableCell>
               <TableCell>R$ {pedido.total_amount?.toFixed(2) || 'N/A'}</TableCell>
-              <TableCell>R$ {calcularTotalDescontos(pedido, pedido.items).toFixed(2)}</TableCell>
+              <TableCell>R$ {calcularDescontosIndividuais(pedido).toFixed(2)}</TableCell>
+              <TableCell>R$ {pedido.discount?.toFixed(2) || '0.00'}</TableCell>
               <TableCell>{pedido.additional_value > 0 ? (
                 <>
                   R$ {pedido.additional_value.toFixed(2)}
