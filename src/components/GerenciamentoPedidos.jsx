@@ -74,12 +74,6 @@ const GerenciamentoPedidos = () => {
     setPedidoSelecionado(null);
   };
 
-  const calcularDescontoTotal = (pedido) => {
-    const descontosIndividuais = pedido.order_items?.reduce((acc, item) => acc + (parseFloat(item.discount) || 0), 0) || 0;
-    const descontoGeral = parseFloat(pedido.discount) || 0;
-    return descontosIndividuais + descontoGeral;
-  };
-
   if (isLoadingPedidos || isLoadingClientes) return <div>Carregando...</div>;
   if (errorPedidos) return <div>Erro ao carregar pedidos: {errorPedidos.message}</div>;
 
@@ -145,9 +139,7 @@ const GerenciamentoPedidos = () => {
             <TableHead>Data e Hora</TableHead>
             <TableHead>Cliente</TableHead>
             <TableHead>Valor</TableHead>
-            <TableHead>Descontos Individuais</TableHead>
-            <TableHead>Desconto Geral</TableHead>
-            <TableHead>Total Descontos</TableHead>
+            <TableHead>Desconto</TableHead>
             <TableHead>Valor Adicional</TableHead>
             <TableHead>Data de Entrega</TableHead>
             <TableHead>Status</TableHead>
@@ -162,9 +154,7 @@ const GerenciamentoPedidos = () => {
               <TableCell>{pedido.created_at ? format(parseISO(pedido.created_at), 'dd/MM/yyyy HH:mm', { locale: ptBR }) : 'N/A'}</TableCell>
               <TableCell>{clientes?.find(c => c.id === pedido.customer_id)?.name || 'N/A'}</TableCell>
               <TableCell>R$ {pedido.total_amount?.toFixed(2) || 'N/A'}</TableCell>
-              <TableCell>R$ {(pedido.order_items?.reduce((acc, item) => acc + (parseFloat(item.discount) || 0), 0) || 0).toFixed(2)}</TableCell>
-              <TableCell>R$ {(parseFloat(pedido.discount) || 0).toFixed(2)}</TableCell>
-              <TableCell>R$ {calcularDescontoTotal(pedido).toFixed(2)}</TableCell>
+              <TableCell>R$ {pedido.discount?.toFixed(2) || '0.00'}</TableCell>
               <TableCell>{pedido.additional_value > 0 ? (
                   <>
                     R$ {pedido.additional_value.toFixed(2)}
