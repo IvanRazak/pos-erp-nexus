@@ -145,7 +145,9 @@ const GerenciamentoPedidos = () => {
             <TableHead>Data e Hora</TableHead>
             <TableHead>Cliente</TableHead>
             <TableHead>Valor</TableHead>
-            <TableHead>Desconto Total</TableHead>
+            <TableHead>Descontos Individuais</TableHead>
+            <TableHead>Desconto Geral</TableHead>
+            <TableHead>Total Descontos</TableHead>
             <TableHead>Valor Adicional</TableHead>
             <TableHead>Data de Entrega</TableHead>
             <TableHead>Status</TableHead>
@@ -160,6 +162,8 @@ const GerenciamentoPedidos = () => {
               <TableCell>{pedido.created_at ? format(parseISO(pedido.created_at), 'dd/MM/yyyy HH:mm', { locale: ptBR }) : 'N/A'}</TableCell>
               <TableCell>{clientes?.find(c => c.id === pedido.customer_id)?.name || 'N/A'}</TableCell>
               <TableCell>R$ {pedido.total_amount?.toFixed(2) || 'N/A'}</TableCell>
+              <TableCell>R$ {(pedido.order_items?.reduce((acc, item) => acc + (parseFloat(item.discount) || 0), 0) || 0).toFixed(2)}</TableCell>
+              <TableCell>R$ {(parseFloat(pedido.discount) || 0).toFixed(2)}</TableCell>
               <TableCell>R$ {calcularDescontoTotal(pedido).toFixed(2)}</TableCell>
               <TableCell>{pedido.additional_value > 0 ? (
                   <>
