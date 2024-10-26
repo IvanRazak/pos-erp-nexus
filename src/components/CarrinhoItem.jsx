@@ -56,9 +56,14 @@ const CarrinhoItem = ({
       }
       return sum + extraPrice * item.quantidade;
     }, 0);
-    const subtotal = basePrice + extrasTotal;
-    const discount = item.discount || 0;
-    return subtotal - discount;
+    return basePrice + extrasTotal;
+  };
+
+  const calculateDiscountPercentage = () => {
+    const total = calculateItemTotal();
+    const discount = parseFloat(item.discount) || 0;
+    if (total === 0) return 0;
+    return (discount / total) * 100;
   };
 
   const renderUnitPrice = () => {
@@ -82,6 +87,9 @@ const CarrinhoItem = ({
     }
     return `R$ ${item.unitPrice.toFixed(2)}`;
   };
+
+  const total = calculateItemTotal();
+  const discountPercentage = calculateDiscountPercentage();
 
   return (
     <TableRow>
@@ -119,15 +127,20 @@ const CarrinhoItem = ({
       </TableCell>
       <TableCell>{item.arteOption || 'N/A'}</TableCell>
       <TableCell>
-        <Input
-          type="number"
-          placeholder="Desconto"
-          value={item.discount || ''}
-          onChange={(e) => onDiscountChange(item, parseFloat(e.target.value) || 0)}
-          className="w-24 mb-2"
-        />
+        <div className="space-y-1">
+          <Input
+            type="number"
+            placeholder="Desconto"
+            value={item.discount || ''}
+            onChange={(e) => onDiscountChange(item, parseFloat(e.target.value) || 0)}
+            className="w-24"
+          />
+          <div className="text-sm text-gray-500">
+            {discountPercentage.toFixed(2)}% de desconto
+          </div>
+        </div>
       </TableCell>
-      <TableCell>R$ {calculateItemTotal().toFixed(2)}</TableCell>
+      <TableCell>R$ {(total - (parseFloat(item.discount) || 0)).toFixed(2)}</TableCell>
       <TableCell>
         <Input
           type="text"
