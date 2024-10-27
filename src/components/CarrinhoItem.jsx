@@ -117,10 +117,10 @@ const CarrinhoItem = ({
           <div key={i}>
             {extra.name}: 
             {extra.type === 'select' 
-              ? `${extra.selectedOptionName} - R$ ${(extrasPrices[extra.id] || extra.price || 0).toFixed(2)}`
+              ? ` ${extra.selectedOptionName} - R$ ${extra.totalPrice.toFixed(2)}`
               : extra.type === 'number' 
-                ? `${extra.value} x R$ ${(extrasPrices[extra.id] || extra.price || 0).toFixed(2)}`
-                : `R$ ${(extrasPrices[extra.id] || extra.price || 0).toFixed(2)}`
+                ? ` ${extra.value} x R$ ${(extrasPrices[extra.id] || extra.price || 0).toFixed(2)}`
+                : ` R$ ${(extrasPrices[extra.id] || extra.price || 0).toFixed(2)}`
             }
           </div>
         ))}
