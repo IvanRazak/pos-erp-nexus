@@ -18,6 +18,12 @@ export const getExtraOptionPrice = async (extraOption, quantity) => {
       }
     }
   }
+
+  // Para opções do tipo select, retornamos o valor da opção selecionada
+  if (extraOption.type === 'select' && extraOption.totalPrice) {
+    return extraOption.totalPrice;
+  }
+  
   return extraOption.type === 'number' 
     ? extraOption.price * (extraOption.value || 1)
     : extraOption.price;
