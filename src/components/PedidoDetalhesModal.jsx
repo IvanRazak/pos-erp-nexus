@@ -5,6 +5,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { supabase } from '../lib/supabase';
 import { formatarDimensoes, formatarM2 } from '../utils/pedidoUtils';
+import { getExtraOptionPrice } from '../utils/vendaUtils';
 
 const PedidoDetalhesModal = ({ pedido, onClose }) => {
   const { data: itensPedido, isLoading } = useQuery({
@@ -17,7 +18,14 @@ const PedidoDetalhesModal = ({ pedido, onClose }) => {
           product:products(*),
           extras:order_item_extras(
             id,
-            extra_option:extra_options(id, name, type, price),
+            extra_option:extra_options(
+              id, 
+              name, 
+              type, 
+              price,
+              use_quantity_pricing,
+              fixed_value
+            ),
             value,
             inserted_value,
             total_value,
@@ -27,6 +35,23 @@ const PedidoDetalhesModal = ({ pedido, onClose }) => {
         .eq('order_id', pedido.id);
 
       if (error) throw error;
+
+      // Atualizar os valores totais das opções extras considerando preços por quantidade
+      for (const item of data) {
+        for (const extra of item.extras) {
+          if (extra.extra_option.use_quantity_pricing) {
+            extra.total_value = await getExtraOptionPrice(
+              {
+                ...extra.extra_option,
+                value: extra.inserted_value,
+                totalPrice: extra.total_value
+              },
+              item.quantity
+            );
+          }
+        }
+      }
+
       return data;
     },
   });
@@ -35,7 +60,12 @@ const PedidoDetalhesModal = ({ pedido, onClose }) => {
 
   const calcularSubtotalItem = (item) => {
     const subtotalProduto = item.quantity * item.unit_price;
-    const subtotalExtras = item.extras.reduce((sum, extra) => sum + (extra.total_value || 0), 0);
+    const subtotalExtras = item.extras.reduce((sum, extra) => {
+      if (extra.extra_option.fixed_value) {
+        return sum + extra.total_value;
+      }
+      return sum + (extra.total_value * (extra.extra_option.type === 'number' ? 1 : item.quantity));
+    }, 0);
     return subtotalProduto + subtotalExtras - (item.discount || 0);
   };
 
@@ -45,18 +75,30 @@ const PedidoDetalhesModal = ({ pedido, onClose }) => {
     return descontosIndividuais + descontoGeral;
   };
 
-  const renderExtras = (extras) => {
-    return extras.map((extra) => (
-      <div key={extra.id}>
-        {extra.extra_option.name}:
-        {extra.extra_option.type === 'number'
-          ? ` ${extra.inserted_value} x R$ ${extra.extra_option.price.toFixed(2)} = R$ ${extra.total_value.toFixed(2)}`
-          : extra.extra_option.type === 'select'
-          ? ` ${extra.selected_option.name} - R$ ${extra.selected_option.value.toFixed(2)}`
-          : ` R$ ${extra.extra_option.price.toFixed(2)}`
+  const renderExtras = (extras, itemQuantity) => {
+    return extras.map((extra) => {
+      let extraText = `${extra.extra_option.name}: `;
+      
+      if (extra.extra_option.type === 'select' && extra.selected_option) {
+        extraText += `${extra.selected_option.name} - R$ ${extra.total_value.toFixed(2)}`;
+        if (!extra.extra_option.fixed_value) {
+          extraText += ` x ${itemQuantity} = R$ ${(extra.total_value * itemQuantity).toFixed(2)}`;
         }
-      </div>
-    ));
+      } else if (extra.extra_option.type === 'number') {
+        extraText += `${extra.inserted_value} x R$ ${(extra.total_value / extra.inserted_value).toFixed(2)} = R$ ${extra.total_value.toFixed(2)}`;
+      } else {
+        extraText += `R$ ${extra.total_value.toFixed(2)}`;
+        if (!extra.extra_option.fixed_value) {
+          extraText += ` x ${itemQuantity} = R$ ${(extra.total_value * itemQuantity).toFixed(2)}`;
+        }
+      }
+      
+      if (extra.extra_option.use_quantity_pricing) {
+        extraText += ' (Preço por quantidade)';
+      }
+      
+      return <div key={extra.id}>{extraText}</div>;
+    });
   };
 
   return (
@@ -87,7 +129,7 @@ const PedidoDetalhesModal = ({ pedido, onClose }) => {
                   <TableCell>{item.product.name}</TableCell>
                   <TableCell>{item.quantity}</TableCell>
                   <TableCell>R$ {item.unit_price.toFixed(2)}</TableCell>
-                  <TableCell>{renderExtras(item.extras)}</TableCell>
+                  <TableCell>{renderExtras(item.extras, item.quantity)}</TableCell>
                   <TableCell>{formatarDimensoes(item)}</TableCell>
                   <TableCell>{formatarM2(item)}</TableCell>
                   <TableCell>{item.description || 'N/A'}</TableCell>
