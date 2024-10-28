@@ -46,19 +46,17 @@ const PedidoDetalhesModal = ({ pedido, onClose }) => {
   };
 
   const renderExtras = (extras) => {
-    return extras.map((extra) => {
-      let extraText = `${extra.extra_option.name}: `;
-      
-      if (extra.extra_option.type === 'select' && extra.selected_option) {
-        extraText += `${extra.selected_option.name} - R$ ${extra.total_value.toFixed(2)}`;
-      } else if (extra.extra_option.type === 'number') {
-        extraText += `${extra.inserted_value} x R$ ${extra.extra_option.price.toFixed(2)} = R$ ${extra.total_value.toFixed(2)}`;
-      } else {
-        extraText += `R$ ${extra.total_value.toFixed(2)}`;
-      }
-      
-      return <div key={extra.id}>{extraText}</div>;
-    });
+    return extras.map((extra) => (
+      <div key={extra.id}>
+        {extra.extra_option.name}:
+        {extra.extra_option.type === 'number'
+          ? ` ${extra.inserted_value} x R$ ${extra.extra_option.price.toFixed(2)} = R$ ${extra.total_value.toFixed(2)}`
+          : extra.extra_option.type === 'select'
+          ? ` ${extra.selected_option.name} - R$ ${extra.selected_option.value.toFixed(2)}`
+          : ` R$ ${extra.extra_option.price.toFixed(2)}`
+        }
+      </div>
+    ));
   };
 
   return (
