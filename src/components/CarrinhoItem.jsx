@@ -30,6 +30,13 @@ const CarrinhoItem = ({
     updateExtrasPrices();
   }, [item.quantidade, item.extras]);
 
+  const renderDimensoes = () => {
+    if (item.unit_type === 'square_meter') {
+      return item.largura && item.altura ? `${item.largura}m x ${item.altura}m` : 'N/A';
+    }
+    return item.format || 'N/A';
+  };
+
   const handleUnitPriceEdit = () => {
     if (editingUnitPrice) {
       onUnitPriceChange(item, parseFloat(tempUnitPrice));
@@ -109,7 +116,7 @@ const CarrinhoItem = ({
           </span>
         )}
       </TableCell>
-      <TableCell>{item.largura && item.altura ? `${item.largura}m x ${item.altura}m` : 'N/A'}</TableCell>
+      <TableCell>{renderDimensoes()}</TableCell>
       <TableCell>{item.m2 ? `${item.m2.toFixed(2)}m²` : 'N/A'}</TableCell>
       <TableCell>{renderUnitPrice()}</TableCell>
       <TableCell>
@@ -136,7 +143,7 @@ const CarrinhoItem = ({
             className="w-24"
           />
           <div className="text-sm text-gray-500">
-            {discountPercentage.toFixed(2)}% de desconto
+            {calculateDiscountPercentage().toFixed(2)}% de desconto
           </div>
         </div>
       </TableCell>
