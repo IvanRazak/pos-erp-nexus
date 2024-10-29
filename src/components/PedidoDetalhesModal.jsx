@@ -78,18 +78,25 @@ const PedidoDetalhesModal = ({ pedido, onClose }) => {
   const renderExtras = (extras, itemQuantity) => {
     return extras.map((extra) => {
       let extraText = `${extra.extra_option.name}: `;
+      const extraValue = extra.total_value || 0;
       
       if (extra.extra_option.type === 'select' && extra.selected_option) {
-        extraText += `${extra.selected_option.name} - R$ ${extra.total_value.toFixed(2)}`;
-        if (!extra.extra_option.fixed_value) {
-          extraText += ` x ${itemQuantity} = R$ ${(extra.total_value * itemQuantity).toFixed(2)}`;
+        if (extra.extra_option.fixed_value) {
+          extraText += `${extra.selected_option.name} - R$ ${extraValue.toFixed(2)}`;
+        } else {
+          extraText += `${extra.selected_option.name} - R$ ${extraValue.toFixed(2)} x ${itemQuantity} = R$ ${(extraValue * itemQuantity).toFixed(2)}`;
         }
       } else if (extra.extra_option.type === 'number') {
-        extraText += `${extra.inserted_value} x R$ ${(extra.total_value / extra.inserted_value).toFixed(2)} = R$ ${extra.total_value.toFixed(2)}`;
+        if (extra.extra_option.fixed_value) {
+          extraText += `${extra.inserted_value} x R$ ${(extraValue / extra.inserted_value).toFixed(2)} = R$ ${extraValue.toFixed(2)}`;
+        } else {
+          extraText += `${extra.inserted_value} x R$ ${(extraValue / extra.inserted_value).toFixed(2)} x ${itemQuantity} = R$ ${(extraValue * itemQuantity).toFixed(2)}`;
+        }
       } else {
-        extraText += `R$ ${extra.total_value.toFixed(2)}`;
-        if (!extra.extra_option.fixed_value) {
-          extraText += ` x ${itemQuantity} = R$ ${(extra.total_value * itemQuantity).toFixed(2)}`;
+        if (extra.extra_option.fixed_value) {
+          extraText += `R$ ${extraValue.toFixed(2)}`;
+        } else {
+          extraText += `R$ ${extraValue.toFixed(2)} x ${itemQuantity} = R$ ${(extraValue * itemQuantity).toFixed(2)}`;
         }
       }
       
