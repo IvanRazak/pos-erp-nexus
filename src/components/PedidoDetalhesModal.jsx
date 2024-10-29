@@ -114,14 +114,13 @@ const PedidoDetalhesModal = ({ pedido, onClose }) => {
                 <TableHead>Produto</TableHead>
                 <TableHead>Quantidade</TableHead>
                 <TableHead>Valor Unitário</TableHead>
-                <TableHead>Subtotal Produto</TableHead>
                 <TableHead>Opções Extras</TableHead>
                 <TableHead>Dimensões</TableHead>
                 <TableHead>M²</TableHead>
                 <TableHead>Descrição</TableHead>
                 <TableHead>Arte</TableHead>
                 <TableHead>Desconto Individual</TableHead>
-                <TableHead>Total</TableHead>
+                <TableHead>Subtotal</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -130,7 +129,6 @@ const PedidoDetalhesModal = ({ pedido, onClose }) => {
                   <TableCell>{item.product.name}</TableCell>
                   <TableCell>{item.quantity}</TableCell>
                   <TableCell>R$ {item.unit_price.toFixed(2)}</TableCell>
-                  <TableCell>R$ {(item.quantity * item.unit_price).toFixed(2)}</TableCell>
                   <TableCell>{renderExtras(item.extras, item.quantity)}</TableCell>
                   <TableCell>{formatarDimensoes(item)}</TableCell>
                   <TableCell>{formatarM2(item)}</TableCell>
