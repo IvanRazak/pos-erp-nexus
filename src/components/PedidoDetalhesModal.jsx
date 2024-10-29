@@ -103,49 +103,55 @@ const PedidoDetalhesModal = ({ pedido, onClose }) => {
 
   return (
     <Dialog open={true} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[80vh] overflow-hidden flex flex-col">
-        <DialogHeader>
+      <DialogContent className="w-[90vw] max-w-[90vw] h-[90vh] max-h-[90vh] p-0">
+        <DialogHeader className="p-6">
           <DialogTitle>Detalhes do Pedido #{pedido.order_number}</DialogTitle>
         </DialogHeader>
-        <ScrollArea className="flex-grow">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Produto</TableHead>
-                <TableHead>Quantidade</TableHead>
-                <TableHead>Valor Unitário</TableHead>
-                <TableHead>Opções Extras</TableHead>
-                <TableHead>Dimensões</TableHead>
-                <TableHead>M²</TableHead>
-                <TableHead>Descrição</TableHead>
-                <TableHead>Arte</TableHead>
-                <TableHead>Desconto Individual</TableHead>
-                <TableHead>Subtotal</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {itensPedido?.map((item) => (
-                <TableRow key={item.id}>
-                  <TableCell>{item.product.name}</TableCell>
-                  <TableCell>{item.quantity}</TableCell>
-                  <TableCell>R$ {item.unit_price.toFixed(2)}</TableCell>
-                  <TableCell>{renderExtras(item.extras, item.quantity)}</TableCell>
-                  <TableCell>{formatarDimensoes(item)}</TableCell>
-                  <TableCell>{formatarM2(item)}</TableCell>
-                  <TableCell>{item.description || 'N/A'}</TableCell>
-                  <TableCell>{item.arte_option || 'N/A'}</TableCell>
-                  <TableCell>R$ {(item.discount || 0).toFixed(2)}</TableCell>
-                  <TableCell>R$ {calcularSubtotalItem(item).toFixed(2)}</TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-          <div className="mt-4 p-4 bg-gray-50 rounded">
-            <p className="text-sm font-medium">Total Descontos (Individuais + Geral): R$ {calcularTotalDescontos().toFixed(2)}</p>
-            <p className="text-sm font-medium">Valor Adicional: R$ {pedido.additional_value?.toFixed(2) || '0.00'}</p>
-            <p className="text-lg font-bold mt-2">Total Final: R$ {pedido.total_amount?.toFixed(2) || '0.00'}</p>
-          </div>
-        </ScrollArea>
+        <div className="flex-1 overflow-hidden">
+          <ScrollArea className="h-[calc(90vh-8rem)] w-full">
+            <div className="p-6">
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="whitespace-nowrap">Produto</TableHead>
+                      <TableHead className="whitespace-nowrap">Quantidade</TableHead>
+                      <TableHead className="whitespace-nowrap">Valor Unitário</TableHead>
+                      <TableHead className="whitespace-nowrap">Opções Extras</TableHead>
+                      <TableHead className="whitespace-nowrap">Dimensões</TableHead>
+                      <TableHead className="whitespace-nowrap">M²</TableHead>
+                      <TableHead className="whitespace-nowrap">Descrição</TableHead>
+                      <TableHead className="whitespace-nowrap">Arte</TableHead>
+                      <TableHead className="whitespace-nowrap">Desconto Individual</TableHead>
+                      <TableHead className="whitespace-nowrap">Subtotal</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {itensPedido?.map((item) => (
+                      <TableRow key={item.id}>
+                        <TableCell className="whitespace-nowrap">{item.product.name}</TableCell>
+                        <TableCell className="whitespace-nowrap">{item.quantity}</TableCell>
+                        <TableCell className="whitespace-nowrap">R$ {item.unit_price.toFixed(2)}</TableCell>
+                        <TableCell className="whitespace-nowrap">{renderExtras(item.extras, item.quantity)}</TableCell>
+                        <TableCell className="whitespace-nowrap">{formatarDimensoes(item)}</TableCell>
+                        <TableCell className="whitespace-nowrap">{formatarM2(item)}</TableCell>
+                        <TableCell className="whitespace-nowrap">{item.description || 'N/A'}</TableCell>
+                        <TableCell className="whitespace-nowrap">{item.arte_option || 'N/A'}</TableCell>
+                        <TableCell className="whitespace-nowrap">R$ {(item.discount || 0).toFixed(2)}</TableCell>
+                        <TableCell className="whitespace-nowrap">R$ {calcularSubtotalItem(item).toFixed(2)}</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+              <div className="mt-4 p-4 bg-gray-50 rounded">
+                <p className="text-sm font-medium">Total Descontos (Individuais + Geral): R$ {calcularTotalDescontos().toFixed(2)}</p>
+                <p className="text-sm font-medium">Valor Adicional: R$ {pedido.additional_value?.toFixed(2) || '0.00'}</p>
+                <p className="text-lg font-bold mt-2">Total Final: R$ {pedido.total_amount?.toFixed(2) || '0.00'}</p>
+              </div>
+            </div>
+          </ScrollArea>
+        </div>
       </DialogContent>
     </Dialog>
   );
