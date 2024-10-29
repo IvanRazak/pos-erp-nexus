@@ -61,10 +61,11 @@ const PedidoDetalhesModal = ({ pedido, onClose }) => {
   const calcularSubtotalItem = (item) => {
     const subtotalProduto = item.quantity * item.unit_price;
     const subtotalExtras = item.extras.reduce((sum, extra) => {
+      const extraValue = extra.total_value || 0;
       if (extra.extra_option.fixed_value) {
-        return sum + extra.total_value;
+        return sum + extraValue;
       }
-      return sum + (extra.total_value * (extra.extra_option.type === 'number' ? 1 : item.quantity));
+      return sum + (extraValue * item.quantity);
     }, 0);
     return subtotalProduto + subtotalExtras - (item.discount || 0);
   };
