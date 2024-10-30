@@ -10,7 +10,17 @@ const fromSupabase = async (query) => {
 
 export const useOrder = (id) => useQuery({
   queryKey: ['orders', id],
-  queryFn: () => fromSupabase(supabase.from('orders').select('*, customer:customers(name), order_number').eq('id', id).single()),
+  queryFn: async () => {
+    if (!id) return null;
+    return fromSupabase(
+      supabase
+        .from('orders')
+        .select('*, customer:customers(name), order_number')
+        .eq('id', id)
+        .single()
+    );
+  },
+  enabled: !!id,
 });
 
 export const useOrders = () => {
@@ -20,16 +30,56 @@ export const useOrders = () => {
   return useQuery({
     queryKey: ['orders'],
     queryFn: async () => {
-      let query = supabase.from('orders')
+      let query = supabase
+        .from('orders')
         .select('*, customer:customers(name), order_number')
         .order('created_at', { ascending: false });
 
-      // Se não for admin, filtrar pedidos não cancelados
       if (!isAdmin) {
         query = query.eq('cancelled', false);
       }
 
-      return fromSupabase(query);
+      const data = await fromSupabase(query);
+      return data || [];
+    },
+  });
+};
+
+export const useAddOrder = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (newOrder) => {
+      const { data, error } = await supabase
+        .from('orders')
+        .insert([newOrder])
+        .select()
+        .single();
+      
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries(['orders']);
+    },
+  });
+};
+
+export const useUpdateOrder = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, ...updateData }) => {
+      const { data, error } = await supabase
+        .from('orders')
+        .update(updateData)
+        .eq('id', id)
+        .select()
+        .single();
+      
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries(['orders']);
     },
   });
 };
@@ -47,17 +97,7 @@ export const useCancelOrder = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries(['orders']);
-      queryClient.invalidateQueries(['transactions']); // Invalida cache do financeiro/caixa
-    },
-  });
-};
-
-export const useUpdateOrder = () => {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: ({ id, ...updateData }) => fromSupabase(supabase.from('orders').update(updateData).eq('id', id)),
-    onSuccess: () => {
-      queryClient.invalidateQueries(['orders']);
+      queryClient.invalidateQueries(['transactions']);
     },
   });
 };
@@ -65,7 +105,14 @@ export const useUpdateOrder = () => {
 export const useDeleteOrder = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (id) => fromSupabase(supabase.from('orders').delete().eq('id', id)),
+    mutationFn: async (id) => {
+      const { error } = await supabase
+        .from('orders')
+        .delete()
+        .eq('id', id);
+      
+      if (error) throw error;
+    },
     onSuccess: () => {
       queryClient.invalidateQueries(['orders']);
     },
