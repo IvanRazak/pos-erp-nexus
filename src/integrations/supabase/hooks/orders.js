@@ -12,22 +12,45 @@ export const useOrder = (id) => useQuery({
   queryKey: ['orders', id],
   queryFn: async () => {
     if (!id) return null;
-    return fromSupabase(
-      supabase
-        .from('orders')
-        .select(`
-          *,
-          customer:customers(name),
-          items:order_items(
-            id,
-            quantity,
-            unit_price,
-            product:products(*)
-          )
-        `)
-        .eq('id', id)
-        .single()
-    );
+    const { data: order, error } = await supabase
+      .from('orders')
+      .select(`
+        id,
+        customer_id,
+        total_amount,
+        paid_amount,
+        remaining_balance,
+        status,
+        delivery_date,
+        payment_option,
+        created_by,
+        discount,
+        additional_value,
+        additional_value_description,
+        created_at,
+        order_number,
+        cancelled,
+        customer:customers(id, name)
+      `)
+      .eq('id', id)
+      .single();
+
+    if (error) throw error;
+
+    // Buscar os itens do pedido separadamente
+    const { data: orderItems, error: itemsError } = await supabase
+      .from('order_items')
+      .select(`
+        id,
+        quantity,
+        unit_price,
+        product:products(*)
+      `)
+      .eq('order_id', id);
+
+    if (itemsError) throw itemsError;
+
+    return { ...order, items: orderItems };
   },
   enabled: !!id,
 });
@@ -39,7 +62,7 @@ export const useOrders = () => {
   return useQuery({
     queryKey: ['orders', { isAdmin }],
     queryFn: async () => {
-      const query = supabase
+      const { data: orders, error } = await supabase
         .from('orders')
         .select(`
           id,
@@ -55,22 +78,40 @@ export const useOrders = () => {
           additional_value,
           additional_value_description,
           created_at,
-          cancelled,
           order_number,
-          customer:customers(name),
-          order_items(*)
+          cancelled,
+          customer:customers(id, name)
         `)
         .order('created_at', { ascending: false });
 
-      const { data, error } = await query;
       if (error) throw error;
 
-      // Filtragem no cliente para melhor performance
+      // Buscar os itens de todos os pedidos em uma única consulta
+      const orderIds = orders.map(order => order.id);
+      const { data: allOrderItems, error: itemsError } = await supabase
+        .from('order_items')
+        .select(`
+          id,
+          order_id,
+          quantity,
+          unit_price,
+          product:products(*)
+        `)
+        .in('order_id', orderIds);
+
+      if (itemsError) throw itemsError;
+
+      // Associar os itens aos seus respectivos pedidos
+      const ordersWithItems = orders.map(order => ({
+        ...order,
+        items: allOrderItems.filter(item => item.order_id === order.id)
+      }));
+
       if (!isAdmin) {
-        return (data || []).filter(order => !order.cancelled);
+        return ordersWithItems.filter(order => !order.cancelled);
       }
 
-      return data || [];
+      return ordersWithItems;
     },
     staleTime: 1000 * 60,
     cacheTime: 1000 * 60 * 5,
