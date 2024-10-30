@@ -32,7 +32,24 @@ export const useOrders = () => {
     queryFn: async () => {
       const query = supabase
         .from('orders')
-        .select('*, customer:customers(name), order_number')
+        .select(`
+          id,
+          customer_id,
+          total_amount,
+          paid_amount,
+          remaining_balance,
+          status,
+          delivery_date,
+          payment_option,
+          created_by,
+          discount,
+          additional_value,
+          additional_value_description,
+          created_at,
+          cancelled,
+          order_number,
+          customer:customers(name)
+        `)
         .order('created_at', { ascending: false });
 
       const { data, error } = await query;
