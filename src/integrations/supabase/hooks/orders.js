@@ -28,20 +28,25 @@ export const useOrders = () => {
   const isAdmin = user?.role === 'admin';
 
   return useQuery({
-    queryKey: ['orders'],
+    queryKey: ['orders', { isAdmin }],
     queryFn: async () => {
-      let query = supabase
+      const query = supabase
         .from('orders')
         .select('*, customer:customers(name), order_number')
         .order('created_at', { ascending: false });
 
+      const { data, error } = await query;
+      if (error) throw error;
+
+      // Filtragem no cliente para melhor performance
       if (!isAdmin) {
-        query = query.eq('cancelled', false);
+        return (data || []).filter(order => !order.cancelled);
       }
 
-      const data = await fromSupabase(query);
       return data || [];
     },
+    staleTime: 1000 * 60, // Cache por 1 minuto
+    cacheTime: 1000 * 60 * 5, // Manter no cache por 5 minutos
   });
 };
 
