@@ -15,7 +15,16 @@ export const useOrder = (id) => useQuery({
     return fromSupabase(
       supabase
         .from('orders')
-        .select('*, customer:customers(name), order_number')
+        .select(`
+          *,
+          customer:customers(name),
+          items:order_items(
+            id,
+            quantity,
+            unit_price,
+            product:products(*)
+          )
+        `)
         .eq('id', id)
         .single()
     );
@@ -48,7 +57,8 @@ export const useOrders = () => {
           created_at,
           cancelled,
           order_number,
-          customer:customers(name)
+          customer:customers(name),
+          order_items(*)
         `)
         .order('created_at', { ascending: false });
 
@@ -62,8 +72,8 @@ export const useOrders = () => {
 
       return data || [];
     },
-    staleTime: 1000 * 60, // Cache por 1 minuto
-    cacheTime: 1000 * 60 * 5, // Manter no cache por 5 minutos
+    staleTime: 1000 * 60,
+    cacheTime: 1000 * 60 * 5,
   });
 };
 
