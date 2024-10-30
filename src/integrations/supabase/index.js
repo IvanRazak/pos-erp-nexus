@@ -44,7 +44,7 @@ export const {
   useAddExtraOption,
   useUpdateExtraOption,
   useDeleteExtraOption,
-  useSelectionOptions,
+  useSelectionOptions, // Add this line to export useSelectionOptions
   useAddSelectionOption,
   useUpdateSelectionOption,
   useDeleteSelectionOption,
@@ -72,7 +72,6 @@ export const {
   useAddOrder,
   useUpdateOrder,
   useDeleteOrder,
-  useCancelOrder, // Added this export
 } = ordersHooks;
 
 export const {

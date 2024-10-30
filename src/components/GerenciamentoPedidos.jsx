@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useOrders, useUpdateOrder, useCancelOrder } from '../integrations/supabase';
-import { useCustomers } from '../integrations/supabase';
+import { useOrders, useUpdateOrder, useCustomers } from '../integrations/supabase';
 import { useOrderDiscounts } from '../integrations/supabase/hooks/order_discounts';
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -10,8 +9,6 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { DatePicker } from "@/components/ui/date-picker";
 import { format, isWithinInterval, parseISO, startOfDay, endOfDay } from "date-fns";
 import { ptBR } from 'date-fns/locale';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { toast } from "@/components/ui/use-toast";
 import PedidoDetalhesModal from './PedidoDetalhesModal';
 import { useAuth } from '../hooks/useAuth';
 
@@ -31,8 +28,8 @@ const GerenciamentoPedidos = () => {
   const { data: pedidos, isLoading: isLoadingPedidos } = useOrders();
   const { data: clientes, isLoading: isLoadingClientes } = useCustomers();
   const updateOrder = useUpdateOrder();
-  const cancelOrder = useCancelOrder();
 
+  // Busca os descontos usando o novo hook
   const { data: descontosIndividuais = {} } = useOrderDiscounts(
     pedidos?.map(pedido => pedido.id) || []
   );
@@ -71,20 +68,8 @@ const GerenciamentoPedidos = () => {
     setPedidosFiltrados(filtered);
   };
 
-  const handleCancelOrder = async (orderId) => {
-    try {
-      await cancelOrder.mutateAsync(orderId);
-      toast({
-        title: "Pedido cancelado com sucesso",
-        description: "O pedido foi cancelado e só estará visível para administradores.",
-      });
-    } catch (error) {
-      toast({
-        title: "Erro ao cancelar pedido",
-        description: error.message,
-        variant: "destructive",
-      });
-    }
+  const atualizarStatus = (pedidoId, novoStatus) => {
+    updateOrder.mutate({ id: pedidoId, status: novoStatus });
   };
 
   const abrirModalDetalhes = (pedido) => {
@@ -170,10 +155,7 @@ const GerenciamentoPedidos = () => {
         </TableHeader>
         <TableBody>
           {pedidosFiltrados.map((pedido) => (
-            <TableRow 
-              key={pedido.id}
-              className={pedido.cancelled ? "bg-gray-100" : ""}
-            >
+            <TableRow key={pedido.id}>
               <TableCell>{pedido.order_number}</TableCell>
               <TableCell>{pedido.created_at ? format(parseISO(pedido.created_at), 'dd/MM/yyyy HH:mm', { locale: ptBR }) : 'N/A'}</TableCell>
               <TableCell>{clientes?.find(c => c.id === pedido.customer_id)?.name || 'N/A'}</TableCell>
@@ -203,34 +185,9 @@ const GerenciamentoPedidos = () => {
               </TableCell>
               <TableCell>{pedido.created_by || 'N/A'}</TableCell>
               <TableCell>
-                <div className="flex space-x-2">
-                  <Button onClick={() => abrirModalDetalhes(pedido)}>
-                    Ver Detalhes
-                  </Button>
-                  {!pedido.cancelled && (
-                    <AlertDialog>
-                      <AlertDialogTrigger asChild>
-                        <Button variant="destructive">
-                          Cancelar Pedido
-                        </Button>
-                      </AlertDialogTrigger>
-                      <AlertDialogContent>
-                        <AlertDialogHeader>
-                          <AlertDialogTitle>Cancelar Pedido</AlertDialogTitle>
-                          <AlertDialogDescription>
-                            Tem certeza que deseja cancelar este pedido? Esta ação não pode ser desfeita.
-                          </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                          <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                          <AlertDialogAction onClick={() => handleCancelOrder(pedido.id)}>
-                            Confirmar
-                          </AlertDialogAction>
-                        </AlertDialogFooter>
-                      </AlertDialogContent>
-                    </AlertDialog>
-                  )}
-                </div>
+                <Button onClick={() => abrirModalDetalhes(pedido)} className="ml-2">
+                  Ver Detalhes
+                </Button>
               </TableCell>
             </TableRow>
           ))}

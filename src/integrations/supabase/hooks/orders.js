@@ -1,6 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '../supabase';
-import { useAuth } from '@/hooks/useAuth';
 
 const fromSupabase = async (query) => {
   const { data, error } = await query;
@@ -10,126 +9,89 @@ const fromSupabase = async (query) => {
 
 export const useOrder = (id) => useQuery({
   queryKey: ['orders', id],
-  queryFn: async () => {
-    if (!id) return null;
-    const { data: order, error } = await supabase
-      .from('orders')
-      .select(`
-        id,
-        customer_id,
-        total_amount,
-        paid_amount,
-        remaining_balance,
-        status,
-        delivery_date,
-        payment_option,
-        created_by,
-        discount,
-        additional_value,
-        additional_value_description,
-        created_at,
-        order_number,
-        cancelled,
-        customer:customers(id, name)
-      `)
-      .eq('id', id)
-      .single();
-
-    if (error) throw error;
-
-    // Buscar os itens do pedido separadamente
-    const { data: orderItems, error: itemsError } = await supabase
-      .from('order_items')
-      .select(`
-        id,
-        quantity,
-        unit_price,
-        product:products(*)
-      `)
-      .eq('order_id', id);
-
-    if (itemsError) throw itemsError;
-
-    return { ...order, items: orderItems };
-  },
-  enabled: !!id,
+  queryFn: () => fromSupabase(supabase.from('orders').select('*, customer:customers(name), order_number').eq('id', id).single()),
 });
 
-export const useOrders = () => {
-  const { user } = useAuth();
-  const isAdmin = user?.role === 'admin';
-
-  return useQuery({
-    queryKey: ['orders', { isAdmin }],
-    queryFn: async () => {
-      const { data: orders, error } = await supabase
-        .from('orders')
-        .select(`
-          id,
-          customer_id,
-          total_amount,
-          paid_amount,
-          remaining_balance,
-          status,
-          delivery_date,
-          payment_option,
-          created_by,
-          discount,
-          additional_value,
-          additional_value_description,
-          created_at,
-          order_number,
-          cancelled,
-          customer:customers(id, name)
-        `)
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-
-      // Buscar os itens de todos os pedidos em uma única consulta
-      const orderIds = orders.map(order => order.id);
-      const { data: allOrderItems, error: itemsError } = await supabase
-        .from('order_items')
-        .select(`
-          id,
-          order_id,
-          quantity,
-          unit_price,
-          product:products(*)
-        `)
-        .in('order_id', orderIds);
-
-      if (itemsError) throw itemsError;
-
-      // Associar os itens aos seus respectivos pedidos
-      const ordersWithItems = orders.map(order => ({
-        ...order,
-        items: allOrderItems.filter(item => item.order_id === order.id)
-      }));
-
-      if (!isAdmin) {
-        return ordersWithItems.filter(order => !order.cancelled);
-      }
-
-      return ordersWithItems;
-    },
-    staleTime: 1000 * 60,
-    cacheTime: 1000 * 60 * 5,
-  });
-};
+export const useOrders = () => useQuery({
+  queryKey: ['orders'],
+  queryFn: () => fromSupabase(supabase.from('orders').select('*, customer:customers(name), order_number').order('created_at', { ascending: false })),
+});
 
 export const useAddOrder = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (newOrder) => {
-      const { data, error } = await supabase
+      const { data: order, error: orderError } = await supabase
         .from('orders')
-        .insert([newOrder])
+        .insert([{
+          customer_id: newOrder.customer_id,
+          total_amount: newOrder.total_amount,
+          paid_amount: newOrder.paid_amount,
+          remaining_balance: newOrder.remaining_balance,
+          status: newOrder.status,
+          delivery_date: newOrder.delivery_date,
+          payment_option: newOrder.payment_option,
+          created_by: newOrder.created_by,
+          discount: newOrder.discount,
+          additional_value: newOrder.additional_value,
+          additional_value_description: newOrder.additional_value_description,
+        }])
         .select()
         .single();
-      
-      if (error) throw error;
-      return data;
+
+      if (orderError) throw orderError;
+
+      const orderItems = newOrder.items.map(item => ({
+        order_id: order.id,
+        product_id: item.product_id,
+        quantity: item.quantity,
+        unit_price: item.unit_price,
+        width: item.width || null,
+        height: item.height || null,
+        m2: item.m2 || null,
+        cart_item_id: item.cartItemId,
+        description: item.description,
+        arte_option: item.arte_option,
+        discount: item.discount || 0,
+      }));
+
+      const { data: insertedItems, error: itemsError } = await supabase
+        .from('order_items')
+        .insert(orderItems)
+        .select();
+
+      if (itemsError) throw itemsError;
+
+      const extraOptions = newOrder.items.flatMap(item => 
+        item.extras.map(extra => ({
+          order_item_id: insertedItems.find(i => i.cart_item_id === item.cartItemId).id,
+          extra_option_id: extra.id,
+          value: extra.value,
+          inserted_value: extra.type === 'number' ? parseFloat(extra.value) : null,
+          total_value: extra.totalPrice,
+          selected_option_id: extra.type === 'select' ? extra.value : null,
+        }))
+      );
+
+      if (extraOptions.length > 0) {
+        const { error: extrasError } = await supabase
+          .from('order_item_extras')
+          .insert(extraOptions);
+
+        if (extrasError) throw extrasError;
+      }
+
+      const { error: paymentError } = await supabase
+        .from('payments')
+        .insert([{
+          order_id: order.id,
+          amount: newOrder.paid_amount,
+          payment_option: newOrder.payment_option,
+        }]);
+
+      if (paymentError) throw paymentError;
+
+      return order;
     },
     onSuccess: () => {
       queryClient.invalidateQueries(['orders']);
@@ -140,37 +102,9 @@ export const useAddOrder = () => {
 export const useUpdateOrder = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async ({ id, ...updateData }) => {
-      const { data, error } = await supabase
-        .from('orders')
-        .update(updateData)
-        .eq('id', id)
-        .select()
-        .single();
-      
-      if (error) throw error;
-      return data;
-    },
+    mutationFn: ({ id, ...updateData }) => fromSupabase(supabase.from('orders').update(updateData).eq('id', id)),
     onSuccess: () => {
       queryClient.invalidateQueries(['orders']);
-    },
-  });
-};
-
-export const useCancelOrder = () => {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: async (orderId) => {
-      const { error } = await supabase
-        .from('orders')
-        .update({ cancelled: true })
-        .eq('id', orderId);
-
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries(['orders']);
-      queryClient.invalidateQueries(['transactions']);
     },
   });
 };
@@ -178,14 +112,7 @@ export const useCancelOrder = () => {
 export const useDeleteOrder = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async (id) => {
-      const { error } = await supabase
-        .from('orders')
-        .delete()
-        .eq('id', id);
-      
-      if (error) throw error;
-    },
+    mutationFn: (id) => fromSupabase(supabase.from('orders').delete().eq('id', id)),
     onSuccess: () => {
       queryClient.invalidateQueries(['orders']);
     },

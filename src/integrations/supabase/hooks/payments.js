@@ -1,6 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '../supabase';
-import { useAuth } from '@/hooks/useAuth';
 
 const fromSupabase = async (query) => {
   const { data, error } = await query;
@@ -48,35 +47,14 @@ export const useDeletePayment = () => {
   });
 };
 
-export const useTransactions = () => {
-  const { user } = useAuth();
-  const isAdmin = user?.role === 'admin';
-
-  return useQuery({
-    queryKey: ['transactions'],
-    queryFn: async () => {
-      let query = supabase
-        .from('payments')
-        .select(`
-          *,
-          order:orders(order_number, customer:customers(name), cancelled)
-        `)
-        .order('payment_date', { ascending: false });
-
-      // Se não for admin, filtrar transações de pedidos não cancelados
-      if (!isAdmin) {
-        query = query.eq('order.cancelled', false);
-      }
-
-      const { data, error } = await query;
-      if (error) throw error;
-
-      // Filtrar transações de pedidos cancelados do resultado
-      if (!isAdmin) {
-        return data.filter(transaction => !transaction.order?.cancelled);
-      }
-
-      return data;
-    },
-  });
-};
+export const useTransactions = () => useQuery({
+  queryKey: ['transactions'],
+  queryFn: () => fromSupabase(supabase
+    .from('payments')
+    .select(`
+      *,
+      order:orders(order_number, customer:customers(name))
+    `)
+    .order('payment_date', { ascending: false })
+  ),
+});
