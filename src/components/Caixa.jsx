@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -38,6 +37,11 @@ const Caixa = () => {
   const filtrarTransacoes = () => {
     if (!transacoes) return [];
     return transacoes.filter(transacao => {
+      // Primeiro verificamos se o pedido está cancelado
+      if (transacao.order?.status === 'cancelled') {
+        return false;
+      }
+
       const transacaoDate = parseISO(transacao.payment_date);
       const matchData = (!filtroDataInicio || !filtroDataFim || isWithinInterval(transacaoDate, {
         start: startOfDay(filtroDataInicio),
@@ -46,9 +50,8 @@ const Caixa = () => {
       const matchOpcaoPagamento = !filtroOpcaoPagamento || transacao.payment_option === filtroOpcaoPagamento;
       const matchCliente = !filtroCliente || (transacao.order?.customer?.name && transacao.order.customer.name.toLowerCase().includes(filtroCliente.toLowerCase()));
       const matchNumeroPedido = !filtroNumeroPedido || (transacao.order?.order_number && transacao.order.order_number.toString().includes(filtroNumeroPedido));
-      // Adiciona filtro para não mostrar transações de pedidos cancelados
-      const notCancelled = transacao.order?.status !== 'cancelled';
-      return matchData && matchOpcaoPagamento && matchCliente && matchNumeroPedido && notCancelled;
+      
+      return matchData && matchOpcaoPagamento && matchCliente && matchNumeroPedido;
     });
   };
 
