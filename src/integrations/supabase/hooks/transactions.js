@@ -9,7 +9,7 @@ export const useTransactions = () => {
         .from('payments')
         .select(`
           *,
-          order:orders(
+          order:orders!inner(
             id,
             order_number,
             status,
@@ -18,7 +18,12 @@ export const useTransactions = () => {
             )
           )
         `)
-        .filter('order.status', 'neq', 'cancelled')
+        .not('order_id', 'in', (
+          supabase
+            .from('orders')
+            .select('id')
+            .eq('status', 'cancelled')
+        ))
         .order('payment_date', { ascending: false });
 
       if (error) throw error;
