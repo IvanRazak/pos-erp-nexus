@@ -9,7 +9,7 @@ export const useTransactions = () => {
         .from('payments')
         .select(`
           *,
-          order:orders!inner(
+          order:orders(
             id,
             order_number,
             status,
@@ -18,7 +18,7 @@ export const useTransactions = () => {
             )
           )
         `)
-        .filter('order.status', 'neq', 'cancelled');
+        .eq('order.status', 'cancelled', false);
 
       if (error) throw error;
       return data;
