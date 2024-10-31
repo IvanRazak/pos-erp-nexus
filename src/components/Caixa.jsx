@@ -18,7 +18,6 @@ const Caixa = () => {
   const [filtroCliente, setFiltroCliente] = useState('');
   const [filtroNumeroPedido, setFiltroNumeroPedido] = useState('');
   const [isRelatorioOpen, setIsRelatorioOpen] = useState(false);
-  const [mostrarCancelados, setMostrarCancelados] = useState(false);
   const navigate = useNavigate();
   const { user } = useAuth();
 
@@ -37,32 +36,23 @@ const Caixa = () => {
 
   const filtrarTransacoes = () => {
     if (!transacoes) return [];
-
-    return transacoes.filter(transacao => {
-      const isCancelled = transacao.order?.status === 'cancelled';
+    
+    // Filtra primeiro os pedidos cancelados
+    const transacoesAtivas = transacoes.filter(transacao => 
+      transacao.order && transacao.order.status !== 'cancelled'
+    );
+    
+    // Depois aplica os outros filtros
+    return transacoesAtivas.filter(transacao => {
+      const transacaoDate = parseISO(transacao.payment_date);
+      const matchData = (!filtroDataInicio || !filtroDataFim || isWithinInterval(transacaoDate, {
+        start: startOfDay(filtroDataInicio),
+        end: endOfDay(filtroDataFim)
+      }));
+      const matchOpcaoPagamento = !filtroOpcaoPagamento || transacao.payment_option === filtroOpcaoPagamento;
+      const matchCliente = !filtroCliente || (transacao.order?.customer?.name && transacao.order.customer.name.toLowerCase().includes(filtroCliente.toLowerCase()));
+      const matchNumeroPedido = !filtroNumeroPedido || (transacao.order?.order_number && transacao.order.order_number.toString().includes(filtroNumeroPedido));
       
-      if (isCancelled && !mostrarCancelados) {
-        return false;
-      }
-
-      const transacaoDate = transacao.payment_date ? parseISO(transacao.payment_date) : null;
-      
-      const matchData = !transacaoDate ? true : (!filtroDataInicio || !filtroDataFim || 
-        isWithinInterval(transacaoDate, {
-          start: startOfDay(filtroDataInicio),
-          end: endOfDay(filtroDataFim)
-        })
-      );
-
-      const matchOpcaoPagamento = !filtroOpcaoPagamento || 
-        transacao.payment_option === filtroOpcaoPagamento;
-
-      const matchCliente = !filtroCliente || 
-        (transacao.order?.customer?.name || '').toLowerCase().includes(filtroCliente.toLowerCase());
-
-      const matchNumeroPedido = !filtroNumeroPedido || 
-        (transacao.order?.order_number || '').toString().includes(filtroNumeroPedido);
-
       return matchData && matchOpcaoPagamento && matchCliente && matchNumeroPedido;
     });
   };
@@ -70,7 +60,7 @@ const Caixa = () => {
   const gerarRelatorio = () => {
     const transacoesFiltradas = filtrarTransacoes();
     const totalVendas = transacoesFiltradas.reduce((acc, transacao) => acc + (transacao.amount || 0), 0);
-    const saldoInicial = 1000;
+    const saldoInicial = 1000; // Exemplo de saldo inicial
     const saldoFinal = saldoInicial + totalVendas;
 
     return {
@@ -82,8 +72,6 @@ const Caixa = () => {
   };
 
   if (isLoadingTransactions || isLoadingPaymentOptions) return <div>Carregando...</div>;
-
-  const transacoesFiltradas = filtrarTransacoes();
 
   return (
     <div className="container mx-auto p-4">
@@ -103,12 +91,13 @@ const Caixa = () => {
           locale={ptBR}
           dateFormat="dd/MM/yyyy"
         />
+        
         <Select onValueChange={setFiltroOpcaoPagamento} value={filtroOpcaoPagamento}>
           <SelectTrigger>
             <SelectValue placeholder="Opção de Pagamento" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="todas">Todas</SelectItem>
+            <SelectItem value="all">Todas</SelectItem>
             {paymentOptions?.map((option) => (
               <SelectItem key={option.id} value={option.name}>{option.name}</SelectItem>
             ))}
@@ -124,49 +113,39 @@ const Caixa = () => {
           value={filtroNumeroPedido}
           onChange={(e) => setFiltroNumeroPedido(e.target.value)}
         />
-        <Button 
-          variant={mostrarCancelados ? "destructive" : "outline"}
-          onClick={() => setMostrarCancelados(!mostrarCancelados)}
-          className="w-full"
-        >
-          {mostrarCancelados ? "Ocultar Cancelados" : "Mostrar Cancelados"}
-        </Button>
       </div>
-
-      <div className="rounded-md border">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Número do Pedido</TableHead>
-              <TableHead>Cliente</TableHead>
-              <TableHead>Opção de Pagamento</TableHead>
-              <TableHead>Data do Pagamento</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Valor</TableHead>
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>Número do Pedido</TableHead>
+            <TableHead>Cliente</TableHead>
+            <TableHead>Opção de Pagamento</TableHead>
+            <TableHead>Data do Pagamento</TableHead>
+            <TableHead>Descrição</TableHead>
+            <TableHead>Valor</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {filtrarTransacoes().map((transacao) => (
+            <TableRow key={transacao.id}>
+              <TableCell>{transacao.order?.order_number || 'N/A'}</TableCell>
+              <TableCell>{transacao.order?.customer?.name || 'N/A'}</TableCell>
+              <TableCell>{transacao.payment_option || 'N/A'}</TableCell>
+              <TableCell>{transacao.payment_date ? format(parseISO(transacao.payment_date), 'dd/MM/yyyy', { locale: ptBR }) : 'N/A'}</TableCell>
+              <TableCell>
+                <Input
+                  defaultValue={transacao.description || ''}
+                  onChange={(e) => {
+                    // Implementar lógica para atualizar a descrição
+                    console.log(`Atualizando descrição da transação ${transacao.id}: ${e.target.value}`);
+                  }}
+                />
+              </TableCell>
+              <TableCell>R$ {transacao.amount ? transacao.amount.toFixed(2) : '0.00'}</TableCell>
             </TableRow>
-          </TableHeader>
-          <TableBody>
-            {transacoesFiltradas.map((transacao) => (
-              <TableRow 
-                key={transacao.id}
-                className={transacao.order?.status === 'cancelled' ? 'bg-red-100' : ''}
-              >
-                <TableCell>{transacao.order?.order_number || 'N/A'}</TableCell>
-                <TableCell>{transacao.order?.customer?.name || 'N/A'}</TableCell>
-                <TableCell>{transacao.payment_option || 'N/A'}</TableCell>
-                <TableCell>
-                  {transacao.payment_date 
-                    ? format(parseISO(transacao.payment_date), 'dd/MM/yyyy', { locale: ptBR }) 
-                    : 'N/A'}
-                </TableCell>
-                <TableCell>{transacao.order?.status || 'N/A'}</TableCell>
-                <TableCell>R$ {transacao.amount ? transacao.amount.toFixed(2) : '0.00'}</TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </div>
-
+          ))}
+        </TableBody>
+      </Table>
       <Dialog open={isRelatorioOpen} onOpenChange={setIsRelatorioOpen}>
         <DialogTrigger asChild>
           <Button className="mt-4">Fechamento de Caixa</Button>
