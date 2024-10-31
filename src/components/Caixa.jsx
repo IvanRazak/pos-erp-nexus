@@ -37,22 +37,35 @@ const Caixa = () => {
 
   const filtrarTransacoes = () => {
     if (!transacoes) return [];
-    
+
     return transacoes.filter(transacao => {
-      // Primeiro filtra por pedidos cancelados
-      if (!mostrarCancelados && transacao.order?.status === 'cancelled') {
+      // Verifica se a transação tem um pedido associado e se está cancelado
+      const isCancelled = transacao.order?.status === 'cancelled';
+      
+      // Se o pedido está cancelado e não estamos mostrando cancelados, filtrar
+      if (isCancelled && !mostrarCancelados) {
         return false;
       }
+
+      // Aplica os outros filtros
+      const transacaoDate = transacao.payment_date ? parseISO(transacao.payment_date) : null;
       
-      const transacaoDate = parseISO(transacao.payment_date);
-      const matchData = (!filtroDataInicio || !filtroDataFim || isWithinInterval(transacaoDate, {
-        start: startOfDay(filtroDataInicio),
-        end: endOfDay(filtroDataFim)
-      }));
-      const matchOpcaoPagamento = !filtroOpcaoPagamento || transacao.payment_option === filtroOpcaoPagamento;
-      const matchCliente = !filtroCliente || (transacao.order?.customer?.name && transacao.order.customer.name.toLowerCase().includes(filtroCliente.toLowerCase()));
-      const matchNumeroPedido = !filtroNumeroPedido || (transacao.order?.order_number && transacao.order.order_number.toString().includes(filtroNumeroPedido));
-      
+      const matchData = !transacaoDate ? true : (!filtroDataInicio || !filtroDataFim || 
+        isWithinInterval(transacaoDate, {
+          start: startOfDay(filtroDataInicio),
+          end: endOfDay(filtroDataFim)
+        })
+      );
+
+      const matchOpcaoPagamento = !filtroOpcaoPagamento || 
+        transacao.payment_option === filtroOpcaoPagamento;
+
+      const matchCliente = !filtroCliente || 
+        (transacao.order?.customer?.name || '').toLowerCase().includes(filtroCliente.toLowerCase());
+
+      const matchNumeroPedido = !filtroNumeroPedido || 
+        (transacao.order?.order_number || '').toString().includes(filtroNumeroPedido);
+
       return matchData && matchOpcaoPagamento && matchCliente && matchNumeroPedido;
     });
   };
@@ -72,6 +85,8 @@ const Caixa = () => {
   };
 
   if (isLoadingTransactions || isLoadingPaymentOptions) return <div>Carregando...</div>;
+
+  const transacoesFiltradas = filtrarTransacoes();
 
   return (
     <div className="container mx-auto p-4">
@@ -96,7 +111,7 @@ const Caixa = () => {
             <SelectValue placeholder="Opção de Pagamento" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">Todas</SelectItem>
+            <SelectItem value="">Todas</SelectItem>
             {paymentOptions?.map((option) => (
               <SelectItem key={option.id} value={option.name}>{option.name}</SelectItem>
             ))}
@@ -115,37 +130,46 @@ const Caixa = () => {
         <Button 
           variant={mostrarCancelados ? "destructive" : "outline"}
           onClick={() => setMostrarCancelados(!mostrarCancelados)}
+          className="w-full"
         >
           {mostrarCancelados ? "Ocultar Cancelados" : "Mostrar Cancelados"}
         </Button>
       </div>
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Número do Pedido</TableHead>
-            <TableHead>Cliente</TableHead>
-            <TableHead>Opção de Pagamento</TableHead>
-            <TableHead>Data do Pagamento</TableHead>
-            <TableHead>Status</TableHead>
-            <TableHead>Valor</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {filtrarTransacoes().map((transacao) => (
-            <TableRow 
-              key={transacao.id}
-              className={transacao.order?.status === 'cancelled' ? 'bg-red-100' : ''}
-            >
-              <TableCell>{transacao.order?.order_number || 'N/A'}</TableCell>
-              <TableCell>{transacao.order?.customer?.name || 'N/A'}</TableCell>
-              <TableCell>{transacao.payment_option || 'N/A'}</TableCell>
-              <TableCell>{transacao.payment_date ? format(parseISO(transacao.payment_date), 'dd/MM/yyyy', { locale: ptBR }) : 'N/A'}</TableCell>
-              <TableCell>{transacao.order?.status || 'N/A'}</TableCell>
-              <TableCell>R$ {transacao.amount ? transacao.amount.toFixed(2) : '0.00'}</TableCell>
+
+      <div className="rounded-md border">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Número do Pedido</TableHead>
+              <TableHead>Cliente</TableHead>
+              <TableHead>Opção de Pagamento</TableHead>
+              <TableHead>Data do Pagamento</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead>Valor</TableHead>
             </TableRow>
-          ))}
-        </TableBody>
-      </Table>
+          </TableHeader>
+          <TableBody>
+            {transacoesFiltradas.map((transacao) => (
+              <TableRow 
+                key={transacao.id}
+                className={transacao.order?.status === 'cancelled' ? 'bg-red-100' : ''}
+              >
+                <TableCell>{transacao.order?.order_number || 'N/A'}</TableCell>
+                <TableCell>{transacao.order?.customer?.name || 'N/A'}</TableCell>
+                <TableCell>{transacao.payment_option || 'N/A'}</TableCell>
+                <TableCell>
+                  {transacao.payment_date 
+                    ? format(parseISO(transacao.payment_date), 'dd/MM/yyyy', { locale: ptBR }) 
+                    : 'N/A'}
+                </TableCell>
+                <TableCell>{transacao.order?.status || 'N/A'}</TableCell>
+                <TableCell>R$ {transacao.amount ? transacao.amount.toFixed(2) : '0.00'}</TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
+
       <Dialog open={isRelatorioOpen} onOpenChange={setIsRelatorioOpen}>
         <DialogTrigger asChild>
           <Button className="mt-4">Fechamento de Caixa</Button>
