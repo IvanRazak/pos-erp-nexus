@@ -36,7 +36,14 @@ const Caixa = () => {
 
   const filtrarTransacoes = () => {
     if (!transacoes) return [];
-    return transacoes.filter(transacao => {
+    
+    // Filtra primeiro os pedidos cancelados
+    const transacoesAtivas = transacoes.filter(transacao => 
+      transacao.order && transacao.order.status !== 'cancelled'
+    );
+    
+    // Depois aplica os outros filtros
+    return transacoesAtivas.filter(transacao => {
       const transacaoDate = parseISO(transacao.payment_date);
       const matchData = (!filtroDataInicio || !filtroDataFim || isWithinInterval(transacaoDate, {
         start: startOfDay(filtroDataInicio),

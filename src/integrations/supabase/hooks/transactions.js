@@ -17,11 +17,12 @@ export const useTransactions = () => {
               name
             )
           )
-        `)
-        .eq('order.status', 'cancelled', false);
+        `);
 
       if (error) throw error;
-      return data;
+      
+      // Filtra os pedidos cancelados após receber os dados
+      return data.filter(payment => payment.order?.status !== 'cancelled');
     },
   });
 };
