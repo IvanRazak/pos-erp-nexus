@@ -11,6 +11,8 @@ import { format, isWithinInterval, parseISO, startOfDay, endOfDay } from "date-f
 import { ptBR } from 'date-fns/locale';
 import PedidoDetalhesModal from './PedidoDetalhesModal';
 import { useAuth } from '../hooks/useAuth';
+import { toast } from "@/components/ui/use-toast";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 
 const GerenciamentoPedidos = () => {
   const [filtroCliente, setFiltroCliente] = useState('');
@@ -67,6 +69,37 @@ const GerenciamentoPedidos = () => {
     });
     setPedidosFiltrados(filtered);
   };
+
+  const handleCancelarPedido = (pedidoId) => {
+    updateOrder.mutate(
+      { 
+        id: pedidoId, 
+        status: 'cancelled'
+      },
+      {
+        onSuccess: () => {
+          toast({
+            title: "Pedido cancelado com sucesso",
+            description: "O pedido foi cancelado e agora só está visível para administradores.",
+          });
+        },
+        onError: (error) => {
+          toast({
+            title: "Erro ao cancelar pedido",
+            description: error.message,
+            variant: "destructive",
+          });
+        }
+      }
+    );
+  };
+
+  const pedidosFiltradosComPermissao = pedidosFiltrados?.filter(pedido => {
+    if (pedido.status === 'cancelled') {
+      return user?.role === 'admin';
+    }
+    return true;
+  });
 
   const atualizarStatus = (pedidoId, novoStatus) => {
     updateOrder.mutate({ id: pedidoId, status: novoStatus });
@@ -154,8 +187,11 @@ const GerenciamentoPedidos = () => {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {pedidosFiltrados.map((pedido) => (
-            <TableRow key={pedido.id}>
+          {pedidosFiltradosComPermissao.map((pedido) => (
+            <TableRow 
+              key={pedido.id}
+              className={pedido.status === 'cancelled' ? 'opacity-60' : ''}
+            >
               <TableCell>{pedido.order_number}</TableCell>
               <TableCell>{pedido.created_at ? format(parseISO(pedido.created_at), 'dd/MM/yyyy HH:mm', { locale: ptBR }) : 'N/A'}</TableCell>
               <TableCell>{clientes?.find(c => c.id === pedido.customer_id)?.name || 'N/A'}</TableCell>
@@ -185,9 +221,32 @@ const GerenciamentoPedidos = () => {
               </TableCell>
               <TableCell>{pedido.created_by || 'N/A'}</TableCell>
               <TableCell>
-                <Button onClick={() => abrirModalDetalhes(pedido)} className="ml-2">
-                  Ver Detalhes
-                </Button>
+                <div className="flex gap-2">
+                  <Button onClick={() => abrirModalDetalhes(pedido)}>
+                    Ver Detalhes
+                  </Button>
+                  {pedido.status !== 'cancelled' && (
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button variant="destructive">Cancelar</Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Confirmar Cancelamento</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            Tem certeza que deseja cancelar este pedido? Esta ação não pode ser desfeita.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Não</AlertDialogCancel>
+                          <AlertDialogAction onClick={() => handleCancelarPedido(pedido.id)}>
+                            Sim, cancelar pedido
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  )}
+                </div>
               </TableCell>
             </TableRow>
           ))}
