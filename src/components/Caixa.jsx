@@ -37,13 +37,7 @@ const Caixa = () => {
   const filtrarTransacoes = () => {
     if (!transacoes) return [];
     
-    // Filtra primeiro os pedidos cancelados
-    const transacoesAtivas = transacoes.filter(transacao => 
-      transacao.order && transacao.order.status !== 'cancelled'
-    );
-    
-    // Depois aplica os outros filtros
-    return transacoesAtivas.filter(transacao => {
+    return transacoes.filter(transacao => {
       const transacaoDate = parseISO(transacao.payment_date);
       const matchData = (!filtroDataInicio || !filtroDataFim || isWithinInterval(transacaoDate, {
         start: startOfDay(filtroDataInicio),
@@ -60,7 +54,7 @@ const Caixa = () => {
   const gerarRelatorio = () => {
     const transacoesFiltradas = filtrarTransacoes();
     const totalVendas = transacoesFiltradas.reduce((acc, transacao) => acc + (transacao.amount || 0), 0);
-    const saldoInicial = 1000; // Exemplo de saldo inicial
+    const saldoInicial = 1000;
     const saldoFinal = saldoInicial + totalVendas;
 
     return {
@@ -97,7 +91,7 @@ const Caixa = () => {
             <SelectValue placeholder="Opção de Pagamento" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">Todas</SelectItem>
+            <SelectItem value="todas">Todas</SelectItem>
             {paymentOptions?.map((option) => (
               <SelectItem key={option.id} value={option.name}>{option.name}</SelectItem>
             ))}
@@ -127,7 +121,10 @@ const Caixa = () => {
         </TableHeader>
         <TableBody>
           {filtrarTransacoes().map((transacao) => (
-            <TableRow key={transacao.id}>
+            <TableRow 
+              key={transacao.id}
+              className={transacao.order?.status === 'cancelled' ? 'bg-red-100' : ''}
+            >
               <TableCell>{transacao.order?.order_number || 'N/A'}</TableCell>
               <TableCell>{transacao.order?.customer?.name || 'N/A'}</TableCell>
               <TableCell>{transacao.payment_option || 'N/A'}</TableCell>
@@ -136,7 +133,6 @@ const Caixa = () => {
                 <Input
                   defaultValue={transacao.description || ''}
                   onChange={(e) => {
-                    // Implementar lógica para atualizar a descrição
                     console.log(`Atualizando descrição da transação ${transacao.id}: ${e.target.value}`);
                   }}
                 />
