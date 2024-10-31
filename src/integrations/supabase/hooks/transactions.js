@@ -9,10 +9,11 @@ export const useTransactions = () => {
         .from('payments')
         .select(`
           *,
-          order:orders!inner(
+          order:orders(
             id,
             order_number,
             status,
+            cancelled,
             customer:customers(
               name
             )

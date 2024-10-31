@@ -123,7 +123,7 @@ const Caixa = () => {
           {filtrarTransacoes().map((transacao) => (
             <TableRow 
               key={transacao.id}
-              className={transacao.order?.status === 'cancelled' ? 'bg-red-100' : ''}
+              className={transacao.order?.cancelled ? 'bg-red-100' : ''}
             >
               <TableCell>{transacao.order?.order_number || 'N/A'}</TableCell>
               <TableCell>{transacao.order?.customer?.name || 'N/A'}</TableCell>
