@@ -9,7 +9,7 @@ export const useTransactions = () => {
         .from('payments')
         .select(`
           *,
-          order:orders(
+          order:orders!inner(
             id,
             order_number,
             status,
