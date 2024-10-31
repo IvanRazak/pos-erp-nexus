@@ -18,7 +18,8 @@ export const useTransactions = () => {
             )
           )
         `)
-        .not('order.status', 'eq', 'cancelled');
+        .filter('order.status', 'neq', 'cancelled')
+        .order('payment_date', { ascending: false });
 
       if (error) throw error;
       return data;
