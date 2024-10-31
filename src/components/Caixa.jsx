@@ -39,15 +39,12 @@ const Caixa = () => {
     if (!transacoes) return [];
 
     return transacoes.filter(transacao => {
-      // Verifica se a transação tem um pedido associado e se está cancelado
       const isCancelled = transacao.order?.status === 'cancelled';
       
-      // Se o pedido está cancelado e não estamos mostrando cancelados, filtrar
       if (isCancelled && !mostrarCancelados) {
         return false;
       }
 
-      // Aplica os outros filtros
       const transacaoDate = transacao.payment_date ? parseISO(transacao.payment_date) : null;
       
       const matchData = !transacaoDate ? true : (!filtroDataInicio || !filtroDataFim || 
@@ -111,7 +108,7 @@ const Caixa = () => {
             <SelectValue placeholder="Opção de Pagamento" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">Todas</SelectItem>
+            <SelectItem value="todas">Todas</SelectItem>
             {paymentOptions?.map((option) => (
               <SelectItem key={option.id} value={option.name}>{option.name}</SelectItem>
             ))}
