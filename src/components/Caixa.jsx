@@ -37,11 +37,6 @@ const Caixa = () => {
   const filtrarTransacoes = () => {
     if (!transacoes) return [];
     return transacoes.filter(transacao => {
-      // Primeiro verificamos se o pedido está cancelado
-      if (transacao.order?.status === 'cancelled') {
-        return false;
-      }
-
       const transacaoDate = parseISO(transacao.payment_date);
       const matchData = (!filtroDataInicio || !filtroDataFim || isWithinInterval(transacaoDate, {
         start: startOfDay(filtroDataInicio),
