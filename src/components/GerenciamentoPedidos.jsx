@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useOrders, useUpdateOrder, useCustomers, useCancelOrder } from '../integrations/supabase';
+import { useOrders, useUpdateOrder, useCustomers } from '../integrations/supabase';
 import { useOrderDiscounts } from '../integrations/supabase/hooks/order_discounts';
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -9,9 +9,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { DatePicker } from "@/components/ui/date-picker";
 import { format, isWithinInterval, parseISO, startOfDay, endOfDay } from "date-fns";
 import { ptBR } from 'date-fns/locale';
-import { toast } from "@/components/ui/use-toast";
 import PedidoDetalhesModal from './PedidoDetalhesModal';
-import CancelOrderModal from './CancelOrderModal';
 import { useAuth } from '../hooks/useAuth';
 
 const GerenciamentoPedidos = () => {
@@ -24,32 +22,27 @@ const GerenciamentoPedidos = () => {
   const [filtroStatus, setFiltroStatus] = useState('all');
   const [pedidosFiltrados, setPedidosFiltrados] = useState([]);
   const [pedidoSelecionado, setPedidoSelecionado] = useState(null);
-  const [selectedOrderForCancel, setSelectedOrderForCancel] = useState(null);
   const navigate = useNavigate();
   const { user } = useAuth();
 
   const { data: pedidos, isLoading: isLoadingPedidos } = useOrders();
   const { data: clientes, isLoading: isLoadingClientes } = useCustomers();
   const updateOrder = useUpdateOrder();
-  const cancelOrder = useCancelOrder();
-  const isAdmin = user?.role === 'admin';
 
-  const handleCancelOrder = async () => {
-    try {
-      await cancelOrder.mutateAsync(selectedOrderForCancel.id);
-      toast({
-        title: "Pedido cancelado com sucesso",
-        description: `O pedido #${selectedOrderForCancel.order_number} foi cancelado.`,
-      });
-      setSelectedOrderForCancel(null);
-    } catch (error) {
-      toast({
-        title: "Erro ao cancelar pedido",
-        description: error.message,
-        variant: "destructive",
-      });
-    }
-  };
+  // Busca os descontos usando o novo hook
+  const { data: descontosIndividuais = {} } = useOrderDiscounts(
+    pedidos?.map(pedido => pedido.id) || []
+  );
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (!user) {
+        navigate('/login');
+      }
+    }, 200);
+
+    return () => clearTimeout(timer);
+  }, [user, navigate]);
 
   useEffect(() => {
     if (pedidos) {
@@ -70,10 +63,13 @@ const GerenciamentoPedidos = () => {
       const matchValor = (!filtroValorMinimo || (pedido.total_amount && pedido.total_amount >= parseFloat(filtroValorMinimo))) &&
                          (!filtroValorMaximo || (pedido.total_amount && pedido.total_amount <= parseFloat(filtroValorMaximo)));
       const matchStatus = filtroStatus === 'all' || pedido.status === filtroStatus;
-      const matchCancelled = isAdmin || !pedido.cancelled;
-      return matchCliente && matchNumeroPedido && matchData && matchValor && matchStatus && matchCancelled;
+      return matchCliente && matchNumeroPedido && matchData && matchValor && matchStatus;
     });
     setPedidosFiltrados(filtered);
+  };
+
+  const atualizarStatus = (pedidoId, novoStatus) => {
+    updateOrder.mutate({ id: pedidoId, status: novoStatus });
   };
 
   const abrirModalDetalhes = (pedido) => {
@@ -159,7 +155,7 @@ const GerenciamentoPedidos = () => {
         </TableHeader>
         <TableBody>
           {pedidosFiltrados.map((pedido) => (
-            <TableRow key={pedido.id} className={pedido.cancelled ? 'opacity-50' : ''}>
+            <TableRow key={pedido.id}>
               <TableCell>{pedido.order_number}</TableCell>
               <TableCell>{pedido.created_at ? format(parseISO(pedido.created_at), 'dd/MM/yyyy HH:mm', { locale: ptBR }) : 'N/A'}</TableCell>
               <TableCell>{clientes?.find(c => c.id === pedido.customer_id)?.name || 'N/A'}</TableCell>
@@ -189,19 +185,9 @@ const GerenciamentoPedidos = () => {
               </TableCell>
               <TableCell>{pedido.created_by || 'N/A'}</TableCell>
               <TableCell>
-                <div className="flex gap-2">
-                  <Button onClick={() => abrirModalDetalhes(pedido)}>
-                    Ver Detalhes
-                  </Button>
-                  {!pedido.cancelled && (
-                    <Button 
-                      variant="destructive"
-                      onClick={() => setSelectedOrderForCancel(pedido)}
-                    >
-                      Cancelar
-                    </Button>
-                  )}
-                </div>
+                <Button onClick={() => abrirModalDetalhes(pedido)} className="ml-2">
+                  Ver Detalhes
+                </Button>
               </TableCell>
             </TableRow>
           ))}
@@ -210,13 +196,6 @@ const GerenciamentoPedidos = () => {
       {pedidoSelecionado && (
         <PedidoDetalhesModal pedido={pedidoSelecionado} onClose={fecharModalDetalhes} />
       )}
-      
-      <CancelOrderModal
-        isOpen={!!selectedOrderForCancel}
-        onClose={() => setSelectedOrderForCancel(null)}
-        onConfirm={handleCancelOrder}
-        orderNumber={selectedOrderForCancel?.order_number}
-      />
     </div>
   );
 };

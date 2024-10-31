@@ -1,6 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '../supabase';
-import { useAuth } from '../useAuth';
 
 const fromSupabase = async (query) => {
   const { data, error } = await query;
@@ -10,30 +9,13 @@ const fromSupabase = async (query) => {
 
 export const useOrder = (id) => useQuery({
   queryKey: ['orders', id],
-  queryFn: () => fromSupabase(
-    supabase
-      .from('orders')
-      .select('*, customer:customers(name), order_number')
-      .eq('id', id)
-      .single()
-  ),
+  queryFn: () => fromSupabase(supabase.from('orders').select('*, customer:customers(name), order_number').eq('id', id).single()),
 });
 
-export const useOrders = (includeAll = false) => {
-  const { user } = useAuth();
-  const isAdmin = user?.role === 'admin';
-
-  return useQuery({
-    queryKey: ['orders', includeAll],
-    queryFn: () => fromSupabase(
-      supabase
-        .from('orders')
-        .select('*, customer:customers(name), order_number')
-        .eq(isAdmin || !includeAll ? 'cancelled' : 'cancelled', false)
-        .order('created_at', { ascending: false })
-    ),
-  });
-};
+export const useOrders = () => useQuery({
+  queryKey: ['orders'],
+  queryFn: () => fromSupabase(supabase.from('orders').select('*, customer:customers(name), order_number').order('created_at', { ascending: false })),
+});
 
 export const useAddOrder = () => {
   const queryClient = useQueryClient();
@@ -131,26 +113,6 @@ export const useDeleteOrder = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (id) => fromSupabase(supabase.from('orders').delete().eq('id', id)),
-    onSuccess: () => {
-      queryClient.invalidateQueries(['orders']);
-    },
-  });
-};
-
-export const useCancelOrder = () => {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: async (orderId) => {
-      const { error } = await supabase
-        .from('orders')
-        .update({ 
-          cancelled: true,
-          status: 'cancelled'
-        })
-        .eq('id', orderId);
-
-      if (error) throw error;
-    },
     onSuccess: () => {
       queryClient.invalidateQueries(['orders']);
     },

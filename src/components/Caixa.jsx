@@ -46,7 +46,7 @@ const Caixa = () => {
       const matchOpcaoPagamento = !filtroOpcaoPagamento || transacao.payment_option === filtroOpcaoPagamento;
       const matchCliente = !filtroCliente || (transacao.order?.customer?.name && transacao.order.customer.name.toLowerCase().includes(filtroCliente.toLowerCase()));
       const matchNumeroPedido = !filtroNumeroPedido || (transacao.order?.order_number && transacao.order.order_number.toString().includes(filtroNumeroPedido));
-      return matchData && matchOpcaoPagamento && matchCliente && matchNumeroPedido && !transacao.order?.cancelled;
+      return matchData && matchOpcaoPagamento && matchCliente && matchNumeroPedido;
     });
   };
 
