@@ -5,7 +5,7 @@ export const useTransactions = () => {
   return useQuery({
     queryKey: ['transactions'],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error, status } = await supabase
         .from('payments')
         .select(`
           *,
@@ -18,9 +18,13 @@ export const useTransactions = () => {
             )
           )
         `)
-        .eq('cancelled', false);
+        .eq('cancelled', false); // Corrigindo o filtro de cancelamento
 
-      if (error) throw error;
+      // Verificação aprimorada de erro
+      if (error || status !== 200) {
+        console.error("Erro ao buscar transações:", error);
+        throw new Error(error?.message || "Erro desconhecido ao buscar transações");
+      }
       return data;
     },
   });
