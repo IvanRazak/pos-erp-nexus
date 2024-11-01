@@ -13,6 +13,7 @@ export const useTransactions = () => {
             id,
             order_number,
             status,
+            cancelled,
             customer:customers(
               name
             )
