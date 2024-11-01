@@ -49,7 +49,7 @@ const Caixa = () => {
       const matchNumeroPedido = !filtroNumeroPedido || (transacao.order?.order_number && transacao.order.order_number.toString().includes(filtroNumeroPedido));
       
       // Exclui transações relacionadas a pedidos cancelados
-      const notCancelled = transacao.order?.cancelled === false;
+      const notCancelled = transacao.order?.cancelled === 'cancelled';
 
       return matchData && matchOpcaoPagamento && matchCliente && matchNumeroPedido && notCancelled;
     });
