@@ -6,14 +6,13 @@ export const useTransactions = () => {
     queryKey: ['transactions'],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('payments')
+        .from('active_payments')
         .select(`
           *,
           order:orders(
             id,
             order_number,
             status,
-            cancelled,
             customer:customers(
               name
             )
