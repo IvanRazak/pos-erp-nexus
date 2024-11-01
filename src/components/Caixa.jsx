@@ -39,6 +39,7 @@ const Caixa = () => {
     if (!transacoes) return [];
     return transacoes.filter(transacao => {
       const transacaoDate = parseISO(transacao.payment_date);
+
       const matchData = (!filtroDataInicio || !filtroDataFim || isWithinInterval(transacaoDate, {
         start: startOfDay(filtroDataInicio),
         end: endOfDay(filtroDataFim)
@@ -46,8 +47,10 @@ const Caixa = () => {
       const matchOpcaoPagamento = !filtroOpcaoPagamento || transacao.payment_option === filtroOpcaoPagamento;
       const matchCliente = !filtroCliente || (transacao.order?.customer?.name && transacao.order.customer.name.toLowerCase().includes(filtroCliente.toLowerCase()));
       const matchNumeroPedido = !filtroNumeroPedido || (transacao.order?.order_number && transacao.order.order_number.toString().includes(filtroNumeroPedido));
-      // Adiciona filtro para não mostrar transações de pedidos cancelados
-      const notCancelled = transacao.order?.status !== 'cancelled';
+      
+      // Exclui transações relacionadas a pedidos cancelados
+      const notCancelled = transacao.order?.cancelled === false;
+
       return matchData && matchOpcaoPagamento && matchCliente && matchNumeroPedido && notCancelled;
     });
   };
@@ -131,7 +134,6 @@ const Caixa = () => {
                 <Input
                   defaultValue={transacao.description || ''}
                   onChange={(e) => {
-                    // Implementar lógica para atualizar a descrição
                     console.log(`Atualizando descrição da transação ${transacao.id}: ${e.target.value}`);
                   }}
                 />
