@@ -6,7 +6,7 @@ export const useTransactions = () => {
     queryKey: ['transactions'],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('active_payments')
+        .from('payments')
         .select(`
           *,
           order:orders(
