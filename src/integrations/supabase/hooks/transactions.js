@@ -18,7 +18,7 @@ export const useTransactions = () => {
             )
           )
         `)
-        .eq('order.status', 'cancelled', false);
+        .neq('order.status', 'cancelled');
 
       if (error) throw error;
       return data;
