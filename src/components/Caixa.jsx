@@ -14,7 +14,7 @@ import { useAuth } from '../hooks/useAuth';
 const Caixa = () => {
   const [filtroDataInicio, setFiltroDataInicio] = useState(null);
   const [filtroDataFim, setFiltroDataFim] = useState(null);
-  const [filtroOpcaoPagamento, setFiltroOpcaoPagamento] = useState('all');
+  const [filtroOpcaoPagamento, setFiltroOpcaoPagamento] = useState('');
   const [filtroCliente, setFiltroCliente] = useState('');
   const [filtroNumeroPedido, setFiltroNumeroPedido] = useState('');
   const [isRelatorioOpen, setIsRelatorioOpen] = useState(false);
@@ -38,15 +38,12 @@ const Caixa = () => {
     if (!transacoes) return [];
     
     return transacoes.filter(transacao => {
-      // Verifica se o pedido não está cancelado
-      if (transacao.order?.status === 'cancelled') return false;
-      
       const transacaoDate = parseISO(transacao.payment_date);
       const matchData = (!filtroDataInicio || !filtroDataFim || isWithinInterval(transacaoDate, {
         start: startOfDay(filtroDataInicio),
         end: endOfDay(filtroDataFim)
       }));
-      const matchOpcaoPagamento = filtroOpcaoPagamento === 'all' || transacao.payment_option === filtroOpcaoPagamento;
+      const matchOpcaoPagamento = !filtroOpcaoPagamento || transacao.payment_option === filtroOpcaoPagamento;
       const matchCliente = !filtroCliente || (transacao.order?.customer?.name && transacao.order.customer.name.toLowerCase().includes(filtroCliente.toLowerCase()));
       const matchNumeroPedido = !filtroNumeroPedido || (transacao.order?.order_number && transacao.order.order_number.toString().includes(filtroNumeroPedido));
       
@@ -88,12 +85,13 @@ const Caixa = () => {
           locale={ptBR}
           dateFormat="dd/MM/yyyy"
         />
+        
         <Select onValueChange={setFiltroOpcaoPagamento} value={filtroOpcaoPagamento}>
           <SelectTrigger>
             <SelectValue placeholder="Opção de Pagamento" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">Todas</SelectItem>
+            <SelectItem value="todas">Todas</SelectItem>
             {paymentOptions?.map((option) => (
               <SelectItem key={option.id} value={option.name}>{option.name}</SelectItem>
             ))}
@@ -110,7 +108,6 @@ const Caixa = () => {
           onChange={(e) => setFiltroNumeroPedido(e.target.value)}
         />
       </div>
-      
       <Table>
         <TableHeader>
           <TableRow>
@@ -124,7 +121,10 @@ const Caixa = () => {
         </TableHeader>
         <TableBody>
           {filtrarTransacoes().map((transacao) => (
-            <TableRow key={transacao.id}>
+            <TableRow 
+              key={transacao.id}
+              className={transacao.order?.cancelled ? 'bg-red-100' : ''}
+            >
               <TableCell>{transacao.order?.order_number || 'N/A'}</TableCell>
               <TableCell>{transacao.order?.customer?.name || 'N/A'}</TableCell>
               <TableCell>{transacao.payment_option || 'N/A'}</TableCell>
