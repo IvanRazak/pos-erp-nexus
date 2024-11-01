@@ -38,6 +38,9 @@ const Caixa = () => {
     if (!transacoes) return [];
     
     return transacoes.filter(transacao => {
+      // Verifica se o pedido não está cancelado
+      if (transacao.order?.status === 'cancelled') return false;
+      
       const transacaoDate = parseISO(transacao.payment_date);
       const matchData = (!filtroDataInicio || !filtroDataFim || isWithinInterval(transacaoDate, {
         start: startOfDay(filtroDataInicio),
@@ -85,13 +88,12 @@ const Caixa = () => {
           locale={ptBR}
           dateFormat="dd/MM/yyyy"
         />
-        
         <Select onValueChange={setFiltroOpcaoPagamento} value={filtroOpcaoPagamento}>
           <SelectTrigger>
             <SelectValue placeholder="Opção de Pagamento" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="todas">Todas</SelectItem>
+            <SelectItem value="">Todas</SelectItem>
             {paymentOptions?.map((option) => (
               <SelectItem key={option.id} value={option.name}>{option.name}</SelectItem>
             ))}
@@ -121,10 +123,7 @@ const Caixa = () => {
         </TableHeader>
         <TableBody>
           {filtrarTransacoes().map((transacao) => (
-            <TableRow 
-              key={transacao.id}
-              className={transacao.order?.cancelled ? 'bg-red-100' : ''}
-            >
+            <TableRow key={transacao.id}>
               <TableCell>{transacao.order?.order_number || 'N/A'}</TableCell>
               <TableCell>{transacao.order?.customer?.name || 'N/A'}</TableCell>
               <TableCell>{transacao.payment_option || 'N/A'}</TableCell>

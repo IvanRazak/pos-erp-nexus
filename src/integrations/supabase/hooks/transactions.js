@@ -22,7 +22,9 @@ export const useTransactions = () => {
         .order('payment_date', { ascending: false });
 
       if (error) throw error;
-      return data;
+      
+      // Filtra os pagamentos para incluir apenas aqueles de pedidos não cancelados
+      return data.filter(payment => !payment.order?.status?.includes('cancelled'));
     },
   });
 };
