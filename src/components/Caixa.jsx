@@ -36,7 +36,6 @@ const Caixa = () => {
 
   const filtrarTransacoes = () => {
     if (!transacoes) return [];
-    
     return transacoes.filter(transacao => {
       const transacaoDate = parseISO(transacao.payment_date);
       const matchData = (!filtroDataInicio || !filtroDataFim || isWithinInterval(transacaoDate, {
@@ -54,7 +53,7 @@ const Caixa = () => {
   const gerarRelatorio = () => {
     const transacoesFiltradas = filtrarTransacoes();
     const totalVendas = transacoesFiltradas.reduce((acc, transacao) => acc + (transacao.amount || 0), 0);
-    const saldoInicial = 1000;
+    const saldoInicial = 1000; // Exemplo de saldo inicial
     const saldoFinal = saldoInicial + totalVendas;
 
     return {
@@ -121,10 +120,7 @@ const Caixa = () => {
         </TableHeader>
         <TableBody>
           {filtrarTransacoes().map((transacao) => (
-            <TableRow 
-              key={transacao.id}
-              className={transacao.cancelled ? 'bg-red-100 opacity-60' : ''}
-            >
+            <TableRow key={transacao.id}>
               <TableCell>{transacao.order?.order_number || 'N/A'}</TableCell>
               <TableCell>{transacao.order?.customer?.name || 'N/A'}</TableCell>
               <TableCell>{transacao.payment_option || 'N/A'}</TableCell>
@@ -133,6 +129,7 @@ const Caixa = () => {
                 <Input
                   defaultValue={transacao.description || ''}
                   onChange={(e) => {
+                    // Implementar lógica para atualizar a descrição
                     console.log(`Atualizando descrição da transação ${transacao.id}: ${e.target.value}`);
                   }}
                 />

@@ -13,13 +13,12 @@ export const useTransactions = () => {
             id,
             order_number,
             status,
-            cancelled,
             customer:customers(
               name
             )
           )
         `)
-        .order('payment_date', { ascending: false });
+        .eq('order.status', 'cancelled', false);
 
       if (error) throw error;
       return data;
