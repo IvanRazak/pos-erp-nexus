@@ -91,7 +91,7 @@ const Caixa = () => {
             <SelectValue placeholder="Opção de Pagamento" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="todas">Todas</SelectItem>
+            <SelectItem value="all">Todas</SelectItem>
             {paymentOptions?.map((option) => (
               <SelectItem key={option.id} value={option.name}>{option.name}</SelectItem>
             ))}
@@ -123,7 +123,7 @@ const Caixa = () => {
           {filtrarTransacoes().map((transacao) => (
             <TableRow 
               key={transacao.id}
-              className={transacao.order?.cancelled ? 'bg-red-100' : ''}
+              className={transacao.cancelled ? 'bg-red-100 opacity-60' : ''}
             >
               <TableCell>{transacao.order?.order_number || 'N/A'}</TableCell>
               <TableCell>{transacao.order?.customer?.name || 'N/A'}</TableCell>
