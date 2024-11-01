@@ -14,7 +14,7 @@ import { useAuth } from '../hooks/useAuth';
 const Caixa = () => {
   const [filtroDataInicio, setFiltroDataInicio] = useState(null);
   const [filtroDataFim, setFiltroDataFim] = useState(null);
-  const [filtroOpcaoPagamento, setFiltroOpcaoPagamento] = useState('');
+  const [filtroOpcaoPagamento, setFiltroOpcaoPagamento] = useState('all');
   const [filtroCliente, setFiltroCliente] = useState('');
   const [filtroNumeroPedido, setFiltroNumeroPedido] = useState('');
   const [isRelatorioOpen, setIsRelatorioOpen] = useState(false);
@@ -46,7 +46,7 @@ const Caixa = () => {
         start: startOfDay(filtroDataInicio),
         end: endOfDay(filtroDataFim)
       }));
-      const matchOpcaoPagamento = !filtroOpcaoPagamento || transacao.payment_option === filtroOpcaoPagamento;
+      const matchOpcaoPagamento = filtroOpcaoPagamento === 'all' || transacao.payment_option === filtroOpcaoPagamento;
       const matchCliente = !filtroCliente || (transacao.order?.customer?.name && transacao.order.customer.name.toLowerCase().includes(filtroCliente.toLowerCase()));
       const matchNumeroPedido = !filtroNumeroPedido || (transacao.order?.order_number && transacao.order.order_number.toString().includes(filtroNumeroPedido));
       
@@ -93,7 +93,7 @@ const Caixa = () => {
             <SelectValue placeholder="Opção de Pagamento" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">Todas</SelectItem>
+            <SelectItem value="all">Todas</SelectItem>
             {paymentOptions?.map((option) => (
               <SelectItem key={option.id} value={option.name}>{option.name}</SelectItem>
             ))}
@@ -110,6 +110,7 @@ const Caixa = () => {
           onChange={(e) => setFiltroNumeroPedido(e.target.value)}
         />
       </div>
+      
       <Table>
         <TableHeader>
           <TableRow>
