@@ -48,7 +48,7 @@ const Caixa = () => {
       const matchOpcaoPagamento = !filtroOpcaoPagamento || transacao.payment_option === filtroOpcaoPagamento;
       const matchCliente = !filtroCliente || (transacao.order?.customer?.name && transacao.order.customer.name.toLowerCase().includes(filtroCliente.toLowerCase()));
       const matchNumeroPedido = !filtroNumeroPedido || (transacao.order?.order_number && transacao.order.order_number.toString().includes(filtroNumeroPedido));
-      const matchCancelado = mostrarCancelados ? transacao.order?.status === 'cancelled' : transacao.order?.status !== 'cancelled';
+      const matchCancelado = mostrarCancelados ? transacao.cancelled : !transacao.cancelled;
       return matchData && matchOpcaoPagamento && matchCliente && matchNumeroPedido && matchCancelado;
     });
   };
@@ -115,7 +115,7 @@ const Caixa = () => {
             onCheckedChange={setMostrarCancelados}
           />
           <label htmlFor="mostrar-cancelados">
-            Mostrar Pedidos Cancelados
+            Mostrar Pagamentos Cancelados
           </label>
         </div>
       </div>
@@ -134,7 +134,7 @@ const Caixa = () => {
           {filtrarTransacoes().map((transacao) => (
             <TableRow 
               key={transacao.id}
-              className={transacao.order?.status === 'cancelled' ? 'bg-red-50 opacity-70' : ''}
+              className={transacao.cancelled ? 'bg-red-50 opacity-70' : ''}
             >
               <TableCell>{transacao.order?.order_number || 'N/A'}</TableCell>
               <TableCell>{transacao.order?.customer?.name || 'N/A'}</TableCell>
