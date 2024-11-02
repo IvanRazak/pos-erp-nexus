@@ -11,6 +11,7 @@ import { usePaymentOptions, useTransactions } from '../integrations/supabase';
 import { format, isWithinInterval, parseISO, startOfDay, endOfDay } from "date-fns";
 import { ptBR } from 'date-fns/locale';
 import { useAuth } from '../hooks/useAuth';
+import { Switch } from "@/components/ui/switch";
 
 const Caixa = () => {
   const [filtroDataInicio, setFiltroDataInicio] = useState(null);
@@ -19,6 +20,7 @@ const Caixa = () => {
   const [filtroCliente, setFiltroCliente] = useState('');
   const [filtroNumeroPedido, setFiltroNumeroPedido] = useState('');
   const [isRelatorioOpen, setIsRelatorioOpen] = useState(false);
+  const [mostrarCancelados, setMostrarCancelados] = useState(false);
   const navigate = useNavigate();
   const { user } = useAuth();
 
@@ -46,16 +48,15 @@ const Caixa = () => {
       const matchOpcaoPagamento = !filtroOpcaoPagamento || transacao.payment_option === filtroOpcaoPagamento;
       const matchCliente = !filtroCliente || (transacao.order?.customer?.name && transacao.order.customer.name.toLowerCase().includes(filtroCliente.toLowerCase()));
       const matchNumeroPedido = !filtroNumeroPedido || (transacao.order?.order_number && transacao.order.order_number.toString().includes(filtroNumeroPedido));
-      // Adiciona filtro para não mostrar transações de pedidos cancelados
-      const notCancelled = transacao.order?.status !== 'cancelled';
-      return matchData && matchOpcaoPagamento && matchCliente && matchNumeroPedido && notCancelled;
+      const matchCancelado = mostrarCancelados ? transacao.order?.status === 'cancelled' : transacao.order?.status !== 'cancelled';
+      return matchData && matchOpcaoPagamento && matchCliente && matchNumeroPedido && matchCancelado;
     });
   };
 
   const gerarRelatorio = () => {
     const transacoesFiltradas = filtrarTransacoes();
     const totalVendas = transacoesFiltradas.reduce((acc, transacao) => acc + (transacao.amount || 0), 0);
-    const saldoInicial = 1000; // Exemplo de saldo inicial
+    const saldoInicial = 1000;
     const saldoFinal = saldoInicial + totalVendas;
 
     return {
@@ -86,7 +87,6 @@ const Caixa = () => {
           locale={ptBR}
           dateFormat="dd/MM/yyyy"
         />
-        
         <Select onValueChange={setFiltroOpcaoPagamento} value={filtroOpcaoPagamento}>
           <SelectTrigger>
             <SelectValue placeholder="Opção de Pagamento" />
@@ -108,6 +108,16 @@ const Caixa = () => {
           value={filtroNumeroPedido}
           onChange={(e) => setFiltroNumeroPedido(e.target.value)}
         />
+        <div className="flex items-center space-x-2">
+          <Switch
+            id="mostrar-cancelados"
+            checked={mostrarCancelados}
+            onCheckedChange={setMostrarCancelados}
+          />
+          <label htmlFor="mostrar-cancelados">
+            Mostrar Pedidos Cancelados
+          </label>
+        </div>
       </div>
       <Table>
         <TableHeader>
@@ -122,7 +132,10 @@ const Caixa = () => {
         </TableHeader>
         <TableBody>
           {filtrarTransacoes().map((transacao) => (
-            <TableRow key={transacao.id}>
+            <TableRow 
+              key={transacao.id}
+              className={transacao.order?.status === 'cancelled' ? 'bg-red-50 opacity-70' : ''}
+            >
               <TableCell>{transacao.order?.order_number || 'N/A'}</TableCell>
               <TableCell>{transacao.order?.customer?.name || 'N/A'}</TableCell>
               <TableCell>{transacao.payment_option || 'N/A'}</TableCell>
@@ -131,7 +144,6 @@ const Caixa = () => {
                 <Input
                   defaultValue={transacao.description || ''}
                   onChange={(e) => {
-                    // Implementar lógica para atualizar a descrição
                     console.log(`Atualizando descrição da transação ${transacao.id}: ${e.target.value}`);
                   }}
                 />
