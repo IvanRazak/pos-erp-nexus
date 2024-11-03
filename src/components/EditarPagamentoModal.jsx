@@ -3,7 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useUpdatePayment } from '../integrations/supabase';
+import { useUpdatePayment, useUpdateOrder, useOrder } from '../integrations/supabase';
 import { toast } from "@/components/ui/use-toast";
 
 const EditarPagamentoModal = ({ payment, onClose, paymentOptions }) => {
@@ -14,14 +14,33 @@ const EditarPagamentoModal = ({ payment, onClose, paymentOptions }) => {
   });
 
   const updatePayment = useUpdatePayment();
+  const updateOrder = useUpdateOrder();
+  const { data: order } = useOrder(payment.order_id);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
+      const difference = editedPayment.amount - payment.amount;
+      
+      // Atualiza o pagamento
       await updatePayment.mutateAsync({
         id: payment.id,
         ...editedPayment,
       });
+
+      // Se houver um pedido associado, atualiza os valores do pedido
+      if (order) {
+        const newPaidAmount = order.paid_amount + difference;
+        const newRemainingBalance = order.total_amount - newPaidAmount;
+        
+        await updateOrder.mutateAsync({
+          id: order.id,
+          paid_amount: newPaidAmount,
+          remaining_balance: newRemainingBalance,
+          status: newRemainingBalance <= 0 ? 'paid' : 'partial_payment',
+        });
+      }
+
       toast({
         title: "Pagamento atualizado com sucesso!",
       });
