@@ -7,11 +7,15 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { DatePicker } from "@/components/ui/date-picker";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { usePaymentOptions, useTransactions } from '../integrations/supabase';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { usePaymentOptions, useTransactions, useAddPayment, useUpdatePayment, useDeletePayment } from '../integrations/supabase';
 import { format, isWithinInterval, parseISO, startOfDay, endOfDay } from "date-fns";
 import { ptBR } from 'date-fns/locale';
 import { useAuth } from '../hooks/useAuth';
 import { Switch } from "@/components/ui/switch";
+import { toast } from "@/components/ui/use-toast";
+import EditarPagamentoModal from './EditarPagamentoModal';
+import AdicionarPagamentoModal from './AdicionarPagamentoModal';
 
 const Caixa = () => {
   const [filtroDataInicio, setFiltroDataInicio] = useState(null);
@@ -21,6 +25,8 @@ const Caixa = () => {
   const [filtroNumeroPedido, setFiltroNumeroPedido] = useState('');
   const [isRelatorioOpen, setIsRelatorioOpen] = useState(false);
   const [mostrarCancelados, setMostrarCancelados] = useState(false);
+  const [editingPayment, setEditingPayment] = useState(null);
+  const [isAddPaymentOpen, setIsAddPaymentOpen] = useState(false);
   const navigate = useNavigate();
   const { user } = useAuth();
 
@@ -67,11 +73,33 @@ const Caixa = () => {
     };
   };
 
+  const handleDeletePayment = async (paymentId) => {
+    try {
+      await deletePayment.mutateAsync(paymentId);
+      toast({
+        title: "Pagamento excluído com sucesso!",
+      });
+    } catch (error) {
+      toast({
+        title: "Erro ao excluir pagamento",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  };
+
   if (isLoadingTransactions || isLoadingPaymentOptions) return <div>Carregando...</div>;
 
   return (
     <div className="container mx-auto p-4">
       <h2 className="text-2xl font-bold mb-4">Controle de Caixa</h2>
+      
+      <div className="flex justify-between items-center mb-4">
+        <Button onClick={() => setIsAddPaymentOpen(true)}>
+          Adicionar Pagamento
+        </Button>
+      </div>
+
       <div className="grid grid-cols-3 gap-4 mb-4">
         <DatePicker
           selected={filtroDataInicio}
@@ -128,6 +156,7 @@ const Caixa = () => {
             <TableHead>Data do Pagamento</TableHead>
             <TableHead>Descrição</TableHead>
             <TableHead>Valor</TableHead>
+            <TableHead>Ações</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -149,18 +178,42 @@ const Caixa = () => {
                 />
               </TableCell>
               <TableCell>R$ {transacao.amount ? transacao.amount.toFixed(2) : '0.00'}</TableCell>
+              <TableCell>
+                <div className="flex gap-2">
+                  <Button onClick={() => setEditingPayment(transacao)}>
+                    Editar
+                  </Button>
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button variant="destructive">Excluir</Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          Tem certeza que deseja excluir este pagamento? Esta ação não pode ser desfeita.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                        <AlertDialogAction onClick={() => handleDeletePayment(transacao.id)}>
+                          Confirmar
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                </div>
+              </TableCell>
             </TableRow>
           ))}
         </TableBody>
       </Table>
+
       <Dialog open={isRelatorioOpen} onOpenChange={setIsRelatorioOpen}>
-        <DialogTrigger asChild>
-          <Button className="mt-4">Fechamento de Caixa</Button>
-        </DialogTrigger>
+        <DialogHeader>
+          <DialogTitle>Relatório de Fechamento de Caixa</DialogTitle>
+        </DialogHeader>
         <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Relatório de Fechamento de Caixa</DialogTitle>
-          </DialogHeader>
           <div>
             <p>Saldo Inicial: R$ {gerarRelatorio().saldoInicial.toFixed(2)}</p>
             <p>Total de Vendas: R$ {gerarRelatorio().totalVendas.toFixed(2)}</p>
@@ -169,6 +222,20 @@ const Caixa = () => {
           </div>
         </DialogContent>
       </Dialog>
+
+      {editingPayment && (
+        <EditarPagamentoModal
+          payment={editingPayment}
+          onClose={() => setEditingPayment(null)}
+          paymentOptions={paymentOptions}
+        />
+      )}
+
+      <AdicionarPagamentoModal
+        isOpen={isAddPaymentOpen}
+        onClose={() => setIsAddPaymentOpen(false)}
+        paymentOptions={paymentOptions}
+      />
     </div>
   );
 };
