@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { DatePicker } from "@/components/ui/date-picker";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { usePaymentOptions, useTransactions, useAddPayment, useUpdatePayment, useDeletePayment } from '../integrations/supabase';
 import { format, isWithinInterval, parseISO, startOfDay, endOfDay } from "date-fns";
@@ -16,6 +16,8 @@ import { Switch } from "@/components/ui/switch";
 import { toast } from "@/components/ui/use-toast";
 import EditarPagamentoModal from './EditarPagamentoModal';
 import AdicionarPagamentoModal from './AdicionarPagamentoModal';
+import CaixaFiltros from './CaixaFiltros';
+import CaixaTabela from './CaixaTabela';
 
 const Caixa = () => {
   const [filtroDataInicio, setFiltroDataInicio] = useState(null);
@@ -73,21 +75,6 @@ const Caixa = () => {
     };
   };
 
-  const handleDeletePayment = async (paymentId) => {
-    try {
-      await deletePayment.mutateAsync(paymentId);
-      toast({
-        title: "Pagamento excluído com sucesso!",
-      });
-    } catch (error) {
-      toast({
-        title: "Erro ao excluir pagamento",
-        description: error.message,
-        variant: "destructive",
-      });
-    }
-  };
-
   if (isLoadingTransactions || isLoadingPaymentOptions) return <div>Carregando...</div>;
 
   return (
@@ -98,123 +85,38 @@ const Caixa = () => {
         <Button onClick={() => setIsAddPaymentOpen(true)}>
           Adicionar Pagamento
         </Button>
+        <Button onClick={() => setIsRelatorioOpen(true)}>
+          Gerar Relatório
+        </Button>
       </div>
 
-      <div className="grid grid-cols-3 gap-4 mb-4">
-        <DatePicker
-          selected={filtroDataInicio}
-          onChange={setFiltroDataInicio}
-          placeholderText="Data Início"
-          locale={ptBR}
-          dateFormat="dd/MM/yyyy"
-        />
-        <DatePicker
-          selected={filtroDataFim}
-          onChange={setFiltroDataFim}
-          placeholderText="Data Fim"
-          locale={ptBR}
-          dateFormat="dd/MM/yyyy"
-        />
-        <Select onValueChange={setFiltroOpcaoPagamento} value={filtroOpcaoPagamento}>
-          <SelectTrigger>
-            <SelectValue placeholder="Opção de Pagamento" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Todas</SelectItem>
-            {paymentOptions?.map((option) => (
-              <SelectItem key={option.id} value={option.name}>{option.name}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        <Input
-          placeholder="Filtrar por nome do cliente"
-          value={filtroCliente}
-          onChange={(e) => setFiltroCliente(e.target.value)}
-        />
-        <Input
-          placeholder="Filtrar por número do pedido"
-          value={filtroNumeroPedido}
-          onChange={(e) => setFiltroNumeroPedido(e.target.value)}
-        />
-        <div className="flex items-center space-x-2">
-          <Switch
-            id="mostrar-cancelados"
-            checked={mostrarCancelados}
-            onCheckedChange={setMostrarCancelados}
-          />
-          <label htmlFor="mostrar-cancelados">
-            Mostrar Pagamentos Cancelados
-          </label>
-        </div>
-      </div>
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Número do Pedido</TableHead>
-            <TableHead>Cliente</TableHead>
-            <TableHead>Opção de Pagamento</TableHead>
-            <TableHead>Data do Pagamento</TableHead>
-            <TableHead>Descrição</TableHead>
-            <TableHead>Valor</TableHead>
-            <TableHead>Ações</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {filtrarTransacoes().map((transacao) => (
-            <TableRow 
-              key={transacao.id}
-              className={transacao.cancelled ? 'bg-red-50 opacity-70' : ''}
-            >
-              <TableCell>{transacao.order?.order_number || 'N/A'}</TableCell>
-              <TableCell>{transacao.order?.customer?.name || 'N/A'}</TableCell>
-              <TableCell>{transacao.payment_option || 'N/A'}</TableCell>
-              <TableCell>{transacao.payment_date ? format(parseISO(transacao.payment_date), 'dd/MM/yyyy', { locale: ptBR }) : 'N/A'}</TableCell>
-              <TableCell>
-                <Input
-                  defaultValue={transacao.description || ''}
-                  onChange={(e) => {
-                    console.log(`Atualizando descrição da transação ${transacao.id}: ${e.target.value}`);
-                  }}
-                />
-              </TableCell>
-              <TableCell>R$ {transacao.amount ? transacao.amount.toFixed(2) : '0.00'}</TableCell>
-              <TableCell>
-                <div className="flex gap-2">
-                  <Button onClick={() => setEditingPayment(transacao)}>
-                    Editar
-                  </Button>
-                  <AlertDialog>
-                    <AlertDialogTrigger asChild>
-                      <Button variant="destructive">Excluir</Button>
-                    </AlertDialogTrigger>
-                    <AlertDialogContent>
-                      <AlertDialogHeader>
-                        <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
-                        <AlertDialogDescription>
-                          Tem certeza que deseja excluir este pagamento? Esta ação não pode ser desfeita.
-                        </AlertDialogDescription>
-                      </AlertDialogHeader>
-                      <AlertDialogFooter>
-                        <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                        <AlertDialogAction onClick={() => handleDeletePayment(transacao.id)}>
-                          Confirmar
-                        </AlertDialogAction>
-                      </AlertDialogFooter>
-                    </AlertDialogContent>
-                  </AlertDialog>
-                </div>
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
+      <CaixaFiltros
+        filtroDataInicio={filtroDataInicio}
+        setFiltroDataInicio={setFiltroDataInicio}
+        filtroDataFim={filtroDataFim}
+        setFiltroDataFim={setFiltroDataFim}
+        filtroOpcaoPagamento={filtroOpcaoPagamento}
+        setFiltroOpcaoPagamento={setFiltroOpcaoPagamento}
+        filtroCliente={filtroCliente}
+        setFiltroCliente={setFiltroCliente}
+        filtroNumeroPedido={filtroNumeroPedido}
+        setFiltroNumeroPedido={setFiltroNumeroPedido}
+        mostrarCancelados={mostrarCancelados}
+        setMostrarCancelados={setMostrarCancelados}
+        paymentOptions={paymentOptions}
+      />
+
+      <CaixaTabela
+        transacoes={filtrarTransacoes()}
+        setEditingPayment={setEditingPayment}
+      />
 
       <Dialog open={isRelatorioOpen} onOpenChange={setIsRelatorioOpen}>
-        <DialogHeader>
-          <DialogTitle>Relatório de Fechamento de Caixa</DialogTitle>
-        </DialogHeader>
         <DialogContent>
-          <div>
+          <DialogHeader>
+            <DialogTitle>Relatório de Fechamento de Caixa</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
             <p>Saldo Inicial: R$ {gerarRelatorio().saldoInicial.toFixed(2)}</p>
             <p>Total de Vendas: R$ {gerarRelatorio().totalVendas.toFixed(2)}</p>
             <p>Total de Pagamentos: R$ {gerarRelatorio().totalPagamentos.toFixed(2)}</p>
