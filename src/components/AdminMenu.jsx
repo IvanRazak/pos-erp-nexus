@@ -8,10 +8,12 @@ import { toast } from "@/components/ui/use-toast";
 import bcrypt from 'bcryptjs';
 import GerenciarOpcoesExtras from './GerenciarOpcoesExtras';
 import GerenciarOpcoesSelecao from './GerenciarOpcoesSelecao';
+import SystemLogs from './SystemLogs';
 
 const AdminMenu = () => {
   const [isGerenciarOpcoesExtrasOpen, setIsGerenciarOpcoesExtrasOpen] = useState(false);
   const [isGerenciarOpcoesSelecaoOpen, setIsGerenciarOpcoesSelecaoOpen] = useState(false);
+  const [isSystemLogsOpen, setIsSystemLogsOpen] = useState(false);
   const addPaymentOption = useAddPaymentOption();
   const addCustomerType = useAddCustomerType();
   const addUser = useAddUser();
@@ -140,6 +142,10 @@ const AdminMenu = () => {
         <Button className="w-full" onClick={() => setIsGerenciarOpcoesSelecaoOpen(true)}>
           Gerenciar Opções de Seleção
         </Button>
+
+        <Button className="w-full" onClick={() => setIsSystemLogsOpen(true)}>
+          Visualizar Logs do Sistema
+        </Button>
       </div>
 
       <GerenciarOpcoesExtras
@@ -150,6 +156,11 @@ const AdminMenu = () => {
       <GerenciarOpcoesSelecao
         isOpen={isGerenciarOpcoesSelecaoOpen}
         onClose={() => setIsGerenciarOpcoesSelecaoOpen(false)}
+      />
+
+      <SystemLogs
+        isOpen={isSystemLogsOpen}
+        onClose={() => setIsSystemLogsOpen(false)}
       />
     </div>
   );
