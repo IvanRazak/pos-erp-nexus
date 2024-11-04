@@ -3,16 +3,11 @@ import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { DatePicker } from "@/components/ui/date-picker";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { usePaymentOptions, useTransactions, useAddPayment, useUpdatePayment, useDeletePayment } from '../integrations/supabase';
 import { format, isWithinInterval, parseISO, startOfDay, endOfDay } from "date-fns";
 import { ptBR } from 'date-fns/locale';
 import { useAuth } from '../hooks/useAuth';
-import { Switch } from "@/components/ui/switch";
 import { toast } from "@/components/ui/use-toast";
 import EditarPagamentoModal from './EditarPagamentoModal';
 import AdicionarPagamentoModal from './AdicionarPagamentoModal';
@@ -64,14 +59,18 @@ const Caixa = () => {
   const gerarRelatorio = () => {
     const transacoesFiltradas = filtrarTransacoes();
     const totalVendas = transacoesFiltradas.reduce((acc, transacao) => acc + (transacao.amount || 0), 0);
+    const pagamentosNegativos = transacoesFiltradas.filter(t => t.amount < 0);
+    const totalPagamentosNegativos = pagamentosNegativos.reduce((acc, t) => acc + t.amount, 0);
     const saldoInicial = 1000;
     const saldoFinal = saldoInicial + totalVendas;
 
     return {
       saldoInicial,
       totalVendas,
+      totalPagamentosNegativos,
       totalPagamentos: totalVendas,
       saldoFinal,
+      pagamentosNegativos,
     };
   };
 
@@ -121,6 +120,24 @@ const Caixa = () => {
             <p>Total de Vendas: R$ {gerarRelatorio().totalVendas.toFixed(2)}</p>
             <p>Total de Pagamentos: R$ {gerarRelatorio().totalPagamentos.toFixed(2)}</p>
             <p>Saldo Final: R$ {gerarRelatorio().saldoFinal.toFixed(2)}</p>
+            
+            {gerarRelatorio().pagamentosNegativos.length > 0 && (
+              <div className="mt-4">
+                <h3 className="font-semibold text-red-600 mb-2">Pagamentos Negativos:</h3>
+                <div className="space-y-2">
+                  {gerarRelatorio().pagamentosNegativos.map((pagamento, index) => (
+                    <div key={index} className="bg-red-50 p-2 rounded">
+                      <p className="text-red-600">
+                        R$ {pagamento.amount.toFixed(2)} - {pagamento.description || 'Sem descrição'}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+                <p className="mt-2 font-semibold text-red-600">
+                  Total de Pagamentos Negativos: R$ {gerarRelatorio().totalPagamentosNegativos.toFixed(2)}
+                </p>
+              </div>
+            )}
           </div>
         </DialogContent>
       </Dialog>
