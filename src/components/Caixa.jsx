@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -58,11 +57,14 @@ const Caixa = () => {
 
   const gerarRelatorio = () => {
     const transacoesFiltradas = filtrarTransacoes();
-    const totalVendas = transacoesFiltradas.reduce((acc, transacao) => acc + (transacao.amount || 0), 0);
+    const pagamentosPositivos = transacoesFiltradas.filter(t => t.amount > 0);
     const pagamentosNegativos = transacoesFiltradas.filter(t => t.amount < 0);
+    
+    const totalVendas = pagamentosPositivos.reduce((acc, transacao) => acc + (transacao.amount || 0), 0);
     const totalPagamentosNegativos = pagamentosNegativos.reduce((acc, t) => acc + t.amount, 0);
+    
     const saldoInicial = 1000;
-    const saldoFinal = saldoInicial + totalVendas;
+    const saldoFinal = saldoInicial + totalVendas + totalPagamentosNegativos;
 
     return {
       saldoInicial,
