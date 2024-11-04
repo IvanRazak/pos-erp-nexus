@@ -9,7 +9,11 @@ const fromSupabase = async (query) => {
 
 export const useOrder = (id) => useQuery({
   queryKey: ['orders', id],
-  queryFn: () => fromSupabase(supabase.from('orders').select('*, customer:customers(name), order_number').eq('id', id).single()),
+  queryFn: () => {
+    if (!id) return null;
+    return fromSupabase(supabase.from('orders').select('*, customer:customers(name), order_number').eq('id', id).single());
+  },
+  enabled: !!id, // Only run the query if we have an ID
 });
 
 export const useOrders = () => useQuery({
