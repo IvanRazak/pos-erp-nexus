@@ -11,7 +11,7 @@ const AdicionarPagamentoModal = ({ isOpen, onClose, paymentOptions }) => {
     amount: '',
     payment_option: '',
     description: '',
-    order_id: '',
+    order_id: null,
   });
 
   const addPayment = useAddPayment();
@@ -19,10 +19,13 @@ const AdicionarPagamentoModal = ({ isOpen, onClose, paymentOptions }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await addPayment.mutateAsync({
+      const paymentData = {
         ...newPayment,
         amount: parseFloat(newPayment.amount),
-      });
+        order_id: newPayment.order_id || null // Ensure null if empty
+      };
+
+      await addPayment.mutateAsync(paymentData);
       toast({
         title: "Pagamento adicionado com sucesso!",
       });
@@ -44,11 +47,11 @@ const AdicionarPagamentoModal = ({ isOpen, onClose, paymentOptions }) => {
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="text-sm font-medium">Número do Pedido</label>
+            <label className="text-sm font-medium">Número do Pedido (opcional)</label>
             <Input
-              value={newPayment.order_id}
-              onChange={(e) => setNewPayment({ ...newPayment, order_id: e.target.value })}
-              placeholder="ID do pedido"
+              value={newPayment.order_id || ''}
+              onChange={(e) => setNewPayment({ ...newPayment, order_id: e.target.value || null })}
+              placeholder="ID do pedido (UUID)"
             />
           </div>
           <div>
