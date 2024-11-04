@@ -7,11 +7,13 @@ import { Input } from "@/components/ui/input";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { useDeletePayment } from '../integrations/supabase';
 import { toast } from "@/components/ui/use-toast";
+import { useAuth } from '../hooks/useAuth';
 
 const CaixaTabela = ({ transacoes, setEditingPayment }) => {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
   const deletePayment = useDeletePayment();
+  const { user } = useAuth();
 
   const handleDeletePayment = async (paymentId) => {
     try {
@@ -69,28 +71,32 @@ const CaixaTabela = ({ transacoes, setEditingPayment }) => {
               <TableCell>R$ {transacao.amount ? transacao.amount.toFixed(2) : '0.00'}</TableCell>
               <TableCell>
                 <div className="flex gap-2">
-                  <Button onClick={() => setEditingPayment(transacao)}>
-                    Editar
-                  </Button>
-                  <AlertDialog>
-                    <AlertDialogTrigger asChild>
-                      <Button variant="destructive">Excluir</Button>
-                    </AlertDialogTrigger>
-                    <AlertDialogContent>
-                      <AlertDialogHeader>
-                        <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
-                        <AlertDialogDescription>
-                          Tem certeza que deseja excluir este pagamento? Esta ação não pode ser desfeita.
-                        </AlertDialogDescription>
-                      </AlertDialogHeader>
-                      <AlertDialogFooter>
-                        <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                        <AlertDialogAction onClick={() => handleDeletePayment(transacao.id)}>
-                          Confirmar
-                        </AlertDialogAction>
-                      </AlertDialogFooter>
-                    </AlertDialogContent>
-                  </AlertDialog>
+                  {user?.isAdmin && (
+                    <>
+                      <Button onClick={() => setEditingPayment(transacao)}>
+                        Editar
+                      </Button>
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button variant="destructive">Excluir</Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              Tem certeza que deseja excluir este pagamento? Esta ação não pode ser desfeita.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                            <AlertDialogAction onClick={() => handleDeletePayment(transacao.id)}>
+                              Confirmar
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    </>
+                  )}
                 </div>
               </TableCell>
             </TableRow>
