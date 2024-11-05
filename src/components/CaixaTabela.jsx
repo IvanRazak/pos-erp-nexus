@@ -23,8 +23,8 @@ const CaixaTabela = ({ transacoes, setEditingPayment }) => {
 
       // Se houver um pedido associado e o ID do pedido estiver definido, atualiza os valores do pedido
       if (payment.order && payment.order.id) {
-        const newPaidAmount = payment.order.paid_amount - payment.amount;
-        const newRemainingBalance = payment.order.total_amount - newPaidAmount;
+        const newPaidAmount = Number(payment.order.paid_amount) - Number(payment.amount);
+        const newRemainingBalance = Number(payment.order.remaining_balance) + Number(payment.amount);
         
         await updateOrder.mutateAsync({
           id: payment.order.id,
@@ -35,7 +35,7 @@ const CaixaTabela = ({ transacoes, setEditingPayment }) => {
 
         toast({
           title: "Pagamento excluído com sucesso!",
-          description: "Os valores do pedido foram atualizados.",
+          description: `Valor pago atualizado para R$ ${newPaidAmount.toFixed(2)} e saldo restante para R$ ${newRemainingBalance.toFixed(2)}`,
         });
       } else {
         toast({
