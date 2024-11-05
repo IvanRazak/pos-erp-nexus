@@ -18,39 +18,31 @@ const CaixaTabela = ({ transacoes, setEditingPayment }) => {
 
   const handleDeletePayment = async (payment) => {
     try {
-      if (!payment.order?.id) {
-        await deletePayment.mutateAsync(payment.id);
-        toast({
-          title: "Pagamento excluído com sucesso!",
-          description: "Não havia pedido associado para atualizar.",
-        });
-        return;
-      }
-
-      // Garante que todos os valores sejam números
-      const orderPaidAmount = parseFloat(payment.order.paid_amount) || 0;
-      const orderRemainingBalance = parseFloat(payment.order.remaining_balance) || 0;
-      const paymentAmount = parseFloat(payment.amount) || 0;
-
-      // Calcula os novos valores
-      const updatedPaidAmount = Math.max(0, orderPaidAmount - paymentAmount);
-      const updatedRemainingBalance = orderRemainingBalance + paymentAmount;
-
-      // Primeiro atualiza o pedido
-      await updateOrder.mutateAsync({
-        id: payment.order.id,
-        paid_amount: updatedPaidAmount,
-        remaining_balance: updatedRemainingBalance,
-        status: updatedRemainingBalance > 0 ? 'partial_payment' : 'paid'
-      });
-
-      // Depois exclui o pagamento
+      // Primeiro, exclui o pagamento
       await deletePayment.mutateAsync(payment.id);
 
-      toast({
-        title: "Pagamento excluído com sucesso!",
-        description: `Valor pago atualizado para R$ ${updatedPaidAmount.toFixed(2)} e saldo restante para R$ ${updatedRemainingBalance.toFixed(2)}`,
-      });
+      // Se houver um pedido associado e o ID do pedido estiver definido, atualiza os valores do pedido
+      if (payment.order && payment.order.id) {
+        const newPaidAmount = payment.order.paid_amount - payment.amount;
+        const newRemainingBalance = payment.order.total_amount - newPaidAmount;
+        
+        await updateOrder.mutateAsync({
+          id: payment.order.id,
+          paid_amount: newPaidAmount,
+          remaining_balance: newRemainingBalance,
+          status: newRemainingBalance > 0 ? 'partial_payment' : 'paid'
+        });
+
+        toast({
+          title: "Pagamento excluído com sucesso!",
+          description: "Os valores do pedido foram atualizados.",
+        });
+      } else {
+        toast({
+          title: "Pagamento excluído com sucesso!",
+          description: "Não foi necessário atualizar valores do pedido.",
+        });
+      }
     } catch (error) {
       console.error('Erro ao excluir pagamento:', error);
       toast({
