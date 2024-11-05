@@ -5,7 +5,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { useDeletePayment, useUpdateOrder, useUpdatePayment } from '../integrations/supabase';
+import { useDeletePayment, useUpdateOrder } from '../integrations/supabase';
 import { toast } from "@/components/ui/use-toast";
 import { useAuth } from '../hooks/useAuth';
 
@@ -14,20 +14,14 @@ const CaixaTabela = ({ transacoes, setEditingPayment }) => {
   const itemsPerPage = 10;
   const deletePayment = useDeletePayment();
   const updateOrder = useUpdateOrder();
-  const updatePayment = useUpdatePayment();
   const { user } = useAuth();
 
   const handleDeletePayment = async (payment) => {
     try {
-      // Primeiro, atualiza o valor do pagamento para 0 usando o mesmo método do botão Editar
-      await updatePayment.mutateAsync({
-        id: payment.id,
-        amount: 0,
-        payment_option: payment.payment_option,
-        description: payment.description
-      });
+      // Primeiro, exclui o pagamento
+      await deletePayment.mutateAsync(payment.id);
 
-      // Se houver um pedido associado, atualiza os valores do pedido
+      // Se houver um pedido associado e o ID do pedido estiver definido, atualiza os valores do pedido
       if (payment.order && payment.order.id) {
         const newPaidAmount = payment.order.paid_amount - payment.amount;
         const newRemainingBalance = payment.order.total_amount - newPaidAmount;
@@ -38,18 +32,17 @@ const CaixaTabela = ({ transacoes, setEditingPayment }) => {
           remaining_balance: newRemainingBalance,
           status: newRemainingBalance > 0 ? 'partial_payment' : 'paid'
         });
+
+        toast({
+          title: "Pagamento excluído com sucesso!",
+          description: "Os valores do pedido foram atualizados.",
+        });
+      } else {
+        toast({
+          title: "Pagamento excluído com sucesso!",
+          description: "Não foi necessário atualizar valores do pedido.",
+        });
       }
-
-      // Aguarda 1 segundo antes de excluir o pagamento
-      await new Promise(resolve => setTimeout(resolve, 1000));
-
-      // Por fim, exclui o pagamento
-      await deletePayment.mutateAsync(payment.id);
-
-      toast({
-        title: "Pagamento excluído com sucesso!",
-        description: "O valor foi zerado e o pagamento foi removido.",
-      });
     } catch (error) {
       console.error('Erro ao excluir pagamento:', error);
       toast({
@@ -59,6 +52,12 @@ const CaixaTabela = ({ transacoes, setEditingPayment }) => {
       });
     }
   };
+
+  // Calcula o índice inicial e final dos itens da página atual
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentItems = transacoes.slice(indexOfFirstItem, indexOfLastItem);
+  const totalPages = Math.ceil(transacoes.length / itemsPerPage);
 
   return (
     <div>
@@ -75,7 +74,7 @@ const CaixaTabela = ({ transacoes, setEditingPayment }) => {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {transacoes.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage).map((transacao) => (
+          {currentItems.map((transacao) => (
             <TableRow 
               key={transacao.id}
               className={transacao.cancelled ? 'bg-red-50 opacity-70' : ''}
@@ -130,7 +129,7 @@ const CaixaTabela = ({ transacoes, setEditingPayment }) => {
 
       <div className="flex justify-between items-center mt-4">
         <div className="text-sm text-gray-500">
-          Mostrando {(currentPage - 1) * itemsPerPage + 1} a {Math.min(currentPage * itemsPerPage, transacoes.length)} de {transacoes.length} registros
+          Mostrando {indexOfFirstItem + 1} a {Math.min(indexOfLastItem, transacoes.length)} de {transacoes.length} registros
         </div>
         <div className="flex gap-2">
           <Button
@@ -142,8 +141,8 @@ const CaixaTabela = ({ transacoes, setEditingPayment }) => {
           </Button>
           <Button
             variant="outline"
-            onClick={() => setCurrentPage(prev => Math.min(prev + 1, Math.ceil(transacoes.length / itemsPerPage)))}
-            disabled={currentPage === Math.ceil(transacoes.length / itemsPerPage)}
+            onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+            disabled={currentPage === totalPages}
           >
             Próximo
           </Button>
