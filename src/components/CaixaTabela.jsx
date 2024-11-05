@@ -21,6 +21,7 @@ const CaixaTabela = ({ transacoes, setEditingPayment }) => {
     try {
       // Se o valor do pagamento for diferente de 0, atualiza para 0
       if (payment.amount !== 0) {
+        // Primeiro atualiza o pagamento para 0
         await updatePayment.mutateAsync({
           id: payment.id,
           amount: 0,
@@ -59,6 +60,8 @@ const CaixaTabela = ({ transacoes, setEditingPayment }) => {
       });
     }
   };
+
+  // ... keep existing code (table rendering and pagination)
 
   return (
     <div>
