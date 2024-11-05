@@ -1,28 +1,25 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useOrders, useUpdateOrder, useCustomers } from '../integrations/supabase';
+import { useQueryClient } from '@tanstack/react-query';
+import { useOrders, useCustomers, useUpdateOrder } from '../integrations/supabase';
 import { useOrderDiscounts } from '../integrations/supabase/hooks/order_discounts';
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { DatePicker } from "@/components/ui/date-picker";
-import { format, isWithinInterval, parseISO, startOfDay, endOfDay } from "date-fns";
-import { ptBR } from 'date-fns/locale';
-import PedidoDetalhesModal from './PedidoDetalhesModal';
+import { toast } from "sonner";
+import { isWithinInterval, parseISO, startOfDay, endOfDay } from "date-fns";
 import { useAuth } from '../hooks/useAuth';
-import { toast } from "@/components/ui/use-toast";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import PedidoDetalhesModal from './PedidoDetalhesModal';
+import PedidosFiltros from './pedidos/PedidosFiltros';
+import PedidosTabela from './pedidos/PedidosTabela';
 
 const GerenciamentoPedidos = () => {
-  const [filtroCliente, setFiltroCliente] = useState('');
-  const [filtroNumeroPedido, setFiltroNumeroPedido] = useState('');
-  const [filtroDataInicio, setFiltroDataInicio] = useState(null);
-  const [filtroDataFim, setFiltroDataFim] = useState(null);
-  const [filtroValorMinimo, setFiltroValorMinimo] = useState('');
-  const [filtroValorMaximo, setFiltroValorMaximo] = useState('');
-  const [filtroStatus, setFiltroStatus] = useState('all');
-  const [pedidosFiltrados, setPedidosFiltrados] = useState([]);
+  const [filters, setFilters] = useState({
+    cliente: '',
+    numeroPedido: '',
+    dataInicio: null,
+    dataFim: null,
+    valorMinimo: '',
+    valorMaximo: '',
+    status: 'all'
+  });
   const [pedidoSelecionado, setPedidoSelecionado] = useState(null);
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -31,7 +28,6 @@ const GerenciamentoPedidos = () => {
   const { data: clientes, isLoading: isLoadingClientes } = useCustomers();
   const updateOrder = useUpdateOrder();
 
-  // Busca os descontos usando o novo hook
   const { data: descontosIndividuais = {} } = useOrderDiscounts(
     pedidos?.map(pedido => pedido.id) || []
   );
@@ -46,29 +42,22 @@ const GerenciamentoPedidos = () => {
     return () => clearTimeout(timer);
   }, [user, navigate]);
 
-  useEffect(() => {
-    if (pedidos) {
-      filtrarPedidos();
-    }
-  }, [pedidos, filtroCliente, filtroNumeroPedido, filtroDataInicio, filtroDataFim, filtroValorMinimo, filtroValorMaximo, filtroStatus]);
-
-  const filtrarPedidos = () => {
-    if (!pedidos) return;
-    const filtered = pedidos.filter(pedido => {
-      const cliente = clientes?.find(c => c.id === pedido.customer_id);
-      const matchCliente = !filtroCliente || (cliente && cliente.name && cliente.name.toLowerCase().includes(filtroCliente.toLowerCase()));
-      const matchNumeroPedido = !filtroNumeroPedido || (pedido.order_number && pedido.order_number.toString().includes(filtroNumeroPedido));
-      const matchData = (!filtroDataInicio || !filtroDataFim || (pedido.created_at && isWithinInterval(parseISO(pedido.created_at), {
-        start: startOfDay(filtroDataInicio),
-        end: endOfDay(filtroDataFim)
-      })));
-      const matchValor = (!filtroValorMinimo || (pedido.total_amount && pedido.total_amount >= parseFloat(filtroValorMinimo))) &&
-                         (!filtroValorMaximo || (pedido.total_amount && pedido.total_amount <= parseFloat(filtroValorMaximo)));
-      const matchStatus = filtroStatus === 'all' || pedido.status === filtroStatus;
-      return matchCliente && matchNumeroPedido && matchData && matchValor && matchStatus;
+  const pedidosFiltrados = useMemo(() => {
+    if (!pedidos) return [];
+    return pedidos.filter(pedido => {
+      const pedidoDate = parseISO(pedido.created_at);
+      const matchData = (!filters.dataInicio || !filters.dataFim || isWithinInterval(pedidoDate, {
+        start: startOfDay(filters.dataInicio),
+        end: endOfDay(filters.dataFim)
+      }));
+      const matchCliente = !filters.cliente || (pedido.customer?.name && pedido.customer.name.toLowerCase().includes(filters.cliente.toLowerCase()));
+      const matchNumeroPedido = !filters.numeroPedido || pedido.order_number?.toString().includes(filters.numeroPedido);
+      const matchValor = (!filters.valorMinimo || pedido.total_amount >= parseFloat(filters.valorMinimo)) &&
+                        (!filters.valorMaximo || pedido.total_amount <= parseFloat(filters.valorMaximo));
+      const matchStatus = filters.status === 'all' || pedido.status === filters.status;
+      return matchData && matchCliente && matchNumeroPedido && matchValor && matchStatus;
     });
-    setPedidosFiltrados(filtered);
-  };
+  }, [pedidos, filters]);
 
   const handleCancelarPedido = (pedidoId) => {
     updateOrder.mutate(
@@ -78,39 +67,27 @@ const GerenciamentoPedidos = () => {
       },
       {
         onSuccess: () => {
-          toast({
-            title: "Pedido cancelado com sucesso",
-            description: "O pedido foi cancelado e agora só está visível para administradores.",
-          });
+          toast.success("Pedido cancelado com sucesso!");
         },
         onError: (error) => {
-          toast({
-            title: "Erro ao cancelar pedido",
-            description: error.message,
-            variant: "destructive",
-          });
+          toast.error("Erro ao cancelar pedido: " + error.message);
         }
       }
     );
   };
 
-  const pedidosFiltradosComPermissao = pedidosFiltrados?.filter(pedido => {
-    if (pedido.status === 'cancelled') {
-      return user?.role === 'admin';
-    }
-    return true;
-  });
-
   const atualizarStatus = (pedidoId, novoStatus) => {
-    updateOrder.mutate({ id: pedidoId, status: novoStatus });
-  };
-
-  const abrirModalDetalhes = (pedido) => {
-    setPedidoSelecionado(pedido);
-  };
-
-  const fecharModalDetalhes = () => {
-    setPedidoSelecionado(null);
+    updateOrder.mutate(
+      { id: pedidoId, status: novoStatus },
+      {
+        onSuccess: () => {
+          toast.success("Status do pedido atualizado com sucesso!");
+        },
+        onError: (error) => {
+          toast.error("Erro ao atualizar status do pedido: " + error.message);
+        }
+      }
+    );
   };
 
   if (isLoadingPedidos || isLoadingClientes) return <div>Carregando...</div>;
@@ -118,142 +95,17 @@ const GerenciamentoPedidos = () => {
   return (
     <div className="container mx-auto p-4">
       <h2 className="text-2xl font-bold mb-4">Gerenciamento de Pedidos</h2>
-      <div className="grid grid-cols-2 gap-4 mb-4">
-        <Input
-          placeholder="Filtrar por nome do cliente"
-          value={filtroCliente}
-          onChange={(e) => setFiltroCliente(e.target.value)}
-        />
-        <Input
-          placeholder="Filtrar por número do pedido"
-          value={filtroNumeroPedido}
-          onChange={(e) => setFiltroNumeroPedido(e.target.value)}
-        />
-        <div className="flex space-x-2">
-          <DatePicker
-            selected={filtroDataInicio}
-            onChange={setFiltroDataInicio}
-            placeholderText="Data Início"
-            locale={ptBR}
-            dateFormat="dd/MM/yyyy"
-          />
-          <DatePicker
-            selected={filtroDataFim}
-            onChange={setFiltroDataFim}
-            placeholderText="Data Fim"
-            locale={ptBR}
-            dateFormat="dd/MM/yyyy"
-          />
-        </div>
-        <Input
-          type="number"
-          placeholder="Valor Mínimo"
-          value={filtroValorMinimo}
-          onChange={(e) => setFiltroValorMinimo(e.target.value)}
-        />
-        <Input
-          type="number"
-          placeholder="Valor Máximo"
-          value={filtroValorMaximo}
-          onChange={(e) => setFiltroValorMaximo(e.target.value)}
-        />
-        <Select value={filtroStatus} onValueChange={setFiltroStatus}>
-          <SelectTrigger>
-            <SelectValue placeholder="Filtrar por Status" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Todos</SelectItem>
-            <SelectItem value="in_production">Em Produção</SelectItem>
-            <SelectItem value="awaiting_approval">Aguardando Aprovação</SelectItem>
-            <SelectItem value="ready_for_pickup">Pronto para Retirada</SelectItem>
-            <SelectItem value="delivered">Entregue</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Número do Pedido</TableHead>
-            <TableHead>Data e Hora</TableHead>
-            <TableHead>Cliente</TableHead>
-            <TableHead>Valor</TableHead>
-            <TableHead>Descontos Individuais</TableHead>
-            <TableHead>Desconto Geral</TableHead>
-            <TableHead>Valor Adicional</TableHead>
-            <TableHead>Data de Entrega</TableHead>
-            <TableHead>Status</TableHead>
-            <TableHead>Criado por</TableHead>
-            <TableHead>Ações</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {pedidosFiltradosComPermissao.map((pedido) => (
-            <TableRow 
-              key={pedido.id}
-              className={pedido.status === 'cancelled' ? 'opacity-60' : ''}
-            >
-              <TableCell>{pedido.order_number}</TableCell>
-              <TableCell>{pedido.created_at ? format(parseISO(pedido.created_at), 'dd/MM/yyyy HH:mm', { locale: ptBR }) : 'N/A'}</TableCell>
-              <TableCell>{clientes?.find(c => c.id === pedido.customer_id)?.name || 'N/A'}</TableCell>
-              <TableCell>R$ {pedido.total_amount?.toFixed(2) || 'N/A'}</TableCell>
-              <TableCell>R$ {(descontosIndividuais[pedido.id] || 0).toFixed(2)}</TableCell>
-              <TableCell>R$ {pedido.discount?.toFixed(2) || '0.00'}</TableCell>
-              <TableCell>{pedido.additional_value > 0 ? (
-                <>
-                  R$ {pedido.additional_value.toFixed(2)}
-                  <br />
-                  <span className="text-sm text-gray-500">{pedido.additional_value_description || 'Sem descrição'}</span>
-                </>
-              ) : 'N/A'}</TableCell>
-              <TableCell>{pedido.delivery_date ? format(parseISO(pedido.delivery_date), 'dd/MM/yyyy', { locale: ptBR }) : 'N/A'}</TableCell>
-              <TableCell>
-                <Select defaultValue={pedido.status} onValueChange={(value) => atualizarStatus(pedido.id, value)}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Atualizar Status" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="in_production">Em Produção</SelectItem>
-                    <SelectItem value="awaiting_approval">Aguardando Aprovação</SelectItem>
-                    <SelectItem value="ready_for_pickup">Pronto para Retirada</SelectItem>
-                    <SelectItem value="delivered">Entregue</SelectItem>
-                  </SelectContent>
-                </Select>
-              </TableCell>
-              <TableCell>{pedido.created_by || 'N/A'}</TableCell>
-              <TableCell>
-                <div className="flex gap-2">
-                  <Button onClick={() => abrirModalDetalhes(pedido)}>
-                    Ver Detalhes
-                  </Button>
-                  {pedido.status !== 'cancelled' && (
-                    <AlertDialog>
-                      <AlertDialogTrigger asChild>
-                        <Button variant="destructive">Cancelar</Button>
-                      </AlertDialogTrigger>
-                      <AlertDialogContent>
-                        <AlertDialogHeader>
-                          <AlertDialogTitle>Confirmar Cancelamento</AlertDialogTitle>
-                          <AlertDialogDescription>
-                            Tem certeza que deseja cancelar este pedido? Esta ação não pode ser desfeita.
-                          </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                          <AlertDialogCancel>Não</AlertDialogCancel>
-                          <AlertDialogAction onClick={() => handleCancelarPedido(pedido.id)}>
-                            Sim, cancelar pedido
-                          </AlertDialogAction>
-                        </AlertDialogFooter>
-                      </AlertDialogContent>
-                    </AlertDialog>
-                  )}
-                </div>
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
+      <PedidosFiltros filters={filters} setFilters={setFilters} />
+      <PedidosTabela 
+        pedidos={pedidosFiltrados}
+        clientes={clientes}
+        atualizarStatus={atualizarStatus}
+        abrirModalDetalhes={setPedidoSelecionado}
+        handleCancelarPedido={handleCancelarPedido}
+        descontosIndividuais={descontosIndividuais}
+      />
       {pedidoSelecionado && (
-        <PedidoDetalhesModal pedido={pedidoSelecionado} onClose={fecharModalDetalhes} />
+        <PedidoDetalhesModal pedido={pedidoSelecionado} onClose={() => setPedidoSelecionado(null)} />
       )}
     </div>
   );

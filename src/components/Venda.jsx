@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useProducts, useCustomers, useExtraOptions, usePaymentOptions, useAddOrder } from '../integrations/supabase';
 import { useAuth } from '../hooks/useAuth';
-import { toast } from "@/components/ui/use-toast";
 import { format } from "date-fns";
 import ProdutoExtraOptionsModal from './ProdutoExtraOptionsModal';
 import BuscarClienteModal from './BuscarClienteModal';
@@ -13,6 +12,7 @@ import ArteModal from './ArteModal';
 import { calcularTotalItem, calcularTotal, resetCarrinho } from '../utils/vendaUtils';
 import { handleNewClientSuccess, handleSelectCliente, handleSelectProduto } from '../utils/clientUtils';
 import { getSheetPrice } from '../utils/productUtils';
+import { toast } from "sonner";
 
 const Venda = () => {
   const navigate = useNavigate();
@@ -82,6 +82,7 @@ const Venda = () => {
     
     setProdutoSelecionado(null);
     setIsExtraOptionsModalOpen(false);
+    toast.success("Produto adicionado ao carrinho!");
   };
 
   const adicionarAoCarrinho = (item, arteOption = null) => {
@@ -114,16 +115,12 @@ const Venda = () => {
     if (valorPago <= 0) erros.push("Insira um valor pago maior que zero");
     
     if (erros.length > 0) {
-      alert("Não foi possível finalizar a venda:\n\n" + erros.join("\n"));
+      toast.error("Não foi possível finalizar a venda:\n\n" + erros.join("\n"));
       return;
     }
     
     if (!user) {
-      toast({
-        title: "Erro ao finalizar venda",
-        description: "Usuário não está autenticado.",
-        variant: "destructive",
-      });
+      toast.error("Erro ao finalizar venda: Usuário não está autenticado.");
       return;
     }
 
@@ -159,21 +156,12 @@ const Venda = () => {
       };
 
       await addOrder.mutateAsync(novaVenda);
-      
-      toast({
-        title: "Venda finalizada com sucesso!",
-        description: "A nova venda foi registrada no sistema.",
-      });
-      
+      toast.success("Venda finalizada com sucesso!");
       resetCarrinho(setCarrinho, setClienteSelecionado, setDataEntrega, setOpcaoPagamento, setDesconto, setValorPago);
       setValorAdicional(0);
       setDescricaoValorAdicional('');
     } catch (error) {
-      toast({
-        title: "Erro ao finalizar venda",
-        description: error.message,
-        variant: "destructive",
-      });
+      toast.error("Erro ao finalizar venda: " + error.message);
     }
   };
 
