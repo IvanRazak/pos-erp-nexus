@@ -19,12 +19,10 @@ const CaixaTabela = ({ transacoes, setEditingPayment }) => {
 
   const handleDeletePayment = async (payment) => {
     try {
-      // Primeiro, atualiza o valor do pagamento para 0 usando o mesmo método do botão Editar
+      // Primeiro, atualiza o valor do pagamento para 0
       await updatePayment.mutateAsync({
         id: payment.id,
-        amount: 0,
-        payment_option: payment.payment_option,
-        description: payment.description
+        amount: 0
       });
 
       // Se houver um pedido associado, atualiza os valores do pedido
@@ -39,9 +37,6 @@ const CaixaTabela = ({ transacoes, setEditingPayment }) => {
           status: newRemainingBalance > 0 ? 'partial_payment' : 'paid'
         });
       }
-
-      // Aguarda 1 segundo antes de excluir o pagamento
-      await new Promise(resolve => setTimeout(resolve, 1000));
 
       // Por fim, exclui o pagamento
       await deletePayment.mutateAsync(payment.id);
@@ -59,6 +54,12 @@ const CaixaTabela = ({ transacoes, setEditingPayment }) => {
       });
     }
   };
+
+  // Calcula o índice inicial e final dos itens da página atual
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentItems = transacoes.slice(indexOfFirstItem, indexOfLastItem);
+  const totalPages = Math.ceil(transacoes.length / itemsPerPage);
 
   return (
     <div>
