@@ -19,49 +19,46 @@ const CaixaTabela = ({ transacoes, setEditingPayment }) => {
 
   const handleDeletePayment = async (payment) => {
     try {
-      // Se o valor do pagamento for diferente de 0, atualiza para 0
-      if (payment.amount !== 0) {
-        // Primeiro atualiza o pagamento para 0
-        await updatePayment.mutateAsync({
-          id: payment.id,
-          amount: 0,
-          payment_option: payment.payment_option,
-          description: payment.description
-        });
+      // Primeiro, atualiza o valor do pagamento para 0 usando o mesmo método do botão Editar
+      await updatePayment.mutateAsync({
+        id: payment.id,
+        amount: 0,
+        payment_option: payment.payment_option,
+        description: payment.description
+      });
 
-        // Se houver um pedido associado, atualiza os valores do pedido
-        if (payment.order && payment.order.id) {
-          const newPaidAmount = payment.order.paid_amount - payment.amount;
-          const newRemainingBalance = payment.order.total_amount - newPaidAmount;
-          
-          await updateOrder.mutateAsync({
-            id: payment.order.id,
-            paid_amount: newPaidAmount,
-            remaining_balance: newRemainingBalance,
-            status: newRemainingBalance > 0 ? 'partial_payment' : 'paid'
-          });
-        }
-
-        toast({
-          title: "Pagamento zerado com sucesso!",
-        });
-      } else {
-        // Se o valor já for 0, exclui o pagamento
-        await deletePayment.mutateAsync(payment.id);
-        toast({
-          title: "Pagamento excluído com sucesso!",
+      // Se houver um pedido associado, atualiza os valores do pedido
+      if (payment.order && payment.order.id) {
+        const newPaidAmount = payment.order.paid_amount - payment.amount;
+        const newRemainingBalance = payment.order.total_amount - newPaidAmount;
+        
+        await updateOrder.mutateAsync({
+          id: payment.order.id,
+          paid_amount: newPaidAmount,
+          remaining_balance: newRemainingBalance,
+          status: newRemainingBalance > 0 ? 'partial_payment' : 'paid'
         });
       }
-    } catch (error) {
+
+      // Aguarda 1 segundo antes de excluir o pagamento
+      await new Promise(resolve => setTimeout(resolve, 1000));
+
+      // Por fim, exclui o pagamento
+      await deletePayment.mutateAsync(payment.id);
+
       toast({
-        title: "Erro ao processar o pagamento",
+        title: "Pagamento excluído com sucesso!",
+        description: "O valor foi zerado e o pagamento foi removido.",
+      });
+    } catch (error) {
+      console.error('Erro ao excluir pagamento:', error);
+      toast({
+        title: "Erro ao excluir pagamento",
         description: error.message,
         variant: "destructive",
       });
     }
   };
-
-  // ... keep existing code (table rendering and pagination)
 
   return (
     <div>
@@ -109,11 +106,9 @@ const CaixaTabela = ({ transacoes, setEditingPayment }) => {
                         </AlertDialogTrigger>
                         <AlertDialogContent>
                           <AlertDialogHeader>
-                            <AlertDialogTitle>Confirmar ação</AlertDialogTitle>
+                            <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
                             <AlertDialogDescription>
-                              {transacao.amount !== 0 
-                                ? "Este pagamento será zerado. Deseja continuar?"
-                                : "Este pagamento será excluído. Deseja continuar?"}
+                              Tem certeza que deseja excluir este pagamento? Esta ação não pode ser desfeita.
                             </AlertDialogDescription>
                           </AlertDialogHeader>
                           <AlertDialogFooter>
