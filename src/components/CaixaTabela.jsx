@@ -18,34 +18,29 @@ const CaixaTabela = ({ transacoes, setEditingPayment }) => {
 
   const handleDeletePayment = async (payment) => {
     try {
+      if (!payment.order?.id) {
+        throw new Error('Pedido não encontrado');
+      }
+
       // Primeiro, exclui o pagamento
       await deletePayment.mutateAsync(payment.id);
 
-      // Se houver um pedido associado e o ID do pedido estiver definido, atualiza os valores do pedido
-      if (payment.order && payment.order.id) {
-        // Ao excluir um pagamento:
-        // 1. Diminui o valor_pago (paid_amount)
-        // 2. Aumenta o saldo_restante (remaining_balance)
-        const newPaidAmount = payment.order.paid_amount - payment.amount;
-        const newRemainingBalance = payment.order.remaining_balance + payment.amount;
-        
-        await updateOrder.mutateAsync({
-          id: payment.order.id,
-          paid_amount: newPaidAmount,
-          remaining_balance: newRemainingBalance,
-          status: newRemainingBalance > 0 ? 'partial_payment' : 'paid'
-        });
+      // Atualiza os valores do pedido
+      const newPaidAmount = Number(payment.order.paid_amount || 0) - Number(payment.amount || 0);
+      const newRemainingBalance = Number(payment.order.remaining_balance || 0) + Number(payment.amount || 0);
 
-        toast({
-          title: "Pagamento excluído com sucesso!",
-          description: "Os valores do pedido foram atualizados.",
-        });
-      } else {
-        toast({
-          title: "Pagamento excluído com sucesso!",
-          description: "Não foi necessário atualizar valores do pedido.",
-        });
-      }
+      // Atualiza o pedido com os novos valores
+      await updateOrder.mutateAsync({
+        id: payment.order.id,
+        paid_amount: newPaidAmount,
+        remaining_balance: newRemainingBalance,
+        status: newRemainingBalance > 0 ? 'partial_payment' : 'paid'
+      });
+
+      toast({
+        title: "Pagamento excluído com sucesso!",
+        description: `Valor pago atualizado para R$ ${newPaidAmount.toFixed(2)} e saldo restante para R$ ${newRemainingBalance.toFixed(2)}`,
+      });
     } catch (error) {
       console.error('Erro ao excluir pagamento:', error);
       toast({
