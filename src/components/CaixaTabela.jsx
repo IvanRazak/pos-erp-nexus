@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { useDeletePayment, useUpdateOrder, usePayments } from '../integrations/supabase';
-import { toast } from "@/components/ui/use-toast";
+import { toast } from "sonner";
 import { useAuth } from '../hooks/useAuth';
 
 const CaixaTabela = ({ transacoes, setEditingPayment }) => {
@@ -43,23 +43,13 @@ const CaixaTabela = ({ transacoes, setEditingPayment }) => {
           status: newRemainingBalance > 0 ? 'partial_payment' : 'paid'
         });
 
-        toast({
-          title: "Pagamento excluído com sucesso!",
-          description: "Os valores do pedido foram atualizados.",
-        });
+        toast.success("Pagamento excluído com sucesso! Os valores do pedido foram atualizados.");
       } else {
-        toast({
-          title: "Pagamento excluído com sucesso!",
-          description: "Não foi necessário atualizar valores do pedido.",
-        });
+        toast.success("Pagamento excluído com sucesso! Não foi necessário atualizar valores do pedido.");
       }
     } catch (error) {
       console.error('Erro ao excluir pagamento:', error);
-      toast({
-        title: "Erro ao excluir pagamento",
-        description: error.message,
-        variant: "destructive",
-      });
+      toast.error("Erro ao excluir pagamento: " + error.message);
     }
   };
 

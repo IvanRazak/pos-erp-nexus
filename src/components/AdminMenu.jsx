@@ -4,7 +4,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useAddPaymentOption, useAddCustomerType, useAddUser } from '../integrations/supabase';
-import { toast } from "@/components/ui/use-toast";
+import { toast } from "sonner";
 import bcrypt from 'bcryptjs';
 import GerenciarOpcoesExtras from './GerenciarOpcoesExtras';
 import GerenciarOpcoesSelecao from './GerenciarOpcoesSelecao';
@@ -22,11 +22,11 @@ const AdminMenu = () => {
     const name = formData.get('paymentOption');
     addPaymentOption.mutate({ name }, {
       onSuccess: () => {
-        toast({ title: "Opção de pagamento cadastrada com sucesso!" });
+        toast.success("Opção de pagamento cadastrada com sucesso!");
         event.target.reset();
       },
       onError: (error) => {
-        toast({ title: "Erro ao cadastrar opção de pagamento", description: error.message, variant: "destructive" });
+        toast.error("Erro ao cadastrar opção de pagamento: " + error.message);
       }
     });
   };
@@ -37,11 +37,11 @@ const AdminMenu = () => {
     const name = formData.get('customerType');
     addCustomerType.mutate({ name }, {
       onSuccess: () => {
-        toast({ title: "Tipo de cliente cadastrado com sucesso!" });
+        toast.success("Tipo de cliente cadastrado com sucesso!");
         event.target.reset();
       },
       onError: (error) => {
-        toast({ title: "Erro ao cadastrar tipo de cliente", description: error.message, variant: "destructive" });
+        toast.error("Erro ao cadastrar tipo de cliente: " + error.message);
       }
     });
   };
@@ -60,15 +60,15 @@ const AdminMenu = () => {
 
       addUser.mutate({ username, email, password_hash, role }, {
         onSuccess: () => {
-          toast({ title: "Usuário cadastrado com sucesso!" });
+          toast.success("Usuário cadastrado com sucesso!");
           event.target.reset();
         },
         onError: (error) => {
-          toast({ title: "Erro ao cadastrar usuário", description: error.message, variant: "destructive" });
+          toast.error("Erro ao cadastrar usuário: " + error.message);
         }
       });
     } catch (error) {
-      toast({ title: "Erro ao gerar hash da senha", description: error.message, variant: "destructive" });
+      toast.error("Erro ao gerar hash da senha: " + error.message);
     }
   };
 
