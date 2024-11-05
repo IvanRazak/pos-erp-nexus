@@ -5,7 +5,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { useDeletePayment, useUpdateOrder } from '../integrations/supabase';
+import { useDeletePayment, useUpdateOrder, usePayments } from '../integrations/supabase';
 import { toast } from "@/components/ui/use-toast";
 import { useAuth } from '../hooks/useAuth';
 
@@ -14,6 +14,7 @@ const CaixaTabela = ({ transacoes, setEditingPayment }) => {
   const itemsPerPage = 10;
   const deletePayment = useDeletePayment();
   const updateOrder = useUpdateOrder();
+  const { data: allPayments } = usePayments();
   const { user } = useAuth();
 
   const handleDeletePayment = async (payment) => {
@@ -21,11 +22,20 @@ const CaixaTabela = ({ transacoes, setEditingPayment }) => {
       // Primeiro, exclui o pagamento
       await deletePayment.mutateAsync(payment.id);
 
-      // Se houver um pedido associado e o ID do pedido estiver definido, atualiza os valores do pedido
+      // Se houver um pedido associado e o ID do pedido estiver definido
       if (payment.order && payment.order.id) {
-        const newPaidAmount = payment.order.paid_amount - payment.amount;
+        // Busca todos os pagamentos restantes do pedido
+        const orderPayments = allPayments.filter(p => 
+          p.order_id === payment.order.id && p.id !== payment.id && !p.cancelled
+        );
+        
+        // Calcula o novo valor total pago baseado na soma dos pagamentos restantes
+        const newPaidAmount = orderPayments.reduce((sum, p) => sum + (p.amount || 0), 0);
+        
+        // Calcula o novo saldo restante
         const newRemainingBalance = payment.order.total_amount - newPaidAmount;
         
+        // Atualiza o pedido com os novos valores
         await updateOrder.mutateAsync({
           id: payment.order.id,
           paid_amount: newPaidAmount,
