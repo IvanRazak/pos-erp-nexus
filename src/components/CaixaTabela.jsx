@@ -23,8 +23,11 @@ const CaixaTabela = ({ transacoes, setEditingPayment }) => {
 
       // Se houver um pedido associado e o ID do pedido estiver definido, atualiza os valores do pedido
       if (payment.order && payment.order.id) {
+        // Ao excluir um pagamento:
+        // 1. Diminui o valor_pago (paid_amount)
+        // 2. Aumenta o saldo_restante (remaining_balance)
         const newPaidAmount = payment.order.paid_amount - payment.amount;
-        const newRemainingBalance = payment.order.total_amount - newPaidAmount;
+        const newRemainingBalance = payment.order.remaining_balance + payment.amount;
         
         await updateOrder.mutateAsync({
           id: payment.order.id,
