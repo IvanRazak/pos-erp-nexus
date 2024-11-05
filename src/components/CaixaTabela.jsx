@@ -18,31 +18,23 @@ const CaixaTabela = ({ transacoes, setEditingPayment }) => {
 
   const handleDeletePayment = async (payment) => {
     try {
-      // Primeiro, exclui o pagamento
-      await deletePayment.mutateAsync(payment.id);
-
-      // Se houver um pedido associado e o ID do pedido estiver definido, atualiza os valores do pedido
       if (payment.order && payment.order.id) {
-        const newPaidAmount = payment.order.paid_amount - payment.amount;
-        const newRemainingBalance = payment.order.total_amount - newPaidAmount;
-        
+        // Primeiro, atualiza o pedido
         await updateOrder.mutateAsync({
           id: payment.order.id,
-          paid_amount: newPaidAmount,
-          remaining_balance: newRemainingBalance,
-          status: newRemainingBalance > 0 ? 'partial_payment' : 'paid'
-        });
-
-        toast({
-          title: "Pagamento excluído com sucesso!",
-          description: "Os valores do pedido foram atualizados.",
-        });
-      } else {
-        toast({
-          title: "Pagamento excluído com sucesso!",
-          description: "Não foi necessário atualizar valores do pedido.",
+          paid_amount: 0, // Reseta o valor pago
+          remaining_balance: payment.order.total_amount, // Restaura o saldo total
+          status: 'partial_payment'
         });
       }
+
+      // Depois, exclui o pagamento
+      await deletePayment.mutateAsync(payment.id);
+
+      toast({
+        title: "Pagamento excluído com sucesso!",
+        description: "Os valores do pedido foram atualizados.",
+      });
     } catch (error) {
       console.error('Erro ao excluir pagamento:', error);
       toast({
