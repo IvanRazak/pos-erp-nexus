@@ -9,6 +9,9 @@ import bcrypt from 'bcryptjs';
 import GerenciarOpcoesExtras from './GerenciarOpcoesExtras';
 import GerenciarOpcoesSelecao from './GerenciarOpcoesSelecao';
 import SystemLogs from './SystemLogs';
+import { useAuth } from '../hooks/useAuth';
+import { createSystemLog } from '../utils/logUtils';
+import { useAddSystemLog } from '../integrations/supabase/hooks/system_logs';
 
 const AdminMenu = () => {
   const [isGerenciarOpcoesExtrasOpen, setIsGerenciarOpcoesExtrasOpen] = useState(false);
@@ -17,13 +20,25 @@ const AdminMenu = () => {
   const addPaymentOption = useAddPaymentOption();
   const addCustomerType = useAddCustomerType();
   const addUser = useAddUser();
+  const { user } = useAuth();
+  const addSystemLog = useAddSystemLog();
 
-  const handleCadastrarOpcaoPagamento = (event) => {
+  const handleCadastrarOpcaoPagamento = async (event) => {
     event.preventDefault();
     const formData = new FormData(event.target);
     const name = formData.get('paymentOption');
+    
     addPaymentOption.mutate({ name }, {
-      onSuccess: () => {
+      onSuccess: async (data) => {
+        await createSystemLog(addSystemLog, {
+          userId: user.id,
+          username: user.email,
+          action: 'create',
+          tableName: 'payment_options',
+          recordId: data.id,
+          description: `Opção de pagamento "${name}" cadastrada`
+        });
+        
         toast({ title: "Opção de pagamento cadastrada com sucesso!" });
         event.target.reset();
       },
@@ -33,12 +48,22 @@ const AdminMenu = () => {
     });
   };
 
-  const handleCadastrarTipoCliente = (event) => {
+  const handleCadastrarTipoCliente = async (event) => {
     event.preventDefault();
     const formData = new FormData(event.target);
     const name = formData.get('customerType');
+    
     addCustomerType.mutate({ name }, {
-      onSuccess: () => {
+      onSuccess: async (data) => {
+        await createSystemLog(addSystemLog, {
+          userId: user.id,
+          username: user.email,
+          action: 'create',
+          tableName: 'customer_types',
+          recordId: data.id,
+          description: `Tipo de cliente "${name}" cadastrado`
+        });
+        
         toast({ title: "Tipo de cliente cadastrado com sucesso!" });
         event.target.reset();
       },
@@ -61,7 +86,16 @@ const AdminMenu = () => {
       const password_hash = await bcrypt.hash(password, salt);
 
       addUser.mutate({ username, email, password_hash, role }, {
-        onSuccess: () => {
+        onSuccess: async (data) => {
+          await createSystemLog(addSystemLog, {
+            userId: user.id,
+            username: user.email,
+            action: 'create',
+            tableName: 'users',
+            recordId: data.id,
+            description: `Usuário "${username}" (${email}) cadastrado com papel ${role}`
+          });
+          
           toast({ title: "Usuário cadastrado com sucesso!" });
           event.target.reset();
         },
