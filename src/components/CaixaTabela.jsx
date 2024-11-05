@@ -5,7 +5,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { useDeletePayment } from '../integrations/supabase';
+import { useDeletePayment, useUpdateOrder } from '../integrations/supabase';
 import { toast } from "@/components/ui/use-toast";
 import { useAuth } from '../hooks/useAuth';
 
@@ -13,13 +13,30 @@ const CaixaTabela = ({ transacoes, setEditingPayment }) => {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
   const deletePayment = useDeletePayment();
+  const updateOrder = useUpdateOrder();
   const { user } = useAuth();
 
-  const handleDeletePayment = async (paymentId) => {
+  const handleDeletePayment = async (payment) => {
     try {
-      await deletePayment.mutateAsync(paymentId);
+      // Primeiro, exclui o pagamento
+      await deletePayment.mutateAsync(payment.id);
+
+      // Se houver um pedido associado, atualiza os valores do pedido
+      if (payment.order) {
+        const newPaidAmount = payment.order.paid_amount - payment.amount;
+        const newRemainingBalance = payment.order.total_amount - newPaidAmount;
+        
+        await updateOrder.mutateAsync({
+          id: payment.order.id,
+          paid_amount: newPaidAmount,
+          remaining_balance: newRemainingBalance,
+          status: newRemainingBalance > 0 ? 'partial_payment' : 'paid'
+        });
+      }
+
       toast({
         title: "Pagamento excluído com sucesso!",
+        description: "Os valores do pedido foram atualizados.",
       });
     } catch (error) {
       toast({
@@ -89,7 +106,7 @@ const CaixaTabela = ({ transacoes, setEditingPayment }) => {
                           </AlertDialogHeader>
                           <AlertDialogFooter>
                             <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                            <AlertDialogAction onClick={() => handleDeletePayment(transacao.id)}>
+                            <AlertDialogAction onClick={() => handleDeletePayment(transacao)}>
                               Confirmar
                             </AlertDialogAction>
                           </AlertDialogFooter>
