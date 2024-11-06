@@ -20,6 +20,14 @@ const CaixaTabela = ({ transacoes, setEditingPayment }) => {
   const queryClient = useQueryClient();
 
   const handleDeletePayment = async (payment) => {
+    // Validação para permitir exclusão apenas de pagamentos com valor zero
+    if (payment.amount !== 0) {
+      toast.error("Não é possível excluir pagamentos com valor diferente de zero.", {
+        description: "Apenas pagamentos com valor zero podem ser excluídos."
+      });
+      return;
+    }
+
     try {
       // Primeiro, exclui o pagamento
       await deletePayment.mutateAsync(payment.id);
