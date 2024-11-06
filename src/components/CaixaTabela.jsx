@@ -53,7 +53,6 @@ const CaixaTabela = ({ transacoes, setEditingPayment }) => {
     }
   };
 
-  // Calcula o índice inicial e final dos itens da página atual
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentItems = transacoes.slice(indexOfFirstItem, indexOfLastItem);
