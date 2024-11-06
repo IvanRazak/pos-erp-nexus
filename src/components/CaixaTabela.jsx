@@ -9,13 +9,13 @@ import { useDeletePayment, useUpdateOrder, usePayments } from '../integrations/s
 import { toast } from "sonner";
 import { useAuth } from '../hooks/useAuth';
 import { useQueryClient } from '@tanstack/react-query';
+import { supabase } from '../lib/supabase';
 
 const CaixaTabela = ({ transacoes, setEditingPayment }) => {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
   const deletePayment = useDeletePayment();
   const updateOrder = useUpdateOrder();
-  const { data: allPayments } = usePayments();
   const { user } = useAuth();
   const queryClient = useQueryClient();
 
@@ -26,18 +26,29 @@ const CaixaTabela = ({ transacoes, setEditingPayment }) => {
 
       // Se houver um pedido associado e o ID do pedido estiver definido
       if (payment.order && payment.order.id) {
-        // Busca todos os pagamentos restantes do pedido
-        const orderPayments = allPayments.filter(p => 
-          p.order_id === payment.order.id && 
-          p.id !== payment.id && 
-          !p.cancelled
-        );
-        
-        // Calcula o novo valor total pago baseado na soma dos pagamentos restantes
+        // Busca diretamente no banco de dados todos os pagamentos não cancelados do pedido
+        const { data: orderPayments, error } = await supabase
+          .from('payments')
+          .select('amount')
+          .eq('order_id', payment.order.id)
+          .eq('cancelled', false);
+
+        if (error) throw error;
+
+        // Calcula o novo valor total pago somando os valores dos pagamentos
         const newPaidAmount = orderPayments.reduce((sum, p) => sum + (p.amount || 0), 0);
         
+        // Busca o valor total do pedido diretamente do banco
+        const { data: orderData, error: orderError } = await supabase
+          .from('orders')
+          .select('total_amount')
+          .eq('id', payment.order.id)
+          .single();
+
+        if (orderError) throw orderError;
+
         // Calcula o novo saldo restante
-        const newRemainingBalance = payment.order.total_amount - newPaidAmount;
+        const newRemainingBalance = orderData.total_amount - newPaidAmount;
         
         // Atualiza o pedido com os novos valores
         await updateOrder.mutateAsync({
