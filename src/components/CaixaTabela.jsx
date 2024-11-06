@@ -8,6 +8,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { useDeletePayment, useUpdateOrder, usePayments } from '../integrations/supabase';
 import { toast } from "sonner";
 import { useAuth } from '../hooks/useAuth';
+import { useQueryClient } from '@tanstack/react-query';
 
 const CaixaTabela = ({ transacoes, setEditingPayment }) => {
   const [currentPage, setCurrentPage] = useState(1);
@@ -16,6 +17,7 @@ const CaixaTabela = ({ transacoes, setEditingPayment }) => {
   const updateOrder = useUpdateOrder();
   const { data: allPayments } = usePayments();
   const { user } = useAuth();
+  const queryClient = useQueryClient();
 
   const handleDeletePayment = async (payment) => {
     try {
@@ -26,7 +28,9 @@ const CaixaTabela = ({ transacoes, setEditingPayment }) => {
       if (payment.order && payment.order.id) {
         // Busca todos os pagamentos restantes do pedido
         const orderPayments = allPayments.filter(p => 
-          p.order_id === payment.order.id && p.id !== payment.id && !p.cancelled
+          p.order_id === payment.order.id && 
+          p.id !== payment.id && 
+          !p.cancelled
         );
         
         // Calcula o novo valor total pago baseado na soma dos pagamentos restantes
@@ -40,12 +44,16 @@ const CaixaTabela = ({ transacoes, setEditingPayment }) => {
           id: payment.order.id,
           paid_amount: newPaidAmount,
           remaining_balance: newRemainingBalance,
-          status: newRemainingBalance > 0 ? 'partial_payment' : 'paid'
+          status: newRemainingBalance <= 0 ? 'paid' : 'partial_payment'
         });
+
+        // Invalida as queries para atualizar os dados
+        queryClient.invalidateQueries(['orders']);
+        queryClient.invalidateQueries(['payments']);
 
         toast.success("Pagamento excluído com sucesso! Os valores do pedido foram atualizados.");
       } else {
-        toast.success("Pagamento excluído com sucesso! Não foi necessário atualizar valores do pedido.");
+        toast.success("Pagamento excluído com sucesso!");
       }
     } catch (error) {
       console.error('Erro ao excluir pagamento:', error);
