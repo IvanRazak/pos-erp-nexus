@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
-import VendaHeader from './VendaHeader';
-import VendaCarrinho from './VendaCarrinho';
-import BuscarClienteModal from '../BuscarClienteModal';
-import BuscarProdutoModal from '../BuscarProdutoModal';
-import ProdutoExtraOptionsModal from '../ProdutoExtraOptionsModal';
-import ArteModal from '../ArteModal';
-import VendaPrintModal from './VendaPrintModal';
-import { handleNewClientSuccess, handleSelectCliente, handleSelectProduto } from '../../utils/clientUtils';
+import VendaHeader from "./VendaHeader";
+import VendaCarrinho from "./VendaCarrinho";
+import BuscarClienteModal from "../BuscarClienteModal";
+import BuscarProdutoModal from "../BuscarProdutoModal";
+import ProdutoExtraOptionsModal from "../ProdutoExtraOptionsModal";
+import ArteModal from "../ArteModal";
+import VendaPrintModal from "./VendaPrintModal";
+import { handleNewClientSuccess, handleSelectCliente, handleSelectProduto } from "../../utils/clientUtils";
 import { toast } from "sonner";
 
 const VendaContent = ({
