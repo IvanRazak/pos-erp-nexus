@@ -55,20 +55,10 @@ const CarrinhoItem = ({
             await onUnitPriceChange(item, newSheetPrice);
           }
         }
-        await onQuantityChange(item, newQuantity);
+        onQuantityChange(item, newQuantity);
       }
     }
     setEditingQuantity(!editingQuantity);
-  };
-
-  const handleQuantityBlur = async () => {
-    await handleQuantityEdit();
-  };
-
-  const handleQuantityKeyPress = async (e) => {
-    if (e.key === 'Enter') {
-      await handleQuantityEdit();
-    }
   };
 
   const calculateItemTotal = () => {
@@ -124,10 +114,8 @@ const CarrinhoItem = ({
             type="number"
             value={tempQuantity}
             onChange={(e) => setTempQuantity(e.target.value)}
-            onBlur={handleQuantityBlur}
-            onKeyPress={handleQuantityKeyPress}
+            onBlur={handleQuantityEdit}
             className="w-20"
-            autoFocus
           />
         ) : (
           <span onClick={() => setEditingQuantity(true)} className="cursor-pointer">
