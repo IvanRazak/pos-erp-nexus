@@ -58,7 +58,22 @@ const CarrinhoItem = ({
         await onQuantityChange(item, newQuantity);
       }
     }
-    setEditingQuantity(!editingQuantity);
+    setEditingQuantity(false);
+  };
+
+  const handleQuantityChange = async (e) => {
+    const value = e.target.value;
+    setTempQuantity(value);
+    if (item.unit_type === 'sheets') {
+      const newQuantity = parseInt(value, 10);
+      if (!isNaN(newQuantity) && newQuantity > 0) {
+        const newSheetPrice = await getSheetPrice(item.id, newQuantity);
+        if (newSheetPrice) {
+          await onUnitPriceChange(item, newSheetPrice);
+        }
+        await onQuantityChange(item, newQuantity);
+      }
+    }
   };
 
   const handleQuantityBlur = async () => {
@@ -123,7 +138,7 @@ const CarrinhoItem = ({
           <Input
             type="number"
             value={tempQuantity}
-            onChange={(e) => setTempQuantity(e.target.value)}
+            onChange={handleQuantityChange}
             onBlur={handleQuantityBlur}
             onKeyPress={handleQuantityKeyPress}
             autoFocus
