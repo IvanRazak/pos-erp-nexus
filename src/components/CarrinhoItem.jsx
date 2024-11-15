@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { TableCell, TableRow } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
 import { getExtraOptionPrice } from '../utils/vendaUtils';
+import { getSheetPrice } from '../utils/productUtils';
 
 const CarrinhoItem = ({ 
   item, 
@@ -44,10 +45,16 @@ const CarrinhoItem = ({
     setEditingUnitPrice(!editingUnitPrice);
   };
 
-  const handleQuantityEdit = () => {
+  const handleQuantityEdit = async () => {
     if (editingQuantity) {
       const newQuantity = parseInt(tempQuantity, 10);
       if (newQuantity !== item.quantidade) {
+        if (item.unit_type === 'sheets') {
+          const newSheetPrice = await getSheetPrice(item.id, newQuantity);
+          if (newSheetPrice) {
+            await onUnitPriceChange(item, newSheetPrice);
+          }
+        }
         onQuantityChange(item, newQuantity);
       }
     }
@@ -143,7 +150,7 @@ const CarrinhoItem = ({
             className="w-24"
           />
           <div className="text-sm text-gray-500">
-            {calculateDiscountPercentage().toFixed(2)}% de desconto
+            {discountPercentage.toFixed(2)}% de desconto
           </div>
         </div>
       </TableCell>
