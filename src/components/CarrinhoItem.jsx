@@ -47,13 +47,17 @@ const CarrinhoItem = ({
     const newQuantity = parseInt(e.target.value, 10);
     if (isNaN(newQuantity) || newQuantity < 1) return;
 
+    let newItem = { ...item, quantidade: newQuantity };
+
     if (item.unit_type === 'sheets') {
       const newSheetPrice = await getSheetPrice(item.id, newQuantity);
       if (newSheetPrice) {
-        await onUnitPriceChange(item, newSheetPrice);
+        newItem = { ...newItem, unitPrice: newSheetPrice };
+        await onUnitPriceChange(newItem, newSheetPrice);
       }
     }
-    await onQuantityChange(item, newQuantity);
+
+    await onQuantityChange(newItem, newQuantity);
   };
 
   const calculateItemTotal = () => {
