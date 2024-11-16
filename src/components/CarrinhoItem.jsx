@@ -16,6 +16,8 @@ const CarrinhoItem = ({
 }) => {
   const [editingUnitPrice, setEditingUnitPrice] = useState(false);
   const [tempUnitPrice, setTempUnitPrice] = useState(item.unitPrice);
+  const [editingQuantity, setEditingQuantity] = useState(false);
+  const [tempQuantity, setTempQuantity] = useState(item.quantidade);
   const [extrasPrices, setExtrasPrices] = useState({});
 
   useEffect(() => {
@@ -43,17 +45,30 @@ const CarrinhoItem = ({
     setEditingUnitPrice(!editingUnitPrice);
   };
 
-  const handleQuantityChange = async (e) => {
-    const newQuantity = parseInt(e.target.value, 10);
-    if (isNaN(newQuantity) || newQuantity < 1) return;
-
-    if (item.unit_type === 'sheets') {
-      const newSheetPrice = await getSheetPrice(item.id, newQuantity);
-      if (newSheetPrice) {
-        await onUnitPriceChange(item, newSheetPrice);
+  const handleQuantityEdit = async () => {
+    if (editingQuantity) {
+      const newQuantity = parseInt(tempQuantity, 10);
+      if (newQuantity !== item.quantidade) {
+        if (item.unit_type === 'sheets') {
+          const newSheetPrice = await getSheetPrice(item.id, newQuantity);
+          if (newSheetPrice) {
+            await onUnitPriceChange(item, newSheetPrice);
+          }
+        }
+        await onQuantityChange(item, newQuantity);
       }
     }
-    await onQuantityChange(item, newQuantity);
+    setEditingQuantity(!editingQuantity);
+  };
+
+  const handleQuantityBlur = async () => {
+    await handleQuantityEdit();
+  };
+
+  const handleQuantityKeyPress = async (e) => {
+    if (e.key === 'Enter') {
+      await handleQuantityEdit();
+    }
   };
 
   const calculateItemTotal = () => {
@@ -104,13 +119,21 @@ const CarrinhoItem = ({
     <TableRow>
       <TableCell>{item.name}</TableCell>
       <TableCell>
-        <Input
-          type="number"
-          value={item.quantidade}
-          onChange={handleQuantityChange}
-          className="w-20"
-          min="1"
-        />
+        {editingQuantity ? (
+          <Input
+            type="number"
+            value={tempQuantity}
+            onChange={(e) => setTempQuantity(e.target.value)}
+            onBlur={handleQuantityBlur}
+            onKeyPress={handleQuantityKeyPress}
+            autoFocus
+            className="w-20"
+          />
+        ) : (
+          <span onClick={() => setEditingQuantity(true)} className="cursor-pointer">
+            {item.quantidade}
+          </span>
+        )}
       </TableCell>
       <TableCell>{renderDimensoes()}</TableCell>
       <TableCell>{item.m2 ? `${item.m2.toFixed(2)}m²` : 'N/A'}</TableCell>
