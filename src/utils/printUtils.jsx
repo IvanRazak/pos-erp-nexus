@@ -11,19 +11,23 @@ export const generatePrintContent = (pedido, itensPedido) => {
         if (extra.extra_option.fixed_value) {
           extraText += `${extra.selected_option.name} - R$ ${extraValue.toFixed(2)}`;
         } else {
-          extraText += `${extra.selected_option.name} - R$ ${extraValue.toFixed(2)} x ${itemQuantity} = R$ ${(extraValue * itemQuantity).toFixed(2)}`;
+          const totalValue = extraValue * itemQuantity;
+          extraText += `${extra.selected_option.name} - R$ ${extraValue.toFixed(2)} x ${itemQuantity} = R$ ${totalValue.toFixed(2)}`;
         }
       } else if (extra.extra_option.type === 'number') {
         if (extra.extra_option.fixed_value) {
           extraText += `${extra.inserted_value} x R$ ${(extraValue / extra.inserted_value).toFixed(2)} = R$ ${extraValue.toFixed(2)}`;
         } else {
-          extraText += `${extra.inserted_value} x R$ ${(extraValue / extra.inserted_value).toFixed(2)} x ${itemQuantity} = R$ ${(extraValue * itemQuantity).toFixed(2)}`;
+          const unitPrice = extraValue / extra.inserted_value;
+          const totalValue = extraValue * itemQuantity;
+          extraText += `${extra.inserted_value} x R$ ${unitPrice.toFixed(2)} x ${itemQuantity} = R$ ${totalValue.toFixed(2)}`;
         }
       } else {
         if (extra.extra_option.fixed_value) {
           extraText += `R$ ${extraValue.toFixed(2)}`;
         } else {
-          extraText += `R$ ${extraValue.toFixed(2)} x ${itemQuantity} = R$ ${(extraValue * itemQuantity).toFixed(2)}`;
+          const totalValue = extraValue * itemQuantity;
+          extraText += `R$ ${extraValue.toFixed(2)} x ${itemQuantity} = R$ ${totalValue.toFixed(2)}`;
         }
       }
       
@@ -80,10 +84,7 @@ export const generatePrintContent = (pedido, itensPedido) => {
                   R$ ${(item.quantity * item.unit_price + 
                     item.extras.reduce((sum, extra) => {
                       const extraValue = extra.total_value || 0;
-                      if (extra.extra_option.fixed_value) {
-                        return sum + extraValue;
-                      }
-                      return sum + (extraValue * item.quantity);
+                      return sum + (extra.extra_option.fixed_value ? extraValue : extraValue * item.quantity);
                     }, 0)).toFixed(2)}
                   ${item.discount > 0 ? `<br><span class="discount-info">Desconto: R$ ${item.discount.toFixed(2)}</span>` : ''}
                 </td>
