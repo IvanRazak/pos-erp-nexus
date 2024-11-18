@@ -1,3 +1,4 @@
+import { format, parseISO } from 'date-fns';
 import { formatarDimensoes } from './pedidoUtils';
 
 export const generatePrintContent = (pedido, itensPedido) => {
@@ -12,12 +13,13 @@ export const generatePrintContent = (pedido, itensPedido) => {
           th { background-color: #f5f5f5; }
           .total { font-weight: bold; margin-top: 20px; }
           .discount-info { margin-top: 10px; color: #666; }
+          .description { font-style: italic; color: #666; margin-top: 4px; }
         </style>
       </head>
       <body>
         <h2>Pedido #${pedido.order_number}</h2>
         <p><strong>Cliente:</strong> ${pedido.customer?.name || 'N/A'}</p>
-        <p><strong>Data de Entrega:</strong> ${pedido.delivery_date || 'N/A'}</p>
+        <p><strong>Data de Entrega:</strong> ${pedido.delivery_date ? format(parseISO(pedido.delivery_date), 'dd-MM-yyyy') : 'N/A'}</p>
         
         <table>
           <thead>
@@ -27,14 +29,16 @@ export const generatePrintContent = (pedido, itensPedido) => {
               <th>Valor Unitário</th>
               <th>Dimensões</th>
               <th>Opções Extras</th>
-              <th>Desconto Individual</th>
               <th>Subtotal</th>
             </tr>
           </thead>
           <tbody>
             ${itensPedido?.map(item => `
               <tr>
-                <td>${item.product.name}</td>
+                <td>
+                  ${item.product.name}
+                  ${item.description ? `<div class="description">Obs: ${item.description}</div>` : ''}
+                </td>
                 <td>${item.quantity}</td>
                 <td>R$ ${item.unit_price.toFixed(2)}</td>
                 <td>${formatarDimensoes(item)}</td>
@@ -52,10 +56,11 @@ export const generatePrintContent = (pedido, itensPedido) => {
                   
                   return extraText;
                 }).join('<br>')}</td>
-                <td>R$ ${(item.discount || 0).toFixed(2)}</td>
-                <td>R$ ${(item.quantity * item.unit_price + 
-                  item.extras.reduce((sum, extra) => sum + (extra.total_value || 0), 0) - 
-                  (item.discount || 0)).toFixed(2)}</td>
+                <td>
+                  R$ ${(item.quantity * item.unit_price + 
+                    item.extras.reduce((sum, extra) => sum + (extra.total_value || 0), 0)).toFixed(2)}
+                  ${item.discount > 0 ? `<br><span class="discount-info">Desconto: R$ ${item.discount.toFixed(2)}</span>` : ''}
+                </td>
               </tr>
             `).join('')}
           </tbody>
@@ -72,7 +77,8 @@ export const generatePrintContent = (pedido, itensPedido) => {
             </p>
           ` : ''}
           <p>Valor Total: R$ ${pedido.total_amount?.toFixed(2) || '0.00'}</p>
-          <p>Valor Pago: R$ ${pedido.paid_amount?.toFixed(2) || '0.00'}</p>
+          <p>Valor Pago: R$ ${pedido.paid_amount?.toFixed(2) || '0.00'} 
+             ${pedido.payment_option ? `(${pedido.payment_option})` : ''}</p>
           <p>Saldo Restante: R$ ${pedido.remaining_balance?.toFixed(2) || '0.00'}</p>
         </div>
       </body>
