@@ -3,6 +3,8 @@ import { formatarDimensoes } from './pedidoUtils';
 
 export const generatePrintContent = (pedido, itensPedido) => {
   const renderExtras = (extras, itemQuantity) => {
+    if (!extras || extras.length === 0) return '';
+    
     return extras.map((extra) => {
       let extraText = `${extra.extra_option.name}: `;
       const extraValue = extra.total_value || 0;
@@ -63,33 +65,35 @@ export const generatePrintContent = (pedido, itensPedido) => {
             <tr>
               <th>Produto</th>
               <th>Quantidade</th>
-              <th>Valor Unitário</th>
               <th>Dimensões</th>
               <th>Opções Extras</th>
               <th>Subtotal</th>
             </tr>
           </thead>
           <tbody>
-            ${itensPedido?.map(item => `
+            ${itensPedido?.map(item => {
+              const subtotalProduto = item.quantity * item.unit_price;
+              const subtotalExtras = item.extras.reduce((sum, extra) => {
+                const extraValue = extra.total_value || 0;
+                return sum + (extra.extra_option.fixed_value ? extraValue : extraValue * item.quantity);
+              }, 0);
+              const subtotalComDesconto = subtotalProduto + subtotalExtras - (item.discount || 0);
+              
+              return `
               <tr>
                 <td>
                   ${item.product.name}
                   ${item.description ? `<div class="description">Obs: ${item.description}</div>` : ''}
                 </td>
                 <td>${item.quantity}</td>
-                <td>R$ ${item.unit_price.toFixed(2)}</td>
                 <td>${formatarDimensoes(item)}</td>
-                <td>${renderExtras(item.extras, item.quantity)}</td>
+                <td>${renderExtras(item.extras, item.quantity) || 'N/A'}</td>
                 <td>
-                  R$ ${(item.quantity * item.unit_price + 
-                    item.extras.reduce((sum, extra) => {
-                      const extraValue = extra.total_value || 0;
-                      return sum + (extra.extra_option.fixed_value ? extraValue : extraValue * item.quantity);
-                    }, 0)).toFixed(2)}
+                  R$ ${subtotalComDesconto.toFixed(2)}
                   ${item.discount > 0 ? `<br><span class="discount-info">Desconto: R$ ${item.discount.toFixed(2)}</span>` : ''}
                 </td>
               </tr>
-            `).join('')}
+            `}).join('')}
           </tbody>
         </table>
 
