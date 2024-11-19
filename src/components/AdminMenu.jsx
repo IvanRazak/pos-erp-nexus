@@ -4,36 +4,21 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
-import { Textarea } from "@/components/ui/textarea";
 import { useAddPaymentOption, useAddCustomerType, useAddUser } from '../integrations/supabase';
 import { toast } from "sonner";
 import bcrypt from 'bcryptjs';
 import GerenciarOpcoesExtras from './GerenciarOpcoesExtras';
 import GerenciarOpcoesSelecao from './GerenciarOpcoesSelecao';
+import PrintTemplateEditor from './PrintTemplateEditor';
 import { Menu } from 'lucide-react';
 
 const AdminMenu = () => {
   const [isGerenciarOpcoesExtrasOpen, setIsGerenciarOpcoesExtrasOpen] = useState(false);
   const [isGerenciarOpcoesSelecaoOpen, setIsGerenciarOpcoesSelecaoOpen] = useState(false);
-  const [printStyles, setPrintStyles] = useState(`
-    body { font-family: Arial, sans-serif; padding: 20px; }
-    table { width: 100%; border-collapse: collapse; margin: 20px 0; }
-    th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
-    th { background-color: #f5f5f5; }
-    .total { font-weight: bold; margin-top: 20px; }
-    .discount-info { margin-top: 10px; color: #666; }
-    .description { font-style: italic; color: #666; margin-top: 4px; }
-  `);
   
   const addPaymentOption = useAddPaymentOption();
   const addCustomerType = useAddCustomerType();
   const addUser = useAddUser();
-
-  const handlePrintStylesChange = (newStyles) => {
-    setPrintStyles(newStyles);
-    localStorage.setItem('printStyles', newStyles);
-    toast.success("Estilos de impressão atualizados com sucesso!");
-  };
 
   const handleCadastrarOpcaoPagamento = (event) => {
     event.preventDefault();
@@ -160,34 +145,7 @@ const AdminMenu = () => {
             </DialogContent>
           </Dialog>
 
-          <Dialog>
-            <DialogTrigger asChild>
-              <Button className="w-full">Editar Estilos de Impressão</Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-3xl">
-              <DialogHeader>
-                <DialogTitle>Editar Estilos de Impressão</DialogTitle>
-              </DialogHeader>
-              <div className="space-y-4">
-                <Textarea
-                  value={printStyles}
-                  onChange={(e) => handlePrintStylesChange(e.target.value)}
-                  className="min-h-[400px] font-mono"
-                  placeholder="Digite os estilos CSS aqui..."
-                />
-                <div className="text-sm text-muted-foreground">
-                  Dica: Use CSS para personalizar a aparência da impressão. As classes disponíveis são:
-                  <ul className="list-disc pl-4 mt-2">
-                    <li>table - Estilo da tabela principal</li>
-                    <li>th, td - Estilo das células</li>
-                    <li>.total - Estilo da seção de total</li>
-                    <li>.discount-info - Estilo das informações de desconto</li>
-                    <li>.description - Estilo das descrições de produtos</li>
-                  </ul>
-                </div>
-              </div>
-            </DialogContent>
-          </Dialog>
+          <PrintTemplateEditor />
 
           <Button className="w-full" onClick={() => setIsGerenciarOpcoesExtrasOpen(true)}>
             Gerenciar Opções Extras

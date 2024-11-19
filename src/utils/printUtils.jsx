@@ -51,16 +51,16 @@ export const generatePrintContent = (pedido, itensPedido) => {
     .description { font-style: italic; color: #666; margin-top: 4px; }
   `;
 
-  return `
+  const template = localStorage.getItem('printTemplate') || `
     <html>
       <head>
-        <title>Pedido #${pedido.order_number}</title>
-        <style>${customStyles}</style>
+        <title>Pedido #{order_number}</title>
+        <style>{styles}</style>
       </head>
       <body>
-        <h2>Pedido #${pedido.order_number}</h2>
-        <p><strong>Cliente:</strong> ${pedido.customer?.name || 'N/A'}</p>
-        <p><strong>Data de Entrega:</strong> ${pedido.delivery_date ? format(parseISO(pedido.delivery_date), 'dd-MM-yyyy') : 'N/A'}</p>
+        <h2>Pedido #{order_number}</h2>
+        <p><strong>Cliente:</strong> {customer_name}</p>
+        <p><strong>Data de Entrega:</strong> {delivery_date}</p>
         
         <table>
           <thead>
@@ -73,48 +73,64 @@ export const generatePrintContent = (pedido, itensPedido) => {
             </tr>
           </thead>
           <tbody>
-            ${itensPedido?.map(item => {
-              const subtotalProduto = item.quantity * item.unit_price;
-              const subtotalExtras = item.extras.reduce((sum, extra) => {
-                const extraValue = extra.total_value || 0;
-                return sum + (extra.extra_option.fixed_value ? extraValue : extraValue * item.quantity);
-              }, 0);
-              const subtotalComDesconto = subtotalProduto + subtotalExtras - (item.discount || 0);
-              
-              return `
-              <tr>
-                <td>
-                  ${item.product.name}
-                  ${item.description ? `<div class="description">Obs: ${item.description}</div>` : ''}
-                </td>
-                <td>${item.quantity}</td>
-                <td>${formatarDimensoes(item)}</td>
-                <td>${renderExtras(item.extras, item.quantity) || 'N/A'}</td>
-                <td>
-                  R$ ${subtotalComDesconto.toFixed(2)}
-                  ${item.discount > 0 ? `<br><span class="discount-info">Desconto: R$ ${item.discount.toFixed(2)}</span>` : ''}
-                </td>
-              </tr>
-            `}).join('')}
+            {items}
           </tbody>
         </table>
 
         <div class="total">
-          ${pedido.discount > 0 ? `
-            <p class="discount-info">Desconto Geral: R$ ${pedido.discount.toFixed(2)}</p>
-          ` : ''}
-          ${pedido.additional_value > 0 ? `
-            <p class="discount-info">
-              Valor Adicional: R$ ${pedido.additional_value.toFixed(2)}
-              ${pedido.additional_value_description ? `<br>Descrição: ${pedido.additional_value_description}` : ''}
-            </p>
-          ` : ''}
-          <p>Valor Total: R$ ${pedido.total_amount?.toFixed(2) || '0.00'}</p>
-          <p>Valor Pago: R$ ${pedido.paid_amount?.toFixed(2) || '0.00'} 
-             ${pedido.payment_option ? `(${pedido.payment_option})` : ''}</p>
-          <p>Saldo Restante: R$ ${pedido.remaining_balance?.toFixed(2) || '0.00'}</p>
+          {discount}
+          {additional_value}
+          <p>Valor Total: R$ {total_amount}</p>
+          <p>Valor Pago: R$ {paid_amount} {payment_option}</p>
+          <p>Saldo Restante: R$ {remaining_balance}</p>
         </div>
       </body>
     </html>
   `;
+
+  const itemsHtml = itensPedido?.map(item => {
+    const subtotalProduto = item.quantity * item.unit_price;
+    const subtotalExtras = item.extras.reduce((sum, extra) => {
+      const extraValue = extra.total_value || 0;
+      return sum + (extra.extra_option.fixed_value ? extraValue : extraValue * item.quantity);
+    }, 0);
+    const subtotalComDesconto = subtotalProduto + subtotalExtras - (item.discount || 0);
+    
+    return `
+    <tr>
+      <td>
+        ${item.product.name}
+        ${item.description ? `<div class="description">Obs: ${item.description}</div>` : ''}
+      </td>
+      <td>${item.quantity}</td>
+      <td>${formatarDimensoes(item)}</td>
+      <td>${renderExtras(item.extras, item.quantity) || 'N/A'}</td>
+      <td>
+        R$ ${subtotalComDesconto.toFixed(2)}
+        ${item.discount > 0 ? `<br><span class="discount-info">Desconto: R$ ${item.discount.toFixed(2)}</span>` : ''}
+      </td>
+    </tr>
+  `}).join('');
+
+  const discountHtml = pedido.discount > 0 ? 
+    `<p class="discount-info">Desconto Geral: R$ ${pedido.discount.toFixed(2)}</p>` : '';
+
+  const additionalValueHtml = pedido.additional_value > 0 ? 
+    `<p class="discount-info">
+      Valor Adicional: R$ ${pedido.additional_value.toFixed(2)}
+      ${pedido.additional_value_description ? `<br>Descrição: ${pedido.additional_value_description}` : ''}
+    </p>` : '';
+
+  return template
+    .replace('{styles}', customStyles)
+    .replace('{order_number}', pedido.order_number)
+    .replace('{customer_name}', pedido.customer?.name || 'N/A')
+    .replace('{delivery_date}', pedido.delivery_date ? format(parseISO(pedido.delivery_date), 'dd-MM-yyyy') : 'N/A')
+    .replace('{items}', itemsHtml)
+    .replace('{discount}', discountHtml)
+    .replace('{additional_value}', additionalValueHtml)
+    .replace('{total_amount}', pedido.total_amount?.toFixed(2) || '0.00')
+    .replace('{paid_amount}', pedido.paid_amount?.toFixed(2) || '0.00')
+    .replace('{payment_option}', pedido.payment_option ? `(${pedido.payment_option})` : '')
+    .replace('{remaining_balance}', pedido.remaining_balance?.toFixed(2) || '0.00');
 };
