@@ -41,19 +41,21 @@ export const generatePrintContent = (pedido, itensPedido) => {
     }).join('<br>');
   };
 
+  const customStyles = localStorage.getItem('printStyles') || `
+    body { font-family: Arial, sans-serif; padding: 20px; }
+    table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+    th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+    th { background-color: #f5f5f5; }
+    .total { font-weight: bold; margin-top: 20px; }
+    .discount-info { margin-top: 10px; color: #666; }
+    .description { font-style: italic; color: #666; margin-top: 4px; }
+  `;
+
   return `
     <html>
       <head>
         <title>Pedido #${pedido.order_number}</title>
-        <style>
-          body { font-family: Arial, sans-serif; padding: 20px; }
-          table { width: 100%; border-collapse: collapse; margin: 20px 0; }
-          th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
-          th { background-color: #f5f5f5; }
-          .total { font-weight: bold; margin-top: 20px; }
-          .discount-info { margin-top: 10px; color: #666; }
-          .description { font-style: italic; color: #666; margin-top: 4px; }
-        </style>
+        <style>${customStyles}</style>
       </head>
       <body>
         <h2>Pedido #${pedido.order_number}</h2>
