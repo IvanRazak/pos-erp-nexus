@@ -50,11 +50,7 @@ const ClienteForm = ({ onSave, clienteInicial }) => {
 
       if (onSave) {
         try {
-          const result = await onSave(data);
-          // Only reset if it's a new customer AND the save was successful
-          if (!data.id && result !== false) {
-            reset();
-          }
+          await onSave(data);
         } catch (error) {
           if (error.message === 'Whatsapp já cadastrado') {
             toast.error("Este número de WhatsApp já está cadastrado para outro cliente");
@@ -68,8 +64,6 @@ const ClienteForm = ({ onSave, clienteInicial }) => {
       toast.error("Erro ao salvar cliente");
     }
   };
-
-  // ... keep existing code (form JSX)
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
