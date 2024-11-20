@@ -53,10 +53,7 @@ const ClienteForm = ({ onSave, clienteInicial }) => {
           await onSave(data);
           reset();
         } catch (error) {
-          // Verifica especificamente o erro de WhatsApp duplicado
-          if (error.message?.includes('unique_whatsapp') || 
-              error.code === '23505' || // Código PostgreSQL para violação de unique constraint
-              error.message?.includes('duplicate key value violates unique constraint')) {
+          if (error.message === 'whatsapp_exists') {
             toast.error("Este número de WhatsApp já está cadastrado para outro cliente");
             return;
           }
