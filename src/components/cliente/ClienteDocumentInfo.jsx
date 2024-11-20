@@ -8,8 +8,8 @@ const ClienteDocumentInfo = ({ register, setValue, watch, errors }) => {
   return (
     <div className="space-y-4">
       <Select
+        value={watch("documento") || "cpf"}
         onValueChange={(value) => setValue("documento", value)}
-        defaultValue={watch("documento")}
       >
         <SelectTrigger>
           <SelectValue placeholder="Tipo de Documento" />

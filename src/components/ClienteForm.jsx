@@ -16,7 +16,8 @@ const ClienteForm = ({ onSave, clienteInicial }) => {
     defaultValues: {
       ...clienteInicial,
       bloqueado: clienteInicial?.bloqueado || false,
-      customer_type_id: clienteInicial?.customer_type_id || ''
+      customer_type_id: clienteInicial?.customer_type_id || '',
+      documento: 'cpf' // Pre-select CPF as default
     }
   });
   const { data: customerTypes, isLoading: isLoadingCustomerTypes } = useCustomerTypes();
@@ -48,11 +49,20 @@ const ClienteForm = ({ onSave, clienteInicial }) => {
       data.customer_type_id = String(data.customer_type_id);
 
       if (onSave) {
-        await onSave(data);
-        reset();
+        try {
+          await onSave(data);
+          reset();
+        } catch (error) {
+          if (error.message?.includes('unique_whatsapp')) {
+            toast.error("Este número de WhatsApp já está cadastrado");
+            return;
+          }
+          throw error;
+        }
       }
     } catch (error) {
       console.error('Error in form submission:', error);
+      toast.error("Erro ao salvar cliente");
     }
   };
 
