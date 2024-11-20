@@ -3,17 +3,14 @@ import { useForm } from 'react-hook-form';
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { validateCPF, validateCNPJ, validatePhone } from '../utils/validations';
 import { fetchAddressByCEP } from '../utils/api';
-import { useCustomerTypes } from '../integrations/supabase';
 
-const ClienteForm = ({ onSave, clienteInicial }) => {
+const ClienteForm = ({ onSave, clienteInicial, isSimplified = false }) => {
   const { register, handleSubmit, setValue, watch, reset, formState: { errors } } = useForm({
     defaultValues: clienteInicial || {}
   });
-  const { data: customerTypes, isLoading: isLoadingCustomerTypes } = useCustomerTypes();
 
   useEffect(() => {
     if (clienteInicial) {
@@ -128,28 +125,32 @@ const ClienteForm = ({ onSave, clienteInicial }) => {
 
       <Textarea {...register("observacoes")} placeholder="Observações" />
 
-      <div className="flex items-center space-x-2">
-        <Switch {...register("bloqueado")} id="bloqueado" />
-        <label htmlFor="bloqueado">Bloquear cliente</label>
-      </div>
+      {!isSimplified && (
+        <>
+          <div className="flex items-center space-x-2">
+            <Switch {...register("bloqueado")} id="bloqueado" />
+            <label htmlFor="bloqueado">Bloquear cliente</label>
+          </div>
 
-      <Select 
-        onValueChange={(value) => setValue("customer_type_id", value)} 
-        defaultValue={watch("customer_type_id")}
-      >
-        <SelectTrigger>
-          <SelectValue placeholder="Tipo de Cliente" />
-        </SelectTrigger>
-        <SelectContent>
-          {isLoadingCustomerTypes ? (
-            <SelectItem value="loading">Carregando...</SelectItem>
-          ) : (
-            customerTypes?.map((type) => (
-              <SelectItem key={type.id} value={type.id}>{type.name}</SelectItem>
-            ))
-          )}
-        </SelectContent>
-      </Select>
+          <Select 
+            onValueChange={(value) => setValue("customer_type_id", value)} 
+            defaultValue={watch("customer_type_id")}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Tipo de Cliente" />
+            </SelectTrigger>
+            <SelectContent>
+              {isLoadingCustomerTypes ? (
+                <SelectItem value="loading">Carregando...</SelectItem>
+              ) : (
+                customerTypes?.map((type) => (
+                  <SelectItem key={type.id} value={type.id}>{type.name}</SelectItem>
+                ))
+              )}
+            </SelectContent>
+          </Select>
+        </>
+      )}
 
       <Button type="submit">{clienteInicial ? 'Atualizar Cliente' : 'Salvar Cliente'}</Button>
     </form>
