@@ -70,9 +70,9 @@ export const generatePrintContent = (pedido, itensPedido) => {
         <table>
           <thead>
             <tr>
-              <th>Produto</th>
-              <th>Quantidade</th>
-              <th>Dimensões</th>
+              <th>Item</th>
+              <th>Qnt</th>
+              <th>Medida</th>
               <th>Opções Extras</th>
               <th>Subtotal</th>
             </tr>
@@ -122,8 +122,7 @@ export const generatePrintContent = (pedido, itensPedido) => {
 
   const additionalValueHtml = pedido.additional_value > 0 ? 
     `<p class="discount-info">
-      Valor Adicional: R$ ${pedido.additional_value.toFixed(2)}
-      ${pedido.additional_value_description ? `<br>Descrição: ${pedido.additional_value_description}` : ''}
+      ${pedido.additional_value_description ? `${pedido.additional_value_description}` : ''}: R$ ${pedido.additional_value.toFixed(2)}
     </p>` : '';
 
   const orderDate = pedido.created_at ? format(parseISO(pedido.created_at), 'dd/MM/yyyy HH:mm') : 'N/A';
