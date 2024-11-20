@@ -17,12 +17,17 @@ const VendaHeader = ({
 }) => {
   const handleClienteSave = async (data) => {
     try {
-      await handleNewClientSuccess(data);
-      toast({
-        title: "Cliente cadastrado com sucesso!",
-        variant: "default",
-      });
-      setIsNewClientDialogOpen(false);
+      const savedClient = await handleNewClientSuccess(data);
+      if (savedClient) {
+        toast({
+          title: "Cliente cadastrado com sucesso!",
+          variant: "default",
+        });
+        setIsNewClientDialogOpen(false);
+        if (savedClient.id) {
+          setClienteSelecionado(savedClient.id);
+        }
+      }
     } catch (error) {
       toast({
         title: "Erro ao cadastrar cliente",
@@ -66,7 +71,7 @@ const VendaHeader = ({
               <DialogTitle>Cadastro de Cliente</DialogTitle>
             </DialogHeader>
             <ScrollArea className="h-[500px] pr-4">
-              <ClienteForm onSuccess={handleClienteSave} />
+              <ClienteForm onSave={handleClienteSave} />
             </ScrollArea>
           </DialogContent>
         </Dialog>
