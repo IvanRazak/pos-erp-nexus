@@ -15,6 +15,7 @@ const PrintTemplateEditor = () => {
     .total { font-weight: bold; margin-top: 20px; }
     .discount-info { margin-top: 10px; color: #666; }
     .description { font-style: italic; color: #666; margin-top: 4px; }
+    .order-info { margin-bottom: 20px; color: #666; }
   `);
 
   const [printTemplate, setPrintTemplate] = React.useState(
@@ -26,6 +27,10 @@ const PrintTemplateEditor = () => {
       </head>
       <body>
         <h2>Pedido #{order_number}</h2>
+        <div class="order-info">
+          <p><strong>Data do Pedido:</strong> {order_date}</p>
+          <p><strong>Criado por:</strong> {created_by}</p>
+        </div>
         <p><strong>Cliente:</strong> {customer_name}</p>
         <p><strong>Data de Entrega:</strong> {delivery_date}</p>
         
@@ -93,6 +98,8 @@ const PrintTemplateEditor = () => {
                 Dica: Use as seguintes variáveis no template:
                 <ul className="list-disc pl-4 mt-2">
                   <li>{`{order_number}`} - Número do pedido</li>
+                  <li>{`{order_date}`} - Data e hora do pedido</li>
+                  <li>{`{created_by}`} - Usuário que criou o pedido</li>
                   <li>{`{customer_name}`} - Nome do cliente</li>
                   <li>{`{delivery_date}`} - Data de entrega</li>
                   <li>{`{items}`} - Lista de itens do pedido</li>
@@ -121,6 +128,7 @@ const PrintTemplateEditor = () => {
                   <li>.total - Estilo da seção de total</li>
                   <li>.discount-info - Estilo das informações de desconto</li>
                   <li>.description - Estilo das descrições de produtos</li>
+                  <li>.order-info - Estilo das informações do pedido</li>
                 </ul>
               </div>
             </div>

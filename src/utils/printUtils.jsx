@@ -49,6 +49,7 @@ export const generatePrintContent = (pedido, itensPedido) => {
     .total { font-weight: bold; margin-top: 20px; }
     .discount-info { margin-top: 10px; color: #666; }
     .description { font-style: italic; color: #666; margin-top: 4px; }
+    .order-info { margin-bottom: 20px; color: #666; }
   `;
 
   const template = localStorage.getItem('printTemplate') || `
@@ -59,6 +60,10 @@ export const generatePrintContent = (pedido, itensPedido) => {
       </head>
       <body>
         <h2>Pedido #{order_number}</h2>
+        <div class="order-info">
+          <p><strong>Data do Pedido:</strong> {order_date}</p>
+          <p><strong>Criado por:</strong> {created_by}</p>
+        </div>
         <p><strong>Cliente:</strong> {customer_name}</p>
         <p><strong>Data de Entrega:</strong> {delivery_date}</p>
         
@@ -121,11 +126,15 @@ export const generatePrintContent = (pedido, itensPedido) => {
       ${pedido.additional_value_description ? `<br>Descrição: ${pedido.additional_value_description}` : ''}
     </p>` : '';
 
+  const orderDate = pedido.created_at ? format(parseISO(pedido.created_at), 'dd/MM/yyyy HH:mm') : 'N/A';
+
   return template
     .replace('{styles}', customStyles)
     .replace('{order_number}', pedido.order_number)
+    .replace('{order_date}', orderDate)
+    .replace('{created_by}', pedido.created_by || 'N/A')
     .replace('{customer_name}', pedido.customer?.name || 'N/A')
-    .replace('{delivery_date}', pedido.delivery_date ? format(parseISO(pedido.delivery_date), 'dd-MM-yyyy') : 'N/A')
+    .replace('{delivery_date}', pedido.delivery_date ? format(parseISO(pedido.delivery_date), 'dd/MM/yyyy') : 'N/A')
     .replace('{items}', itemsHtml)
     .replace('{discount}', discountHtml)
     .replace('{additional_value}', additionalValueHtml)
