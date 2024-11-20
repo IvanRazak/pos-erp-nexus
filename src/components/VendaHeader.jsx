@@ -66,7 +66,7 @@ const VendaHeader = ({
               <DialogTitle>Cadastro de Cliente</DialogTitle>
             </DialogHeader>
             <ScrollArea className="h-[500px] pr-4">
-              <ClienteForm onSave={handleClienteSave} isSimplified={true} />
+              <ClienteForm onSuccess={handleClienteSave} />
             </ScrollArea>
           </DialogContent>
         </Dialog>
