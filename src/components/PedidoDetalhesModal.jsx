@@ -101,7 +101,7 @@ const PedidoDetalhesModal = ({ pedido, onClose }) => {
       }
       
       if (extra.extra_option.use_quantity_pricing) {
-        extraText += ' (Preço por quantidade)';
+        extraText += ' *';
       }
       
       return <div key={extra.id}>{extraText}</div>;
