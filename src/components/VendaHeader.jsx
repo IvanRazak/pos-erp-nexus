@@ -1,8 +1,10 @@
 import React from 'react';
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import ClienteForm from './ClienteForm';
+import { toast } from "sonner";
+import { useAddCustomer } from '../integrations/supabase';
 
 const VendaHeader = ({
   setIsBuscarProdutoModalOpen,
@@ -11,8 +13,39 @@ const VendaHeader = ({
   isNewClientDialogOpen,
   setIsNewClientDialogOpen,
   handleNewClientSuccess,
-  clientes
+  clientes,
+  clienteSelecionado
 }) => {
+  const addCustomer = useAddCustomer();
+
+  const handleClienteSave = async (clienteData) => {
+    try {
+      const result = await addCustomer.mutateAsync(clienteData);
+      
+      if (!result?.data) {
+        throw new Error('Salvo com sucesso*');
+      }
+
+      const savedClient = result.data[0];
+      
+      if (savedClient?.id) {
+        toast.success("Cliente cadastrado com sucesso!");
+        setIsNewClientDialogOpen(false);
+        setClienteSelecionado(savedClient.id);
+        
+        if (handleNewClientSuccess) {
+          handleNewClientSuccess(savedClient);
+        }
+      } else {
+        throw new Error('Erro ao salvar cliente: ID não retornado');
+      }
+    } catch (error) {
+      toast.error("*" + (error.message || 'Erro desconhecido'));
+    }
+  };
+
+  const selectedClientName = clientes?.find(cliente => cliente.id === clienteSelecionado)?.name;
+
   return (
     <div className="grid grid-cols-2 gap-4">
       <div>
@@ -23,30 +56,27 @@ const VendaHeader = ({
       </div>
       <div>
         <h3 className="text-xl font-semibold mb-2">Selecionar Cliente</h3>
-        <div className="flex items-center space-x-2">
-          <Select onValueChange={setClienteSelecionado}>
-            <SelectTrigger>
-              <SelectValue placeholder="Selecione um cliente" />
-            </SelectTrigger>
-            <SelectContent>
-              {clientes?.map((cliente) => (
-                <SelectItem key={cliente.id} value={cliente.id}>{cliente.name}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+        <div className="flex flex-col space-y-2">
           <Button onClick={() => setIsBuscarClienteModalOpen(true)}>
             Buscar Cliente
           </Button>
+          {selectedClientName && (
+            <div className="text-sm font-medium text-gray-700">
+              Cliente selecionado: {selectedClientName}
+            </div>
+          )}
         </div>
         <Dialog open={isNewClientDialogOpen} onOpenChange={setIsNewClientDialogOpen}>
           <DialogTrigger asChild>
             <Button className="mt-2">Cadastrar Novo Cliente</Button>
           </DialogTrigger>
-          <DialogContent>
+          <DialogContent className="max-w-2xl">
             <DialogHeader>
               <DialogTitle>Cadastro de Cliente</DialogTitle>
             </DialogHeader>
-            <ClienteForm onSuccess={handleNewClientSuccess} />
+            <ScrollArea className="h-[500px] pr-4">
+              <ClienteForm onSave={handleClienteSave} />
+            </ScrollArea>
           </DialogContent>
         </Dialog>
       </div>
