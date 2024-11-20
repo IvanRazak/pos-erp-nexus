@@ -11,7 +11,11 @@ import { useCustomerTypes } from '../integrations/supabase';
 
 const ClienteForm = ({ onSave, clienteInicial }) => {
   const { register, handleSubmit, setValue, watch, reset, formState: { errors } } = useForm({
-    defaultValues: clienteInicial || {}
+    defaultValues: {
+      ...clienteInicial,
+      bloqueado: clienteInicial?.bloqueado || false,
+      customer_type_id: clienteInicial?.customer_type_id || ''
+    }
   });
   const { data: customerTypes, isLoading: isLoadingCustomerTypes } = useCustomerTypes();
 
@@ -37,6 +41,14 @@ const ClienteForm = ({ onSave, clienteInicial }) => {
   };
 
   const onSubmit = (data) => {
+    // Ensure bloqueado is a boolean
+    data.bloqueado = !!data.bloqueado;
+    
+    // Ensure customer_type_id is properly set
+    if (data.customer_type_id) {
+      data.customer_type_id = String(data.customer_type_id);
+    }
+
     if (onSave) {
       onSave(data);
       reset();
@@ -129,13 +141,17 @@ const ClienteForm = ({ onSave, clienteInicial }) => {
       <Textarea {...register("observacoes")} placeholder="Observações" />
 
       <div className="flex items-center space-x-2">
-        <Switch {...register("bloqueado")} id="bloqueado" />
+        <Switch
+          id="bloqueado"
+          checked={watch('bloqueado')}
+          onCheckedChange={(checked) => setValue('bloqueado', checked)}
+        />
         <label htmlFor="bloqueado">Bloquear cliente</label>
       </div>
 
       <Select 
-        onValueChange={(value) => setValue("customer_type_id", value)} 
-        defaultValue={watch("customer_type_id")}
+        value={watch("customer_type_id")}
+        onValueChange={(value) => setValue("customer_type_id", value)}
       >
         <SelectTrigger>
           <SelectValue placeholder="Tipo de Cliente" />
