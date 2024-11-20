@@ -22,13 +22,8 @@ const VendaHeader = ({
     try {
       const result = await addCustomer.mutateAsync(clienteData);
       
-      if (!result?.data) {
-        throw new Error('Erro ao salvar cliente: Dados inválidos');
-      }
-
-      const savedClient = result.data[0];
-      
-      if (savedClient?.id) {
+      if (result?.data?.[0]?.id) {
+        const savedClient = result.data[0];
         toast.success("Cliente cadastrado com sucesso!");
         setIsNewClientDialogOpen(false);
         setClienteSelecionado(savedClient.id);
@@ -37,7 +32,7 @@ const VendaHeader = ({
           handleNewClientSuccess(savedClient);
         }
       } else {
-        throw new Error('Erro ao salvar cliente: ID não retornado');
+        throw new Error('Não foi possível salvar o cliente');
       }
     } catch (error) {
       toast.error("Erro ao cadastrar cliente: " + (error.message || 'Erro desconhecido'));
