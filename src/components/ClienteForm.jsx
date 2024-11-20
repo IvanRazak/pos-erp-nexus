@@ -12,7 +12,7 @@ import ClienteAddressInfo from './cliente/ClienteAddressInfo';
 import ClienteDocumentInfo from './cliente/ClienteDocumentInfo';
 
 const ClienteForm = ({ onSave, clienteInicial }) => {
-  const { register, handleSubmit, setValue, watch, reset, formState: { errors } } = useForm({
+  const { register, handleSubmit, setValue, watch, formState: { errors } } = useForm({
     defaultValues: {
       ...clienteInicial,
       bloqueado: clienteInicial?.bloqueado || false,
@@ -51,6 +51,7 @@ const ClienteForm = ({ onSave, clienteInicial }) => {
       if (onSave) {
         try {
           await onSave(data);
+          toast.success(clienteInicial ? "Cliente atualizado com sucesso!" : "Cliente cadastrado com sucesso!");
         } catch (error) {
           if (error.message === 'Whatsapp já cadastrado') {
             toast.error("Este número de WhatsApp já está cadastrado para outro cliente");
@@ -61,7 +62,7 @@ const ClienteForm = ({ onSave, clienteInicial }) => {
       }
     } catch (error) {
       console.error('Error in form submission:', error);
-      toast.error("Erro ao salvar cliente");
+      toast.error("Erro ao salvar cliente: " + error.message);
     }
   };
 
