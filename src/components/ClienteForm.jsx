@@ -8,6 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { validateCPF, validateCNPJ, validatePhone } from '../utils/validations';
 import { fetchAddressByCEP } from '../utils/api';
 import { useCustomerTypes } from '../integrations/supabase';
+import InputMask from 'react-input-mask';
 
 const ClienteForm = ({ onSave, clienteInicial }) => {
   const { register, handleSubmit, setValue, watch, reset, formState: { errors } } = useForm({
@@ -85,22 +86,38 @@ const ClienteForm = ({ onSave, clienteInicial }) => {
       />
       {errors.email && <span className="text-red-500">{errors.email.message}</span>}
 
-      <Input
+      <InputMask
+        mask="(99)99999-9999"
         {...register("phone", { 
           required: "Telefone é obrigatório",
           validate: validatePhone
         })}
-        placeholder="Telefone"
-      />
+      >
+        {(inputProps) => (
+          <Input
+            {...inputProps}
+            placeholder="Telefone"
+            type="tel"
+          />
+        )}
+      </InputMask>
       {errors.phone && <span className="text-red-500">{errors.phone.message}</span>}
 
-      <Input
+      <InputMask
+        mask="(99)99999-9999"
         {...register("whatsapp", { 
           required: "WhatsApp é obrigatório",
           validate: validatePhone
         })}
-        placeholder="WhatsApp"
-      />
+      >
+        {(inputProps) => (
+          <Input
+            {...inputProps}
+            placeholder="WhatsApp"
+            type="tel"
+          />
+        )}
+      </InputMask>
       {errors.whatsapp && <span className="text-red-500">{errors.whatsapp.message}</span>}
 
       <Input
@@ -128,22 +145,36 @@ const ClienteForm = ({ onSave, clienteInicial }) => {
       </Select>
 
       {watch("documento") === "cpf" && (
-        <Input
+        <InputMask
+          mask="999.999.999-99"
           {...register("cpf", { 
             required: "CPF é obrigatório",
             validate: validateCPF
           })}
-          placeholder="CPF"
-        />
+        >
+          {(inputProps) => (
+            <Input
+              {...inputProps}
+              placeholder="CPF"
+            />
+          )}
+        </InputMask>
       )}
       {watch("documento") === "cnpj" && (
-        <Input
+        <InputMask
+          mask="99.999.999/9999-99"
           {...register("cnpj", { 
             required: "CNPJ é obrigatório",
             validate: validateCNPJ
           })}
-          placeholder="CNPJ"
-        />
+        >
+          {(inputProps) => (
+            <Input
+              {...inputProps}
+              placeholder="CNPJ"
+            />
+          )}
+        </InputMask>
       )}
       {(errors.cpf || errors.cnpj) && <span className="text-red-500">{errors.cpf?.message || errors.cnpj?.message}</span>}
 
