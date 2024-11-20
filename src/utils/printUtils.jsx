@@ -128,18 +128,21 @@ export const generatePrintContent = (pedido, itensPedido) => {
 
   const orderDate = pedido.created_at ? format(parseISO(pedido.created_at), 'dd/MM/yyyy HH:mm') : 'N/A';
 
+  // Convert order_number to string to ensure it's not undefined
+  const orderNumber = String(pedido.order_number || '');
+
   return template
-    .replace('{styles}', customStyles)
-    .replace('{order_number}', pedido.order_number)
-    .replace('{order_date}', orderDate)
-    .replace('{created_by}', pedido.created_by || 'N/A')
-    .replace('{customer_name}', pedido.customer?.name || 'N/A')
-    .replace('{delivery_date}', pedido.delivery_date ? format(parseISO(pedido.delivery_date), 'dd/MM/yyyy') : 'N/A')
-    .replace('{items}', itemsHtml)
-    .replace('{discount}', discountHtml)
-    .replace('{additional_value}', additionalValueHtml)
-    .replace('{total_amount}', pedido.total_amount?.toFixed(2) || '0.00')
-    .replace('{paid_amount}', pedido.paid_amount?.toFixed(2) || '0.00')
-    .replace('{payment_option}', pedido.payment_option ? `(${pedido.payment_option})` : '')
-    .replace('{remaining_balance}', pedido.remaining_balance?.toFixed(2) || '0.00');
+    .replace(/{styles}/g, customStyles)
+    .replace(/{order_number}/g, orderNumber)
+    .replace(/{order_date}/g, orderDate)
+    .replace(/{created_by}/g, pedido.created_by || 'N/A')
+    .replace(/{customer_name}/g, pedido.customer?.name || 'N/A')
+    .replace(/{delivery_date}/g, pedido.delivery_date ? format(parseISO(pedido.delivery_date), 'dd/MM/yyyy') : 'N/A')
+    .replace(/{items}/g, itemsHtml)
+    .replace(/{discount}/g, discountHtml)
+    .replace(/{additional_value}/g, additionalValueHtml)
+    .replace(/{total_amount}/g, pedido.total_amount?.toFixed(2) || '0.00')
+    .replace(/{paid_amount}/g, pedido.paid_amount?.toFixed(2) || '0.00')
+    .replace(/{payment_option}/g, pedido.payment_option ? `(${pedido.payment_option})` : '')
+    .replace(/{remaining_balance}/g, pedido.remaining_balance?.toFixed(2) || '0.00');
 };
