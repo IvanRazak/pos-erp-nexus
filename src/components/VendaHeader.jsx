@@ -20,17 +20,25 @@ const VendaHeader = ({
 
   const handleClienteSave = async (clienteData) => {
     try {
-      const { data } = await addCustomer.mutateAsync(clienteData);
+      const result = await addCustomer.mutateAsync(clienteData);
+      
+      if (!result || !result.data || result.data.length === 0) {
+        throw new Error('Erro ao salvar cliente: Nenhum dado retornado');
+      }
+
+      const savedClient = result.data[0];
       toast.success("Cliente cadastrado com sucesso!");
       setIsNewClientDialogOpen(false);
-      if (data && data[0]?.id) {
-        setClienteSelecionado(data[0].id);
+      
+      if (savedClient?.id) {
+        setClienteSelecionado(savedClient.id);
       }
+      
       if (handleNewClientSuccess) {
-        handleNewClientSuccess(data[0]);
+        handleNewClientSuccess(savedClient);
       }
     } catch (error) {
-      toast.error("Erro ao cadastrar cliente: " + error.message);
+      toast.error("Erro ao cadastrar cliente: " + (error.message || 'Erro desconhecido'));
     }
   };
 
