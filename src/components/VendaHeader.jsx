@@ -4,7 +4,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import ClienteForm from './ClienteForm';
-import { toast } from "sonner";
+import { toast } from "@/components/ui/use-toast";
 
 const VendaHeader = ({
   setIsBuscarProdutoModalOpen,
@@ -18,10 +18,17 @@ const VendaHeader = ({
   const handleClienteSave = async (data) => {
     try {
       await handleNewClientSuccess(data);
-      toast.success("Cliente cadastrado com sucesso!");
+      toast({
+        title: "Cliente cadastrado com sucesso!",
+        variant: "default",
+      });
       setIsNewClientDialogOpen(false);
     } catch (error) {
-      toast.error(`Erro ao cadastrar cliente: ${error.message}`);
+      toast({
+        title: "Erro ao cadastrar cliente",
+        description: error.message,
+        variant: "destructive",
+      });
     }
   };
 
