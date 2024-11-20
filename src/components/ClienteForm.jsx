@@ -41,17 +41,26 @@ const ClienteForm = ({ onSave, clienteInicial }) => {
   };
 
   const onSubmit = (data) => {
-    // Ensure bloqueado is a boolean
-    data.bloqueado = !!data.bloqueado;
-    
-    // Ensure customer_type_id is properly set
-    if (data.customer_type_id) {
-      data.customer_type_id = String(data.customer_type_id);
-    }
+    try {
+      // Ensure bloqueado is a boolean
+      data.bloqueado = !!data.bloqueado;
+      
+      // Validate customer_type_id
+      if (!data.customer_type_id) {
+        throw new Error('Tipo de cliente é obrigatório');
+      }
 
-    if (onSave) {
-      onSave(data);
-      reset();
+      // Ensure customer_type_id is properly set
+      data.customer_type_id = String(data.customer_type_id);
+
+      if (onSave) {
+        onSave(data);
+        // Only reset if save is successful
+        reset();
+      }
+    } catch (error) {
+      console.error('Error in form submission:', error);
+      // Don't reset the form if there's an error
     }
   };
 
@@ -153,7 +162,7 @@ const ClienteForm = ({ onSave, clienteInicial }) => {
         value={watch("customer_type_id")}
         onValueChange={(value) => setValue("customer_type_id", value)}
       >
-        <SelectTrigger>
+        <SelectTrigger className={errors.customer_type_id ? "border-red-500" : ""}>
           <SelectValue placeholder="Tipo de Cliente" />
         </SelectTrigger>
         <SelectContent>
@@ -166,6 +175,7 @@ const ClienteForm = ({ onSave, clienteInicial }) => {
           )}
         </SelectContent>
       </Select>
+      {errors.customer_type_id && <span className="text-red-500">Tipo de cliente é obrigatório</span>}
 
       <Button type="submit">{clienteInicial ? 'Atualizar Cliente' : 'Salvar Cliente'}</Button>
     </form>
