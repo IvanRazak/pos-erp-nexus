@@ -23,7 +23,7 @@ const VendaHeader = ({
       const result = await addCustomer.mutateAsync(clienteData);
       
       if (!result?.data) {
-        throw new Error('Salvo com sucesso');
+        throw new Error('Salvo com sucesso*');
       }
 
       const savedClient = result.data[0];
@@ -40,7 +40,7 @@ const VendaHeader = ({
         throw new Error('Erro ao salvar cliente: ID não retornado');
       }
     } catch (error) {
-      toast.error("Erro ao cadastrar cliente: " + (error.message || 'Erro desconhecido'));
+      toast.error("*" + (error.message || 'Erro desconhecido'));
     }
   };
 
