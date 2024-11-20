@@ -16,34 +16,22 @@ const VendaHeader = ({
   clientes
 }) => {
   const handleClienteSave = async (data) => {
-    if (!handleNewClientSuccess) {
-      toast({
-        title: "Erro ao cadastrar cliente",
-        description: "Função de salvar cliente não foi fornecida",
-        variant: "destructive",
-      });
-      return;
-    }
-
     try {
       const savedClient = await handleNewClientSuccess(data);
-      
-      if (savedClient && savedClient.id) {
-        setClienteSelecionado(savedClient.id);
-        setIsNewClientDialogOpen(false);
+      if (savedClient) {
         toast({
           title: "Cliente cadastrado com sucesso!",
-          description: "O cliente foi salvo e selecionado.",
           variant: "default",
         });
-      } else {
-        throw new Error("Resposta inválida do servidor");
+        setIsNewClientDialogOpen(false);
+        if (savedClient.id) {
+          setClienteSelecionado(savedClient.id);
+        }
       }
     } catch (error) {
-      console.error("Erro ao salvar cliente:", error);
       toast({
         title: "Erro ao cadastrar cliente",
-        description: error.message || "Ocorreu um erro ao tentar salvar o cliente",
+        description: error.message,
         variant: "destructive",
       });
     }
