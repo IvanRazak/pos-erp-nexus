@@ -42,7 +42,7 @@ export const useAddCustomer = () => {
       if (cleanWhatsapp) {
         const exists = await checkWhatsAppExists(cleanWhatsapp);
         if (exists) {
-          throw new Error('whatsapp_exists');
+          throw new Error('Whatsapp já cadastrado');
         }
       }
 
@@ -64,7 +64,7 @@ export const useUpdateCustomer = () => {
       if (cleanWhatsapp) {
         const exists = await checkWhatsAppExists(cleanWhatsapp, id);
         if (exists) {
-          throw new Error('whatsapp_exists');
+          throw new Error('Whatsapp já cadastrado');
         }
       }
 

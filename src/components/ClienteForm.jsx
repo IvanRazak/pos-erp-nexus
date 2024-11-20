@@ -51,9 +51,11 @@ const ClienteForm = ({ onSave, clienteInicial }) => {
       if (onSave) {
         try {
           await onSave(data);
-          reset();
+          if (!data.id) { // Only reset if it's a new customer
+            reset();
+          }
         } catch (error) {
-          if (error.message === 'whatsapp_exists') {
+          if (error.message === 'Whatsapp já cadastrado') {
             toast.error("Este número de WhatsApp já está cadastrado para outro cliente");
             return;
           }
