@@ -1,21 +1,23 @@
 import React, { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
-import { validateCPF, validateCNPJ, validatePhone } from '../utils/validations';
-import { fetchAddressByCEP } from '../utils/api';
+import { toast } from "sonner";
 import { useCustomerTypes } from '../integrations/supabase';
-import InputMask from 'react-input-mask';
+import ClienteContactInfo from './cliente/ClienteContactInfo';
+import ClienteAddressInfo from './cliente/ClienteAddressInfo';
+import ClienteDocumentInfo from './cliente/ClienteDocumentInfo';
 
 const ClienteForm = ({ onSave, clienteInicial }) => {
   const { register, handleSubmit, setValue, watch, reset, formState: { errors } } = useForm({
     defaultValues: {
       ...clienteInicial,
       bloqueado: clienteInicial?.bloqueado || false,
-      customer_type_id: clienteInicial?.customer_type_id || ''
+      customer_type_id: clienteInicial?.customer_type_id || '',
+      documento: 'cpf'
     }
   });
   const { data: customerTypes, isLoading: isLoadingCustomerTypes } = useCustomerTypes();
@@ -28,40 +30,42 @@ const ClienteForm = ({ onSave, clienteInicial }) => {
     }
   }, [clienteInicial, setValue]);
 
-  const handleCEPBlur = async (e) => {
-    const cep = e.target.value.replace(/\D/g, '');
-    if (cep.length === 8) {
-      const address = await fetchAddressByCEP(cep);
-      if (address) {
-        setValue('endereco', address.logradouro);
-        setValue('bairro', address.bairro);
-        setValue('cidade', address.localidade);
-        setValue('estado', address.uf);
-      }
-    }
-  };
-
-  const onSubmit = (data) => {
+  const onSubmit = async (data) => {
     try {
-      // Ensure bloqueado is a boolean
-      data.bloqueado = !!data.bloqueado;
-      
-      // Validate customer_type_id
-      if (!data.customer_type_id) {
-        throw new Error('Tipo de cliente é obrigatório');
-      }
+      // Remove masks before saving
+      if (data.phone) data.phone = data.phone.replace(/\D/g, '');
+      if (data.whatsapp) data.whatsapp = data.whatsapp.replace(/\D/g, '');
+      if (data.cpf) data.cpf = data.cpf.replace(/\D/g, '');
+      if (data.cnpj) data.cnpj = data.cnpj.replace(/\D/g, '');
+      if (data.cep) data.cep = data.cep.replace(/\D/g, '');
 
       // Ensure customer_type_id is properly set
+      if (!data.customer_type_id) {
+        toast.error("Tipo de cliente é obrigatório");
+        return;
+      }
+
+      data.bloqueado = !!data.bloqueado;
       data.customer_type_id = String(data.customer_type_id);
 
       if (onSave) {
-        onSave(data);
-        // Only reset if save is successful
-        reset();
+        try {
+          await onSave(data);
+          reset();
+        } catch (error) {
+          // Verifica especificamente o erro de WhatsApp duplicado
+          if (error.message?.includes('unique_whatsapp') || 
+              error.code === '23505' || // Código PostgreSQL para violação de unique constraint
+              error.message?.includes('duplicate key value violates unique constraint')) {
+            toast.error("Este número de WhatsApp já está cadastrado para outro cliente");
+            return;
+          }
+          throw error;
+        }
       }
     } catch (error) {
       console.error('Error in form submission:', error);
-      // Don't reset the form if there's an error
+      toast.error("Erro ao salvar cliente");
     }
   };
 
@@ -73,121 +77,9 @@ const ClienteForm = ({ onSave, clienteInicial }) => {
       />
       {errors.name && <span className="text-red-500">{errors.name.message}</span>}
 
-      <Input
-        {...register("email", { 
-          required: "E-mail é obrigatório",
-          pattern: {
-            value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-            message: "E-mail inválido"
-          }
-        })}
-        placeholder="E-mail"
-        type="email"
-      />
-      {errors.email && <span className="text-red-500">{errors.email.message}</span>}
-
-      <InputMask
-        mask="(99)99999-9999"
-        {...register("phone", { 
-          required: "Telefone é obrigatório",
-          validate: validatePhone
-        })}
-      >
-        {(inputProps) => (
-          <Input
-            {...inputProps}
-            placeholder="Telefone"
-            type="tel"
-          />
-        )}
-      </InputMask>
-      {errors.phone && <span className="text-red-500">{errors.phone.message}</span>}
-
-      <InputMask
-        mask="(99)99999-9999"
-        {...register("whatsapp", { 
-          required: "WhatsApp é obrigatório",
-          validate: validatePhone
-        })}
-      >
-        {(inputProps) => (
-          <Input
-            {...inputProps}
-            placeholder="WhatsApp"
-            type="tel"
-          />
-        )}
-      </InputMask>
-      {errors.whatsapp && <span className="text-red-500">{errors.whatsapp.message}</span>}
-
-      <Input
-        {...register("cep", { required: "CEP é obrigatório" })}
-        placeholder="CEP"
-        onBlur={handleCEPBlur}
-      />
-      {errors.cep && <span className="text-red-500">{errors.cep.message}</span>}
-
-      <Input {...register("endereco")} placeholder="Endereço" />
-      <Input {...register("numero")} placeholder="Número" />
-      <Input {...register("complemento")} placeholder="Complemento" />
-      <Input {...register("bairro")} placeholder="Bairro" />
-      <Input {...register("cidade")} placeholder="Cidade" />
-      <Input {...register("estado")} placeholder="Estado" />
-
-      <Select onValueChange={(value) => setValue("documento", value)} defaultValue={watch("documento")}>
-        <SelectTrigger>
-          <SelectValue placeholder="Tipo de Documento" />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="cpf">CPF</SelectItem>
-          <SelectItem value="cnpj">CNPJ</SelectItem>
-        </SelectContent>
-      </Select>
-
-      {watch("documento") === "cpf" && (
-        <InputMask
-          mask="999.999.999-99"
-          {...register("cpf", { 
-            required: "CPF é obrigatório",
-            validate: validateCPF
-          })}
-        >
-          {(inputProps) => (
-            <Input
-              {...inputProps}
-              placeholder="CPF"
-            />
-          )}
-        </InputMask>
-      )}
-      {watch("documento") === "cnpj" && (
-        <InputMask
-          mask="99.999.999/9999-99"
-          {...register("cnpj", { 
-            required: "CNPJ é obrigatório",
-            validate: validateCNPJ
-          })}
-        >
-          {(inputProps) => (
-            <Input
-              {...inputProps}
-              placeholder="CNPJ"
-            />
-          )}
-        </InputMask>
-      )}
-      {(errors.cpf || errors.cnpj) && <span className="text-red-500">{errors.cpf?.message || errors.cnpj?.message}</span>}
-
-      <Textarea {...register("observacoes")} placeholder="Observações" />
-
-      <div className="flex items-center space-x-2">
-        <Switch
-          id="bloqueado"
-          checked={watch('bloqueado')}
-          onCheckedChange={(checked) => setValue('bloqueado', checked)}
-        />
-        <label htmlFor="bloqueado">Bloquear cliente</label>
-      </div>
+      <ClienteContactInfo register={register} errors={errors} watch={watch} />
+      <ClienteAddressInfo register={register} setValue={setValue} errors={errors} />
+      <ClienteDocumentInfo register={register} setValue={setValue} watch={watch} errors={errors} />
 
       <Select 
         value={watch("customer_type_id")}
@@ -208,7 +100,20 @@ const ClienteForm = ({ onSave, clienteInicial }) => {
       </Select>
       {errors.customer_type_id && <span className="text-red-500">Tipo de cliente é obrigatório</span>}
 
-      <Button type="submit">{clienteInicial ? 'Atualizar Cliente' : 'Salvar Cliente'}</Button>
+      <Textarea {...register("observacoes")} placeholder="Observações" />
+
+      <div className="flex items-center space-x-2">
+        <Switch
+          id="bloqueado"
+          checked={watch('bloqueado')}
+          onCheckedChange={(checked) => setValue('bloqueado', checked)}
+        />
+        <label htmlFor="bloqueado">Bloquear cliente</label>
+      </div>
+
+      <Button type="submit">
+        {clienteInicial ? 'Atualizar Cliente' : 'Salvar Cliente'}
+      </Button>
     </form>
   );
 };
