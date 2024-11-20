@@ -2,7 +2,9 @@ import React from 'react';
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import ClienteForm from './ClienteForm';
+import { toast } from "sonner";
 
 const VendaHeader = ({
   setIsBuscarProdutoModalOpen,
@@ -13,6 +15,16 @@ const VendaHeader = ({
   handleNewClientSuccess,
   clientes
 }) => {
+  const handleClienteSave = async (data) => {
+    try {
+      await handleNewClientSuccess(data);
+      toast.success("Cliente cadastrado com sucesso!");
+      setIsNewClientDialogOpen(false);
+    } catch (error) {
+      toast.error(`Erro ao cadastrar cliente: ${error.message}`);
+    }
+  };
+
   return (
     <div className="grid grid-cols-2 gap-4">
       <div>
@@ -42,11 +54,13 @@ const VendaHeader = ({
           <DialogTrigger asChild>
             <Button className="mt-2">Cadastrar Novo Cliente</Button>
           </DialogTrigger>
-          <DialogContent>
+          <DialogContent className="max-w-2xl">
             <DialogHeader>
               <DialogTitle>Cadastro de Cliente</DialogTitle>
             </DialogHeader>
-            <ClienteForm onSuccess={handleNewClientSuccess} />
+            <ScrollArea className="h-[500px] pr-4">
+              <ClienteForm onSuccess={handleClienteSave} />
+            </ScrollArea>
           </DialogContent>
         </Dialog>
       </div>
