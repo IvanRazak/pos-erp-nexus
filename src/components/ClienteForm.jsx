@@ -36,9 +36,11 @@ const ClienteForm = ({ onSave, clienteInicial }) => {
     }
   };
 
-  const onSubmit = async (data) => {
-    await onSave(data);
-    reset();
+  const onSubmit = (data) => {
+    if (onSave) {
+      onSave(data);
+      reset();
+    }
   };
 
   return (
@@ -131,7 +133,10 @@ const ClienteForm = ({ onSave, clienteInicial }) => {
         <label htmlFor="bloqueado">Bloquear cliente</label>
       </div>
 
-      <Select {...register("customer_type_id")} defaultValue={watch("customer_type_id")}>
+      <Select 
+        onValueChange={(value) => setValue("customer_type_id", value)} 
+        defaultValue={watch("customer_type_id")}
+      >
         <SelectTrigger>
           <SelectValue placeholder="Tipo de Cliente" />
         </SelectTrigger>
