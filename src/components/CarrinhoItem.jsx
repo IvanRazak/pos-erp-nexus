@@ -49,26 +49,39 @@ const CarrinhoItem = ({
   if (editingQuantity) {
     const newQuantity = parseInt(tempQuantity, 10);
 
-    // Validação: Certifique-se de que a quantidade seja válida
+    // Valida se o valor é válido
     if (isNaN(newQuantity) || newQuantity <= 0) {
       alert("Quantidade inválida. Por favor, insira um valor maior que zero.");
       return;
     }
 
-    // Se a nova quantidade for diferente da atual, atualize
+    // Atualiza o estado local para refletir imediatamente na interface
+    setTempQuantity(newQuantity);
+
     if (newQuantity !== item.quantidade) {
       try {
-        await onQuantityChange(item, newQuantity); // Chama o callback de atualização
-        alert(`Quantidade atualizada para ${newQuantity}`);
+        // Se for 'sheets', busca o novo preço
+        if (item.unit_type === 'sheets') {
+          const newSheetPrice = await getSheetPrice(item.id, newQuantity);
+          if (newSheetPrice !== null && newSheetPrice !== undefined) {
+            // Atualiza o preço no estado global via callback
+            await onUnitPriceChange(item, newSheetPrice);
+          } else {
+            console.error("Erro ao obter o preço para a nova quantidade de folhas.");
+            alert("Erro ao calcular o preço por folha. Tente novamente.");
+            return;
+          }
+        }
+
+        // Atualiza a quantidade no estado global via callback
+        await onQuantityChange(item, newQuantity);
       } catch (error) {
         console.error("Erro ao atualizar a quantidade:", error);
         alert("Ocorreu um erro ao tentar atualizar a quantidade. Tente novamente.");
       }
     }
   }
-
-  // Alterna o estado de edição
-  setEditingQuantity(!editingQuantity);
+  setEditingQuantity(!editingQuantity); // Finaliza o modo de edição
 };
 
 
