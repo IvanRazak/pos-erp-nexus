@@ -80,7 +80,7 @@ const CarrinhoItem = ({ item, onDelete, onEdit, onDescriptionChange, onUnitPrice
           </span>
         )}
       </TableCell>
-      <TableCell>{item.largura && item.altura ? `${item.largura}m x ${item.altura}m` : 'N/A'}</TableCell>
+      <TableCell>{item.largura && item.altura ? `${item.largura}m (L) x ${item.altura}m (A)` : 'N/A'}</TableCell>
       <TableCell>{item.m2 ? `${item.m2.toFixed(2)}m²` : 'N/A'}</TableCell>
       <TableCell>
         {item.unit_type === 'square_meter' ? (
