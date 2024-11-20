@@ -2,25 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { TableCell, TableRow } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
-import { getExtraOptionPrice } from '../utils/vendaUtils';
+import { getSheetPrice } from '../utils/productUtils';
 
 const CarrinhoItem = ({ item, onDelete, onEdit, onDescriptionChange, onUnitPriceChange, onQuantityChange }) => {
   const [editingUnitPrice, setEditingUnitPrice] = useState(false);
   const [tempUnitPrice, setTempUnitPrice] = useState(item.unitPrice);
   const [editingQuantity, setEditingQuantity] = useState(false);
   const [tempQuantity, setTempQuantity] = useState(item.quantidade);
-  const [extrasPrices, setExtrasPrices] = useState({});
-
-  useEffect(() => {
-    const updateExtrasPrices = async () => {
-      const prices = {};
-      for (const extra of item.extras) {
-        prices[extra.id] = await getExtraOptionPrice(extra, item.quantidade);
-      }
-      setExtrasPrices(prices);
-    };
-    updateExtrasPrices();
-  }, [item.quantidade, item.extras]);
 
   const handleUnitPriceEdit = () => {
     if (editingUnitPrice) {
@@ -41,12 +29,38 @@ const CarrinhoItem = ({ item, onDelete, onEdit, onDescriptionChange, onUnitPrice
 
   const calculateItemTotal = () => {
     const basePrice = item.unitPrice * item.quantidade;
-    const extrasTotal = item.extras.reduce((sum, extra) => {
-      const extraPrice = extrasPrices[extra.id] || extra.price || 0;
-      return sum + extraPrice;
-    }, 0);
+    const extrasTotal = item.extras?.reduce((sum, extra) => sum + (extra.totalPrice || 0), 0) || 0;
     return basePrice + extrasTotal * item.quantidade;
   };
+
+  const renderExtras = () => {
+    if (!item.extras || item.extras.length === 0) return 'Nenhuma';
+
+    return item.extras.map((extra, index) => (
+      <div key={index} className="text-sm">
+        {extra.name}: 
+        {extra.type === 'select' 
+          ? ` ${extra.selectedOptionName} - R$ ${extra.totalPrice?.toFixed(2)}`
+          : extra.type === 'number'
+            ? ` ${extra.value} x R$ ${extra.price?.toFixed(2)} = R$ ${extra.totalPrice?.toFixed(2)}`
+            : ` R$ ${extra.totalPrice?.toFixed(2)}`
+        }
+      </div>
+    ));
+  };
+
+  useEffect(() => {
+    const updateSheetPrice = async () => {
+      if (item.unit_type === 'sheets') {
+        const newPrice = await getSheetPrice(item.id, item.quantidade);
+        if (newPrice && newPrice !== item.unitPrice) {
+          onUnitPriceChange(item, newPrice);
+        }
+      }
+    };
+
+    updateSheetPrice();
+  }, [item.quantidade]);
 
   return (
     <TableRow>
@@ -69,33 +83,25 @@ const CarrinhoItem = ({ item, onDelete, onEdit, onDescriptionChange, onUnitPrice
       <TableCell>{item.largura && item.altura ? `${item.largura}m x ${item.altura}m` : 'N/A'}</TableCell>
       <TableCell>{item.m2 ? `${item.m2.toFixed(2)}m²` : 'N/A'}</TableCell>
       <TableCell>
-        {editingUnitPrice ? (
-          <Input
-            type="number"
-            value={tempUnitPrice}
-            onChange={(e) => setTempUnitPrice(e.target.value)}
-            onBlur={handleUnitPriceEdit}
-            className="w-24"
-          />
+        {item.unit_type === 'square_meter' ? (
+          editingUnitPrice ? (
+            <Input
+              type="number"
+              value={tempUnitPrice}
+              onChange={(e) => setTempUnitPrice(e.target.value)}
+              onBlur={handleUnitPriceEdit}
+              className="w-24"
+            />
+          ) : (
+            <span onClick={handleUnitPriceEdit} className="cursor-pointer">
+              R$ {item.unitPrice.toFixed(2)}
+            </span>
+          )
         ) : (
-          <span onClick={handleUnitPriceEdit} className="cursor-pointer">
-            R$ {item.unitPrice.toFixed(2)}
-          </span>
+          `R$ ${item.unitPrice.toFixed(2)}`
         )}
       </TableCell>
-      <TableCell>
-        {item.extras.map((extra, i) => (
-          <div key={i}>
-            {extra.name}: 
-            {extra.type === 'select' 
-              ? `${extra.selectedOptionName} - R$ ${(extrasPrices[extra.id] || extra.price || 0).toFixed(2)}`
-              : extra.type === 'number' 
-                ? `${extra.value} x R$ ${(extrasPrices[extra.id] || extra.price || 0).toFixed(2)}`
-                : `R$ ${(extrasPrices[extra.id] || extra.price || 0).toFixed(2)}`
-            }
-          </div>
-        ))}
-      </TableCell>
+      <TableCell>{renderExtras()}</TableCell>
       <TableCell>{item.arteOption || 'N/A'}</TableCell>
       <TableCell>R$ {calculateItemTotal().toFixed(2)}</TableCell>
       <TableCell>

@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { useSelectionOptions } from '../integrations/supabase/hooks/extra_options';
+import { getExtraOptionPrice } from '../utils/extraOptionUtils';
 
 const ProdutoExtraOptionsModal = ({ produto, opcoesExtras, onClose, onConfirm }) => {
   const [extrasEscolhidas, setExtrasEscolhidas] = useState([]);
@@ -14,19 +15,51 @@ const ProdutoExtraOptionsModal = ({ produto, opcoesExtras, onClose, onConfirm })
     produto.extra_options?.includes(opcao.id)
   );
 
-  const handleExtraChange = (extra, value) => {
+  const handleExtraChange = async (extra, value) => {
     setExtrasEscolhidas(prev => {
       const existingIndex = prev.findIndex(item => item.id === extra.id);
-      if (existingIndex !== -1) {
-        const updatedExtras = [...prev];
-        if (value === null || value === undefined) {
-          updatedExtras.splice(existingIndex, 1);
-        } else {
-          updatedExtras[existingIndex] = calculateExtraPrice(extra, value);
+      
+      const processExtra = async () => {
+        let basePrice = extra.price ?? 0;
+        
+        // Check for quantity-based pricing if applicable
+        if (extra.use_quantity_pricing && produto.quantidade > 1) {
+          const quantityPrice = await getExtraOptionPrice(extra.id, produto.quantidade);
+          if (quantityPrice !== null) {
+            basePrice = quantityPrice;
+          }
         }
-        return updatedExtras;
+        
+        let totalPrice = basePrice;
+        let selectedOptionName = '';
+        
+        if (extra.type === 'select') {
+          const selectedOption = selectionOptions?.find(so => so.id === value);
+          totalPrice += selectedOption?.value ?? 0;
+          selectedOptionName = selectedOption?.name ?? '';
+        } else if (extra.type === 'number') {
+          totalPrice *= parseFloat(value);
+        }
+        
+        return { ...extra, value, totalPrice, selectedOptionName };
+      };
+
+      if (existingIndex !== -1) {
+        if (value === null || value === undefined) {
+          const updatedExtras = [...prev];
+          updatedExtras.splice(existingIndex, 1);
+          return updatedExtras;
+        } else {
+          const updatedExtras = [...prev];
+          processExtra().then(processedExtra => {
+            updatedExtras[existingIndex] = processedExtra;
+          });
+          return updatedExtras;
+        }
       } else if (value !== null && value !== undefined) {
-        return [...prev, calculateExtraPrice(extra, value)];
+        processExtra().then(processedExtra => {
+          return [...prev, processedExtra];
+        });
       }
       return prev;
     });

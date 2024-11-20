@@ -1,23 +1,4 @@
-import { supabase } from '../lib/supabase';
-
-export const getExtraOptionPrice = async (extraOption, quantity) => {
-  if (extraOption.use_quantity_pricing) {
-    const { data: quantityPrices } = await supabase
-      .from('extra_option_quantity_prices')
-      .select('*')
-      .eq('extra_option_id', extraOption.id)
-      .order('quantity', { ascending: true });
-
-    if (quantityPrices && quantityPrices.length > 0) {
-      for (let i = quantityPrices.length - 1; i >= 0; i--) {
-        if (quantity >= quantityPrices[i].quantity) {
-          return quantityPrices[i].price;
-        }
-      }
-    }
-  }
-  return extraOption.price;
-};
+import { getExtraOptionPrice } from './extraOptionUtils';
 
 export const calcularTotalItem = async (item, extras) => {
   const precoBase = item.unitPrice || item.sale_price;
@@ -25,20 +6,31 @@ export const calcularTotalItem = async (item, extras) => {
   
   if (Array.isArray(extras)) {
     for (const extra of extras) {
-      const preco = await getExtraOptionPrice(extra, item.quantidade);
-      precoExtras += preco;
+      let extraPrice = extra.totalPrice || 0;
+      
+      if (extra.use_quantity_pricing) {
+        const quantityPrice = await getExtraOptionPrice(extra.id, item.quantidade);
+        if (quantityPrice !== null) {
+          extraPrice = quantityPrice;
+          if (extra.type === 'number') {
+            extraPrice *= parseFloat(extra.value);
+          }
+        }
+      }
+      
+      precoExtras += extraPrice;
     }
   }
   
   return (precoBase + precoExtras) * item.quantidade;
 };
 
-export const calcularTotal = async (carrinho) => {
-  let total = 0;
+export const calcularTotal = async (carrinho, desconto, valorAdicional) => {
+  let subtotal = 0;
   for (const item of carrinho) {
-    total += await calcularTotalItem(item, item.extras);
+    subtotal += await calcularTotalItem(item, item.extras);
   }
-  return total;
+  return Math.max(subtotal - (desconto || 0) + (valorAdicional || 0), 0);
 };
 
 export const resetCarrinho = (setCarrinho, setClienteSelecionado, setDataEntrega, setOpcaoPagamento, setDesconto, setValorPago) => {

@@ -9,7 +9,7 @@ import { format } from "date-fns";
 import { CalendarIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import CarrinhoItem from './CarrinhoItem';
-import { calcularTotal } from '../utils/vendaUtils';
+import { calcularTotal, calcularTotalItem } from '../utils/vendaUtils';
 
 const VendaCarrinho = ({ 
   carrinho, 
@@ -33,14 +33,22 @@ const VendaCarrinho = ({
   onUnitPriceChange,
   onQuantityChange
 }) => {
+  const [subtotal, setSubtotal] = useState(0);
   const [total, setTotal] = useState(0);
 
   useEffect(() => {
-    const updateTotal = async () => {
-      const calculatedTotal = await calcularTotal(carrinho);
-      setTotal(calculatedTotal - (desconto || 0) + (valorAdicional || 0));
+    const updateTotals = async () => {
+      let newSubtotal = 0;
+      for (const item of carrinho) {
+        newSubtotal += await calcularTotalItem(item, item.extras);
+      }
+      setSubtotal(newSubtotal);
+      
+      const newTotal = await calcularTotal(carrinho, desconto, valorAdicional);
+      setTotal(newTotal);
     };
-    updateTotal();
+
+    updateTotals();
   }, [carrinho, desconto, valorAdicional]);
 
   return (
@@ -75,7 +83,12 @@ const VendaCarrinho = ({
         </TableBody>
       </Table>
       <div className="mt-4 space-y-2">
-        <Input type="number" placeholder="Desconto" value={desconto} onChange={(e) => setDesconto(parseFloat(e.target.value) || 0)} />
+        <Input 
+          type="number" 
+          placeholder="Desconto" 
+          value={desconto} 
+          onChange={(e) => setDesconto(parseFloat(e.target.value) || 0)} 
+        />
         <Input 
           type="number" 
           placeholder="Valor Adicional" 
@@ -90,13 +103,24 @@ const VendaCarrinho = ({
         />
         <Popover>
           <PopoverTrigger asChild>
-            <Button variant={"outline"} className={cn("w-[280px] justify-start text-left font-normal", !dataEntrega && "text-muted-foreground")}>
+            <Button 
+              variant={"outline"} 
+              className={cn(
+                "w-[280px] justify-start text-left font-normal",
+                !dataEntrega && "text-muted-foreground"
+              )}
+            >
               <CalendarIcon className="mr-2 h-4 w-4" />
               {dataEntrega ? format(dataEntrega, "PPP") : <span>Selecione a data de entrega</span>}
             </Button>
           </PopoverTrigger>
           <PopoverContent className="w-auto p-0">
-            <Calendar mode="single" selected={dataEntrega} onSelect={setDataEntrega} initialFocus />
+            <Calendar 
+              mode="single" 
+              selected={dataEntrega} 
+              onSelect={setDataEntrega} 
+              initialFocus 
+            />
           </PopoverContent>
         </Popover>
         <Select onValueChange={setOpcaoPagamento} value={opcaoPagamento}>
@@ -109,11 +133,19 @@ const VendaCarrinho = ({
             ))}
           </SelectContent>
         </Select>
-        <Input type="number" placeholder="Valor Pago" value={valorPago} onChange={(e) => setValorPago(parseFloat(e.target.value) || 0)} />
+        <Input 
+          type="number" 
+          placeholder="Valor Pago" 
+          value={valorPago} 
+          onChange={(e) => setValorPago(parseFloat(e.target.value) || 0)} 
+        />
+        <p className="text-xl">Subtotal: R$ {subtotal.toFixed(2)}</p>
         <p className="text-xl">Desconto: R$ {desconto.toFixed(2)}</p>
         <p className="text-xl">Valor Adicional: R$ {valorAdicional.toFixed(2)}</p>
         <p className="text-xl font-bold">Total: R$ {total.toFixed(2)}</p>
-        <p className="text-xl font-bold">Saldo Restante: R$ {Math.max(total - valorPago, 0).toFixed(2)}</p>
+        <p className="text-xl font-bold">
+          Saldo Restante: R$ {Math.max(total - valorPago, 0).toFixed(2)}
+        </p>
         <Button onClick={finalizarVenda}>Finalizar Venda</Button>
       </div>
     </div>
