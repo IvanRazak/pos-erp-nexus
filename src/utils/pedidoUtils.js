@@ -9,7 +9,7 @@ export const formatarDimensoes = (item) => {
   if (!item.product) return 'N/A';
   
   if (item.product.unit_type === 'square_meter') {
-    return item.width && item.height ? `${item.width}m <strong>Largura</strong> X ${item.height}m <strong>Altura</strong>` : 'N/A';
+    return item.width && item.height ? `${item.width}m Larg x ${item.height}m Alt` : 'N/A';
   }
   
   return item.product.format || 'N/A';
