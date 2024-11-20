@@ -53,7 +53,7 @@ export const useTransactions = () => useQuery({
     .from('payments')
     .select(`
       *,
-      order:orders(order_number, status, customer:customers(name))
+      order:orders(order_number, customer:customers(name))
     `)
     .order('payment_date', { ascending: false })
   ),

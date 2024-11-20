@@ -1,24 +1,17 @@
 import React, { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
-import { toast } from "sonner";
+import { validateCPF, validateCNPJ, validatePhone } from '../utils/validations';
+import { fetchAddressByCEP } from '../utils/api';
 import { useCustomerTypes } from '../integrations/supabase';
-import ClienteContactInfo from './cliente/ClienteContactInfo';
-import ClienteAddressInfo from './cliente/ClienteAddressInfo';
-import ClienteDocumentInfo from './cliente/ClienteDocumentInfo';
 
 const ClienteForm = ({ onSave, clienteInicial }) => {
   const { register, handleSubmit, setValue, watch, reset, formState: { errors } } = useForm({
-    defaultValues: {
-      ...clienteInicial,
-      bloqueado: clienteInicial?.bloqueado || false,
-      customer_type_id: clienteInicial?.customer_type_id || '',
-      documento: 'cpf'
-    }
+    defaultValues: clienteInicial || {}
   });
   const { data: customerTypes, isLoading: isLoadingCustomerTypes } = useCustomerTypes();
 
@@ -30,39 +23,22 @@ const ClienteForm = ({ onSave, clienteInicial }) => {
     }
   }, [clienteInicial, setValue]);
 
-  const onSubmit = async (data) => {
-    try {
-      // Remove masks before saving
-      if (data.phone) data.phone = data.phone.replace(/\D/g, '');
-      if (data.whatsapp) data.whatsapp = data.whatsapp.replace(/\D/g, '');
-      if (data.cpf) data.cpf = data.cpf.replace(/\D/g, '');
-      if (data.cnpj) data.cnpj = data.cnpj.replace(/\D/g, '');
-      if (data.cep) data.cep = data.cep.replace(/\D/g, '');
-
-      // Ensure customer_type_id is properly set
-      if (!data.customer_type_id) {
-        toast.error("Tipo de cliente é obrigatório");
-        return;
+  const handleCEPBlur = async (e) => {
+    const cep = e.target.value.replace(/\D/g, '');
+    if (cep.length === 8) {
+      const address = await fetchAddressByCEP(cep);
+      if (address) {
+        setValue('endereco', address.logradouro);
+        setValue('bairro', address.bairro);
+        setValue('cidade', address.localidade);
+        setValue('estado', address.uf);
       }
-
-      data.bloqueado = !!data.bloqueado;
-      data.customer_type_id = String(data.customer_type_id);
-
-      if (onSave) {
-        try {
-          await onSave(data);
-        } catch (error) {
-          if (error.message === 'Whatsapp já cadastrado') {
-            toast.error("Este número de WhatsApp já está cadastrado para outro cliente");
-            return;
-          }
-          throw error;
-        }
-      }
-    } catch (error) {
-      console.error('Error in form submission:', error);
-      toast.error("Erro ao salvar cliente");
     }
+  };
+
+  const onSubmit = async (data) => {
+    await onSave(data);
+    reset();
   };
 
   return (
@@ -73,15 +49,90 @@ const ClienteForm = ({ onSave, clienteInicial }) => {
       />
       {errors.name && <span className="text-red-500">{errors.name.message}</span>}
 
-      <ClienteContactInfo register={register} errors={errors} watch={watch} />
-      <ClienteAddressInfo register={register} setValue={setValue} errors={errors} />
-      <ClienteDocumentInfo register={register} setValue={setValue} watch={watch} errors={errors} />
+      <Input
+        {...register("email", { 
+          required: "E-mail é obrigatório",
+          pattern: {
+            value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
+            message: "E-mail inválido"
+          }
+        })}
+        placeholder="E-mail"
+        type="email"
+      />
+      {errors.email && <span className="text-red-500">{errors.email.message}</span>}
 
-      <Select 
-        value={watch("customer_type_id")}
-        onValueChange={(value) => setValue("customer_type_id", value)}
-      >
-        <SelectTrigger className={errors.customer_type_id ? "border-red-500" : ""}>
+      <Input
+        {...register("phone", { 
+          required: "Telefone é obrigatório",
+          validate: validatePhone
+        })}
+        placeholder="Telefone"
+      />
+      {errors.phone && <span className="text-red-500">{errors.phone.message}</span>}
+
+      <Input
+        {...register("whatsapp", { 
+          required: "WhatsApp é obrigatório",
+          validate: validatePhone
+        })}
+        placeholder="WhatsApp"
+      />
+      {errors.whatsapp && <span className="text-red-500">{errors.whatsapp.message}</span>}
+
+      <Input
+        {...register("cep", { required: "CEP é obrigatório" })}
+        placeholder="CEP"
+        onBlur={handleCEPBlur}
+      />
+      {errors.cep && <span className="text-red-500">{errors.cep.message}</span>}
+
+      <Input {...register("endereco")} placeholder="Endereço" />
+      <Input {...register("numero")} placeholder="Número" />
+      <Input {...register("complemento")} placeholder="Complemento" />
+      <Input {...register("bairro")} placeholder="Bairro" />
+      <Input {...register("cidade")} placeholder="Cidade" />
+      <Input {...register("estado")} placeholder="Estado" />
+
+      <Select onValueChange={(value) => setValue("documento", value)} defaultValue={watch("documento")}>
+        <SelectTrigger>
+          <SelectValue placeholder="Tipo de Documento" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="cpf">CPF</SelectItem>
+          <SelectItem value="cnpj">CNPJ</SelectItem>
+        </SelectContent>
+      </Select>
+
+      {watch("documento") === "cpf" && (
+        <Input
+          {...register("cpf", { 
+            required: "CPF é obrigatório",
+            validate: validateCPF
+          })}
+          placeholder="CPF"
+        />
+      )}
+      {watch("documento") === "cnpj" && (
+        <Input
+          {...register("cnpj", { 
+            required: "CNPJ é obrigatório",
+            validate: validateCNPJ
+          })}
+          placeholder="CNPJ"
+        />
+      )}
+      {(errors.cpf || errors.cnpj) && <span className="text-red-500">{errors.cpf?.message || errors.cnpj?.message}</span>}
+
+      <Textarea {...register("observacoes")} placeholder="Observações" />
+
+      <div className="flex items-center space-x-2">
+        <Switch {...register("bloqueado")} id="bloqueado" />
+        <label htmlFor="bloqueado">Bloquear cliente</label>
+      </div>
+
+      <Select {...register("customer_type_id")} defaultValue={watch("customer_type_id")}>
+        <SelectTrigger>
           <SelectValue placeholder="Tipo de Cliente" />
         </SelectTrigger>
         <SelectContent>
@@ -94,22 +145,8 @@ const ClienteForm = ({ onSave, clienteInicial }) => {
           )}
         </SelectContent>
       </Select>
-      {errors.customer_type_id && <span className="text-red-500">Tipo de cliente é obrigatório</span>}
 
-      <Textarea {...register("observacoes")} placeholder="Observações" />
-
-      <div className="flex items-center space-x-2">
-        <Switch
-          id="bloqueado"
-          checked={watch('bloqueado')}
-          onCheckedChange={(checked) => setValue('bloqueado', checked)}
-        />
-        <label htmlFor="bloqueado">Bloquear cliente</label>
-      </div>
-
-      <Button type="submit">
-        {clienteInicial ? 'Atualizar Cliente' : 'Salvar Cliente'}
-      </Button>
+      <Button type="submit">{clienteInicial ? 'Atualizar Cliente' : 'Salvar Cliente'}</Button>
     </form>
   );
 };

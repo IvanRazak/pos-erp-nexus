@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useSelectionOptions, useAddSelectionOption, useUpdateSelectionOption, useDeleteSelectionOption } from '../integrations/supabase';
-import { toast } from "sonner";
+import { toast } from "@/components/ui/use-toast";
 
 const GerenciarOpcoesSelecao = ({ isOpen, onClose }) => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -22,12 +22,12 @@ const GerenciarOpcoesSelecao = ({ isOpen, onClose }) => {
     const saveFunction = option.id ? updateSelectionOption : addSelectionOption;
     saveFunction.mutate(option, {
       onSuccess: () => {
-        toast.success(`Opção de seleção ${option.id ? 'atualizada' : 'cadastrada'} com sucesso!`);
+        toast({ title: `Opção de seleção ${option.id ? 'atualizada' : 'cadastrada'} com sucesso!` });
         setEditingOption(null);
         refetch();
       },
       onError: (error) => {
-        toast.error(`Erro ao ${option.id ? 'atualizar' : 'cadastrar'} opção de seleção: ${error.message}`);
+        toast({ title: `Erro ao ${option.id ? 'atualizar' : 'cadastrar'} opção de seleção`, description: error.message, variant: "destructive" });
       }
     });
   };
@@ -35,12 +35,12 @@ const GerenciarOpcoesSelecao = ({ isOpen, onClose }) => {
   const handleDeleteSelectionOption = (id) => {
     deleteSelectionOption.mutate(id, {
       onSuccess: () => {
-        toast.success("Opção de seleção excluída com sucesso!");
+        toast({ title: "Opção de seleção excluída com sucesso!" });
         setEditingOption(null);
         refetch();
       },
       onError: (error) => {
-        toast.error("Erro ao excluir opção de seleção: " + error.message);
+        toast({ title: "Erro ao excluir opção de seleção", description: error.message, variant: "destructive" });
       }
     });
   };

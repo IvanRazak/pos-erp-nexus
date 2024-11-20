@@ -56,31 +56,36 @@ const Dashboard = () => {
     <div className="container mx-auto p-4">
       <div className="flex justify-between items-center mb-4">
         <h1 className="text-2xl font-bold">Dashboard</h1>
-        <div className="flex items-center">
+        <div id='uzu' className="flex items-center">
           {user && <span className="mr-4">Olá, {user.username}</span>}
           <Button onClick={handleLogout}>Logout</Button>
         </div>
       </div>
-      
-      <Tabs defaultValue="clientes" className="w-full">
-        <TabsList>
-          {tabs.map((tab) => (
-            <TabsTrigger
-              key={tab.value}
-              value={tab.value}
-              onClick={() => navigate(`/dashboard/${tab.value}`)}
-            >
-              {tab.label}
-            </TabsTrigger>
-          ))}
-        </TabsList>
-      </Tabs>
-      
-      <div className="mt-4">
-        <Outlet />
+      <div className="flex">
+        <div className="w-3/4 pr-4">
+          <Tabs defaultValue="clientes" className="w-full">
+            <TabsList>
+              {tabs.map((tab) => (
+                <TabsTrigger
+                  key={tab.value}
+                  value={tab.value}
+                  onClick={() => navigate(`/dashboard/${tab.value}`)}
+                >
+                  {tab.label}
+                </TabsTrigger>
+              ))}
+            </TabsList>
+          </Tabs>
+          <div className="mt-4">
+            <Outlet />
+          </div>
+        </div>
+        {user && user.isAdmin && (
+          <div className="w-1/4">
+            <AdminMenu />
+          </div>
+        )}
       </div>
-
-      {user && user.isAdmin && <AdminMenu />}
     </div>
   );
 };

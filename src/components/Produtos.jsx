@@ -2,17 +2,18 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { useToast } from "@/components/ui/use-toast";
 import { useSupabaseAuth } from '../integrations/supabase/auth';
 import EditProdutoModal from './EditProdutoModal';
 import { useProducts, useAddProduct, useUpdateProduct, useDeleteProduct, useExtraOptions } from '../integrations/supabase';
 import { useAuth } from '../hooks/useAuth';
 import ProdutoForm from './ProdutoForm';
 import ProdutosTable from './ProdutosTable';
-import { toast } from "sonner";
 
 const Produtos = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingProduto, setEditingProduto] = useState(null);
+  const { toast } = useToast();
   const { session } = useSupabaseAuth() || {};
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -38,11 +39,18 @@ const Produtos = () => {
   const handleSubmit = (novoProduto) => {
     addProduct.mutate(novoProduto, {
       onSuccess: () => {
-        toast.success("Produto cadastrado com sucesso!");
+        toast({
+          title: "Produto cadastrado com sucesso!",
+          description: "O novo produto foi adicionado à lista.",
+        });
         setIsDialogOpen(false);
       },
       onError: (error) => {
-        toast.error("Erro ao cadastrar produto: " + error.message);
+        toast({
+          title: "Erro ao cadastrar produto",
+          description: error.message,
+          variant: "destructive",
+        });
       }
     });
   };
@@ -58,10 +66,17 @@ const Produtos = () => {
   const handleDeleteProduct = (id) => {
     deleteProduct.mutate(id, {
       onSuccess: () => {
-        toast.success("Produto excluído com sucesso!");
+        toast({
+          title: "Produto excluído com sucesso!",
+          description: "O produto foi removido da lista.",
+        });
       },
       onError: (error) => {
-        toast.error("Erro ao excluir produto: " + error.message);
+        toast({
+          title: "Erro ao excluir produto",
+          description: error.message,
+          variant: "destructive",
+        });
       }
     });
   };

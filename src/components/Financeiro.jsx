@@ -8,7 +8,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { DatePicker } from "@/components/ui/date-picker";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useOrders, usePaymentOptions, useUpdateOrder, useAddPayment, useCustomers } from '../integrations/supabase';
-import { toast } from "sonner";
+import { toast } from "@/components/ui/use-toast";
 import { format, isWithinInterval, parseISO, startOfDay, endOfDay } from "date-fns";
 import { ptBR } from 'date-fns/locale';
 import { useAuth } from '../hooks/useAuth';
@@ -55,13 +55,17 @@ const Financeiro = () => {
       const matchOpcaoPagamento = !filters.opcaoPagamento || pedido.payment_option === filters.opcaoPagamento;
       const matchCliente = !filters.cliente || (pedido.customer?.name && pedido.customer.name.toLowerCase().includes(filters.cliente.toLowerCase()));
       const matchNumeroPedido = !filters.numeroPedido || pedido.order_number?.toString().includes(filters.numeroPedido);
-      return matchData && matchOpcaoPagamento && matchCliente && matchNumeroPedido && pedido.status !== 'cancelled';
+      return matchData && matchOpcaoPagamento && matchCliente && matchNumeroPedido && pedido.remaining_balance > 0;
     });
   }, [pedidos, filters]);
 
   const handlePagamento = async () => {
     if (!pedidoSelecionado || valorPagamento <= 0 || !opcaoPagamento) {
-      toast.error("Por favor, preencha todos os campos corretamente.");
+      toast({
+        title: "Erro ao processar pagamento",
+        description: "Por favor, preencha todos os campos corretamente.",
+        variant: "destructive",
+      });
       return;
     }
 
@@ -82,7 +86,10 @@ const Financeiro = () => {
         payment_option: opcaoPagamento,
       });
 
-      toast.success(`Pagamento processado com sucesso! Novo saldo restante: R$ ${novoSaldoRestante.toFixed(2)}`);
+      toast({
+        title: "Pagamento processado com sucesso!",
+        description: `Novo saldo restante: R$ ${novoSaldoRestante.toFixed(2)}`,
+      });
 
       setPedidoSelecionado(null);
       setValorPagamento(0);
@@ -90,7 +97,11 @@ const Financeiro = () => {
       queryClient.invalidateQueries(['orders']);
       queryClient.invalidateQueries(['payments']);
     } catch (error) {
-      toast.error("Erro ao processar pagamento: " + error.message);
+      toast({
+        title: "Erro ao processar pagamento",
+        description: error.message,
+        variant: "destructive",
+      });
     }
   };
 

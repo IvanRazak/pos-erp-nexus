@@ -17,33 +17,21 @@ export const useCustomers = () => useQuery({
   queryFn: () => fromSupabase(supabase.from('customers').select('*')),
 });
 
-const checkWhatsAppExists = async (whatsapp, currentCustomerId = null) => {
-  const query = supabase
-    .from('customers')
-    .select('id')
-    .eq('whatsapp', whatsapp);
-  
-  if (currentCustomerId) {
-    query.neq('id', currentCustomerId);
-  }
-
-  const { data, error } = await query;
-  if (error) throw error;
-  return data && data.length > 0;
-};
-
 export const useAddCustomer = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (newCustomer) => {
-      // Remove máscara do WhatsApp antes de verificar
-      const cleanWhatsapp = newCustomer.whatsapp?.replace(/\D/g, '');
-      
-      if (cleanWhatsapp) {
-        const exists = await checkWhatsAppExists(cleanWhatsapp);
-        if (exists) {
-          throw new Error('Whatsapp já cadastrado');
-        }
+      const { data: existingCustomers, error: checkError } = await supabase
+        .from('customers')
+        .select('id')
+        .eq('email', newCustomer.email);
+
+      if (checkError) {
+        throw new Error('Error checking for existing customer: ' + checkError.message);
+      }
+
+      if (existingCustomers && existingCustomers.length > 0) {
+        throw new Error('A customer with this email already exists.');
       }
 
       return fromSupabase(supabase.from('customers').insert([newCustomer]));
@@ -57,19 +45,7 @@ export const useAddCustomer = () => {
 export const useUpdateCustomer = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async ({ id, ...updateData }) => {
-      // Remove máscara do WhatsApp antes de verificar
-      const cleanWhatsapp = updateData.whatsapp?.replace(/\D/g, '');
-      
-      if (cleanWhatsapp) {
-        const exists = await checkWhatsAppExists(cleanWhatsapp, id);
-        if (exists) {
-          throw new Error('Whatsapp já cadastrado');
-        }
-      }
-
-      return fromSupabase(supabase.from('customers').update(updateData).eq('id', id));
-    },
+    mutationFn: ({ id, ...updateData }) => fromSupabase(supabase.from('customers').update(updateData).eq('id', id)),
     onSuccess: () => {
       queryClient.invalidateQueries(['customers']);
     },

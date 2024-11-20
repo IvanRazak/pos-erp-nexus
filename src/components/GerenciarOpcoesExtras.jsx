@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useExtraOptions, useSelectionOptions, useAddExtraOption, useUpdateExtraOption, useDeleteExtraOption } from '../integrations/supabase';
-import { toast } from "sonner";
+import { toast } from "@/components/ui/use-toast";
 import ExtraOptionForm from './ExtraOptionForm';
 import SelectOptionsModal from './SelectOptionsModal';
 
@@ -27,12 +27,12 @@ const GerenciarOpcoesExtras = ({ isOpen, onClose }) => {
     const saveFunction = extraOption.id ? updateExtraOption : addExtraOption;
     saveFunction.mutate(extraOption, {
       onSuccess: () => {
-        toast.success(`Opção extra ${extraOption.id ? 'atualizada' : 'cadastrada'} com sucesso!`);
+        toast({ title: `Opção extra ${extraOption.id ? 'atualizada' : 'cadastrada'} com sucesso!` });
         setEditingOption(null);
         refetch();
       },
       onError: (error) => {
-        toast.error(`Erro ao ${extraOption.id ? 'atualizar' : 'cadastrar'} opção extra: ${error.message}`);
+        toast({ title: `Erro ao ${extraOption.id ? 'atualizar' : 'cadastrar'} opção extra`, description: error.message, variant: "destructive" });
       }
     });
   };
@@ -40,12 +40,12 @@ const GerenciarOpcoesExtras = ({ isOpen, onClose }) => {
   const handleDeleteExtraOption = (id) => {
     deleteExtraOption.mutate(id, {
       onSuccess: () => {
-        toast.success("Opção extra excluída com sucesso!");
+        toast({ title: "Opção extra excluída com sucesso!" });
         setEditingOption(null);
         refetch();
       },
       onError: (error) => {
-        toast.error("Erro ao excluir opção extra: " + error.message);
+        toast({ title: "Erro ao excluir opção extra", description: error.message, variant: "destructive" });
       }
     });
   };

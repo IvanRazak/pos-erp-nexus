@@ -75,17 +75,6 @@ const ExtraOptionForm = ({ extraOption = {}, onSave, onDelete }) => {
             <SelectItem value="select">Seleção</SelectItem>
           </SelectContent>
         </Select>
-
-        <div className="flex items-center space-x-2">
-          <Checkbox
-            id="fixed_value"
-            name="fixed_value"
-            checked={localOption.fixed_value || false}
-            onCheckedChange={(checked) => setLocalOption(prev => ({ ...prev, fixed_value: checked }))}
-          />
-          <label htmlFor="fixed_value">Valor Fixo</label>
-        </div>
-
         {localOption.type !== 'select' && (
           <div className="space-y-2">
             <div className="flex items-center space-x-2">
@@ -97,7 +86,6 @@ const ExtraOptionForm = ({ extraOption = {}, onSave, onDelete }) => {
               />
               <label htmlFor="use_quantity_pricing">Usar preços por quantidade</label>
             </div>
-
             {localOption.id && localOption.use_quantity_pricing && (
               <Button
                 type="button"
@@ -166,7 +154,6 @@ const ExtraOptionForm = ({ extraOption = {}, onSave, onDelete }) => {
             )}
           </div>
         )}
-
         {localOption.type === 'select' && (
           <Button type="button" onClick={() => setIsSelectionModalOpen(true)}>
             Gerenciar Opções de Seleção
@@ -199,7 +186,6 @@ const ExtraOptionForm = ({ extraOption = {}, onSave, onDelete }) => {
           )}
         </div>
       </form>
-
       <SelectionOptionsModal
         isOpen={isSelectionModalOpen}
         onClose={() => setIsSelectionModalOpen(false)}

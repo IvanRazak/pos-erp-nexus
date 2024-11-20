@@ -11,22 +11,12 @@ export const getExtraOptionPrice = async (extraOption, quantity) => {
     if (quantityPrices && quantityPrices.length > 0) {
       for (let i = quantityPrices.length - 1; i >= 0; i--) {
         if (quantity >= quantityPrices[i].quantity) {
-          return extraOption.type === 'number' 
-            ? quantityPrices[i].price * (extraOption.value || 1)
-            : quantityPrices[i].price;
+          return quantityPrices[i].price;
         }
       }
     }
   }
-
-  // Para opções do tipo select, retornamos o valor da opção selecionada
-  if (extraOption.type === 'select' && extraOption.totalPrice) {
-    return extraOption.totalPrice;
-  }
-  
-  return extraOption.type === 'number' 
-    ? extraOption.price * (extraOption.value || 1)
-    : extraOption.price;
+  return extraOption.price;
 };
 
 export const calcularTotalItem = async (item, extras) => {
@@ -36,26 +26,18 @@ export const calcularTotalItem = async (item, extras) => {
   if (Array.isArray(extras)) {
     for (const extra of extras) {
       const preco = await getExtraOptionPrice(extra, item.quantidade);
-      if (extra.fixed_value) {
-        precoExtras += preco;
-      } else {
-        precoExtras += preco * item.quantidade;
-      }
+      precoExtras += preco;
     }
   }
   
-  return (precoBase * item.quantidade) + precoExtras;
+  return (precoBase + precoExtras) * item.quantidade;
 };
 
 export const calcularTotal = async (carrinho) => {
   let total = 0;
-  
   for (const item of carrinho) {
-    const itemTotal = await calcularTotalItem(item, item.extras);
-    const discount = parseFloat(item.discount) || 0;
-    total += itemTotal - discount;
+    total += await calcularTotalItem(item, item.extras);
   }
-  
   return total;
 };
 

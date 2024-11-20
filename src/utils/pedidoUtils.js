@@ -6,13 +6,7 @@ export const calcularSubtotalItem = (item) => {
 };
 
 export const formatarDimensoes = (item) => {
-  if (!item.product) return 'N/A';
-  
-  if (item.product.unit_type === 'square_meter') {
-    return item.width && item.height ? `${item.width}m Larg x ${item.height}m Alt` : 'N/A';
-  }
-  
-  return item.product.format || 'N/A';
+  return item.width && item.height ? `${item.width}m x ${item.height}m` : 'N/A';
 };
 
 export const formatarM2 = (item) => {

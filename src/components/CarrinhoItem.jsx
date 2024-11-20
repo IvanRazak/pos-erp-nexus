@@ -3,17 +3,8 @@ import { Button } from "@/components/ui/button";
 import { TableCell, TableRow } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
 import { getExtraOptionPrice } from '../utils/vendaUtils';
-import { getSheetPrice } from '../utils/productUtils';
 
-const CarrinhoItem = ({ 
-  item, 
-  onDelete, 
-  onEdit, 
-  onDescriptionChange, 
-  onUnitPriceChange, 
-  onQuantityChange,
-  onDiscountChange 
-}) => {
+const CarrinhoItem = ({ item, onDelete, onEdit, onDescriptionChange, onUnitPriceChange, onQuantityChange }) => {
   const [editingUnitPrice, setEditingUnitPrice] = useState(false);
   const [tempUnitPrice, setTempUnitPrice] = useState(item.unitPrice);
   const [editingQuantity, setEditingQuantity] = useState(false);
@@ -31,13 +22,6 @@ const CarrinhoItem = ({
     updateExtrasPrices();
   }, [item.quantidade, item.extras]);
 
-  const renderDimensoes = () => {
-    if (item.unit_type === 'square_meter') {
-      return item.largura && item.altura ? `${item.largura}m x ${item.altura}m` : 'N/A';
-    }
-    return item.format || 'N/A';
-  };
-
   const handleUnitPriceEdit = () => {
     if (editingUnitPrice) {
       onUnitPriceChange(item, parseFloat(tempUnitPrice));
@@ -45,75 +29,24 @@ const CarrinhoItem = ({
     setEditingUnitPrice(!editingUnitPrice);
   };
 
-  const handleQuantityEdit = async () => {
+  const handleQuantityEdit = () => {
     if (editingQuantity) {
       const newQuantity = parseInt(tempQuantity, 10);
       if (newQuantity !== item.quantidade) {
-        if (item.unit_type === 'sheets') {
-          const newSheetPrice = await getSheetPrice(item.id, newQuantity);
-          if (newSheetPrice) {
-            await onUnitPriceChange(item, newSheetPrice);
-          }
-        }
-        await onQuantityChange(item, newQuantity);
+        onQuantityChange(item, newQuantity);
       }
     }
     setEditingQuantity(!editingQuantity);
-  };
-
-  const handleQuantityBlur = async () => {
-    await handleQuantityEdit();
-  };
-
-  const handleQuantityKeyPress = async (e) => {
-    if (e.key === 'Enter') {
-      await handleQuantityEdit();
-    }
   };
 
   const calculateItemTotal = () => {
     const basePrice = item.unitPrice * item.quantidade;
     const extrasTotal = item.extras.reduce((sum, extra) => {
       const extraPrice = extrasPrices[extra.id] || extra.price || 0;
-      if (extra.fixed_value) {
-        return sum + extraPrice;
-      }
-      return sum + extraPrice * item.quantidade;
+      return sum + extraPrice;
     }, 0);
-    return basePrice + extrasTotal;
+    return basePrice + extrasTotal * item.quantidade;
   };
-
-  const calculateDiscountPercentage = () => {
-    const total = calculateItemTotal();
-    const discount = parseFloat(item.discount) || 0;
-    if (total === 0) return 0;
-    return (discount / total) * 100;
-  };
-
-  const renderUnitPrice = () => {
-    if (item.type === 'custom') {
-      if (editingUnitPrice) {
-        return (
-          <Input
-            type="number"
-            value={tempUnitPrice}
-            onChange={(e) => setTempUnitPrice(e.target.value)}
-            onBlur={handleUnitPriceEdit}
-            className="w-24"
-          />
-        );
-      }
-      return (
-        <span onClick={() => setEditingUnitPrice(true)} className="cursor-pointer">
-          R$ {item.unitPrice.toFixed(2)}
-        </span>
-      );
-    }
-    return `R$ ${item.unitPrice.toFixed(2)}`;
-  };
-
-  const total = calculateItemTotal();
-  const discountPercentage = calculateDiscountPercentage();
 
   return (
     <TableRow>
@@ -124,9 +57,7 @@ const CarrinhoItem = ({
             type="number"
             value={tempQuantity}
             onChange={(e) => setTempQuantity(e.target.value)}
-            onBlur={handleQuantityBlur}
-            onKeyPress={handleQuantityKeyPress}
-            autoFocus
+            onBlur={handleQuantityEdit}
             className="w-20"
           />
         ) : (
@@ -135,38 +66,38 @@ const CarrinhoItem = ({
           </span>
         )}
       </TableCell>
-      <TableCell>{renderDimensoes()}</TableCell>
+      <TableCell>{item.largura && item.altura ? `${item.largura}m x ${item.altura}m` : 'N/A'}</TableCell>
       <TableCell>{item.m2 ? `${item.m2.toFixed(2)}m²` : 'N/A'}</TableCell>
-      <TableCell>{renderUnitPrice()}</TableCell>
+      <TableCell>
+        {editingUnitPrice ? (
+          <Input
+            type="number"
+            value={tempUnitPrice}
+            onChange={(e) => setTempUnitPrice(e.target.value)}
+            onBlur={handleUnitPriceEdit}
+            className="w-24"
+          />
+        ) : (
+          <span onClick={handleUnitPriceEdit} className="cursor-pointer">
+            R$ {item.unitPrice.toFixed(2)}
+          </span>
+        )}
+      </TableCell>
       <TableCell>
         {item.extras.map((extra, i) => (
           <div key={i}>
             {extra.name}: 
             {extra.type === 'select' 
-              ? ` ${extra.selectedOptionName} - R$ ${extra.totalPrice.toFixed(2)}`
+              ? `${extra.selectedOptionName} - R$ ${(extrasPrices[extra.id] || extra.price || 0).toFixed(2)}`
               : extra.type === 'number' 
-                ? ` ${extra.value} x R$ ${(extrasPrices[extra.id] || extra.price || 0).toFixed(2)}`
-                : ` R$ ${(extrasPrices[extra.id] || extra.price || 0).toFixed(2)}`
+                ? `${extra.value} x R$ ${(extrasPrices[extra.id] || extra.price || 0).toFixed(2)}`
+                : `R$ ${(extrasPrices[extra.id] || extra.price || 0).toFixed(2)}`
             }
           </div>
         ))}
       </TableCell>
       <TableCell>{item.arteOption || 'N/A'}</TableCell>
-      <TableCell>
-        <div className="space-y-1">
-          <Input
-            type="number"
-            placeholder="Desconto"
-            value={item.discount || ''}
-            onChange={(e) => onDiscountChange(item, parseFloat(e.target.value) || 0)}
-            className="w-24"
-          />
-          <div className="text-sm text-gray-500">
-            {discountPercentage.toFixed(2)}% de desconto
-          </div>
-        </div>
-      </TableCell>
-      <TableCell>R$ {(total - (parseFloat(item.discount) || 0)).toFixed(2)}</TableCell>
+      <TableCell>R$ {calculateItemTotal().toFixed(2)}</TableCell>
       <TableCell>
         <Input
           type="text"

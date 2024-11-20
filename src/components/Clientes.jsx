@@ -5,7 +5,7 @@ import ClienteForm from './ClienteForm';
 import ClienteList from './ClienteList';
 import { useCustomers, useAddCustomer, useUpdateCustomer, useDeleteCustomer } from '../integrations/supabase';
 import { useSupabaseAuth } from '../integrations/supabase/auth';
-import { toast } from "sonner";
+import { toast } from "@/components/ui/use-toast";
 import { useAuth } from '../hooks/useAuth';
 
 const Clientes = () => {
@@ -44,24 +44,41 @@ const Clientes = () => {
     try {
       if (clienteEmEdicao) {
         await updateCustomer.mutateAsync({ id: clienteEmEdicao.id, ...clienteData });
-        toast.success("Cliente atualizado com sucesso!");
+        toast({
+          title: "Cliente atualizado com sucesso!",
+          description: "As informações do cliente foram atualizadas.",
+        });
       } else {
         await addCustomer.mutateAsync(clienteData);
-        toast.success("Cliente cadastrado com sucesso!");
+        toast({
+          title: "Cliente cadastrado com sucesso!",
+          description: "O novo cliente foi adicionado à lista.",
+        });
       }
       handleSuccess();
     } catch (error) {
-      toast.error(clienteEmEdicao ? "Erro ao atualizar cliente: " + error.message : "Erro ao cadastrar cliente: " + error.message);
+      toast({
+        title: clienteEmEdicao ? "Erro ao atualizar cliente" : "Erro ao cadastrar cliente",
+        description: error.message,
+        variant: "destructive",
+      });
     }
   };
 
   const handleDelete = async (id) => {
     try {
       await deleteCustomer.mutateAsync(id);
-      toast.success("Cliente excluído com sucesso!");
+      toast({
+        title: "Cliente excluído com sucesso!",
+        description: "O cliente foi removido da lista.",
+      });
       refetch();
     } catch (error) {
-      toast.error("Erro ao excluir cliente: " + error.message);
+      toast({
+        title: "Erro ao excluir cliente",
+        description: error.message,
+        variant: "destructive",
+      });
     }
   };
 
