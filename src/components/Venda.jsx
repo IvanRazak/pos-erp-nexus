@@ -228,6 +228,7 @@ const Venda = () => {
         setIsNewClientDialogOpen={setIsNewClientDialogOpen}
         handleNewClientSuccess={() => handleNewClientSuccess(setIsNewClientDialogOpen)}
         clientes={clientes}
+        clienteSelecionado={clienteSelecionado}
       />
       <VendaCarrinho
         carrinho={carrinho}
