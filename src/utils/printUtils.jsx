@@ -34,7 +34,7 @@ export const generatePrintContent = (pedido, itensPedido) => {
       }
       
       if (extra.extra_option.use_quantity_pricing) {
-        extraText += ' (Preço por quantidade)';
+        extraText += ' ';
       }
       
       return extraText;
