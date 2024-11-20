@@ -17,7 +17,7 @@ const ClienteForm = ({ onSave, clienteInicial }) => {
       ...clienteInicial,
       bloqueado: clienteInicial?.bloqueado || false,
       customer_type_id: clienteInicial?.customer_type_id || '',
-      documento: 'cpf' // Pre-select CPF as default
+      documento: 'cpf'
     }
   });
   const { data: customerTypes, isLoading: isLoadingCustomerTypes } = useCustomerTypes();
@@ -53,8 +53,11 @@ const ClienteForm = ({ onSave, clienteInicial }) => {
           await onSave(data);
           reset();
         } catch (error) {
-          if (error.message?.includes('unique_whatsapp')) {
-            toast.error("Este número de WhatsApp já está cadastrado");
+          // Verifica especificamente o erro de WhatsApp duplicado
+          if (error.message?.includes('unique_whatsapp') || 
+              error.code === '23505' || // Código PostgreSQL para violação de unique constraint
+              error.message?.includes('duplicate key value violates unique constraint')) {
+            toast.error("Este número de WhatsApp já está cadastrado para outro cliente");
             return;
           }
           throw error;
