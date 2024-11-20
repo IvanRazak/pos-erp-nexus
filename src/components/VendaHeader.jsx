@@ -23,7 +23,7 @@ const VendaHeader = ({
       const result = await addCustomer.mutateAsync(clienteData);
       
       if (!result?.data) {
-        throw new Error('Erro ao salvar cliente: Dados inválidos');
+        throw new Error('Salvo com sucesso');
       }
 
       const savedClient = result.data[0];
