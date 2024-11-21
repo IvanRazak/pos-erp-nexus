@@ -56,29 +56,29 @@ const VendaHeader = ({
       </div>
       <div>
         <h3 className="text-xl font-semibold mb-2">Selecionar Cliente</h3>
-        <div className="flex flex-col space-y-2">
+        <div className="flex space-x-2">
           <Button onClick={() => setIsBuscarClienteModalOpen(true)}>
             Buscar Cliente
           </Button>
-          {selectedClientName && (
-            <div className="text-sm font-medium text-gray-700">
-              Cliente selecionado: {selectedClientName}
-            </div>
-          )}
+          <Dialog open={isNewClientDialogOpen} onOpenChange={setIsNewClientDialogOpen}>
+            <DialogTrigger asChild>
+              <Button>Cadastrar Novo Cliente</Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-2xl">
+              <DialogHeader>
+                <DialogTitle>Cadastro de Cliente</DialogTitle>
+              </DialogHeader>
+              <ScrollArea className="h-[500px] pr-4">
+                <ClienteForm onSave={handleClienteSave} />
+              </ScrollArea>
+            </DialogContent>
+          </Dialog>
         </div>
-        <Dialog open={isNewClientDialogOpen} onOpenChange={setIsNewClientDialogOpen}>
-          <DialogTrigger asChild>
-            <Button className="mt-2">Cadastrar Novo Cliente</Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-2xl">
-            <DialogHeader>
-              <DialogTitle>Cadastro de Cliente</DialogTitle>
-            </DialogHeader>
-            <ScrollArea className="h-[500px] pr-4">
-              <ClienteForm onSave={handleClienteSave} />
-            </ScrollArea>
-          </DialogContent>
-        </Dialog>
+        {selectedClientName && (
+          <div className="text-sm font-medium text-gray-700 mt-2">
+            Cliente selecionado: {selectedClientName}
+          </div>
+        )}
       </div>
     </div>
   );
