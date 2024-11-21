@@ -91,6 +91,7 @@ const Clientes = () => {
             onSuccess={handleSuccess} 
             clienteInicial={clienteEmEdicao}
             onSave={handleSave}
+            showBlockOption={!!clienteEmEdicao}
           />
         </TabsContent>
       </Tabs>
