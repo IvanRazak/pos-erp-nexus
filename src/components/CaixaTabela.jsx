@@ -10,10 +10,11 @@ import { toast } from "sonner";
 import { useAuth } from '../hooks/useAuth';
 import { useQueryClient } from '@tanstack/react-query';
 import { supabase } from '../lib/supabase';
+import PageSizeSelector from './ui/page-size-selector';
 
 const CaixaTabela = ({ transacoes, setEditingPayment }) => {
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 10;
+  const [itemsPerPage, setItemsPerPage] = useState(10);
   const deletePayment = useDeletePayment();
   const updateOrder = useUpdateOrder();
   const { user } = useAuth();
@@ -85,8 +86,16 @@ const CaixaTabela = ({ transacoes, setEditingPayment }) => {
   const currentItems = transacoes.slice(indexOfFirstItem, indexOfLastItem);
   const totalPages = Math.ceil(transacoes.length / itemsPerPage);
 
+  const handlePageSizeChange = (newSize) => {
+    setItemsPerPage(newSize);
+    setCurrentPage(1); // Reset to first page when changing page size
+  };
+
   return (
     <div>
+      <div className="flex justify-end mb-4">
+        <PageSizeSelector pageSize={itemsPerPage} onPageSizeChange={handlePageSizeChange} />
+      </div>
       <Table>
         <TableHeader>
           <TableRow>

@@ -2,16 +2,13 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { DatePicker } from "@/components/ui/date-picker";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useOrders, usePaymentOptions, useUpdateOrder, useAddPayment, useCustomers } from '../integrations/supabase';
 import { toast } from "sonner";
-import { format, isWithinInterval, parseISO, startOfDay, endOfDay } from "date-fns";
-import { ptBR } from 'date-fns/locale';
+import { isWithinInterval, parseISO, startOfDay, endOfDay } from "date-fns";
 import { useAuth } from '../hooks/useAuth';
+import FinanceiroTable from './FinanceiroTable';
 
 const Financeiro = () => {
   const [filters, setFilters] = useState({
@@ -21,9 +18,6 @@ const Financeiro = () => {
     cliente: '',
     numeroPedido: ''
   });
-  const [pedidoSelecionado, setPedidoSelecionado] = useState(null);
-  const [valorPagamento, setValorPagamento] = useState(0);
-  const [opcaoPagamento, setOpcaoPagamento] = useState('');
   const navigate = useNavigate();
   const { user } = useAuth();
 
@@ -59,7 +53,7 @@ const Financeiro = () => {
     });
   }, [pedidos, filters]);
 
-  const handlePagamento = async () => {
+  const handlePagamento = async (pedidoSelecionado, valorPagamento, opcaoPagamento) => {
     if (!pedidoSelecionado || valorPagamento <= 0 || !opcaoPagamento) {
       toast.error("Por favor, preencha todos os campos corretamente.");
       return;
@@ -83,10 +77,6 @@ const Financeiro = () => {
       });
 
       toast.success(`Pagamento processado com sucesso! Novo saldo restante: R$ ${novoSaldoRestante.toFixed(2)}`);
-
-      setPedidoSelecionado(null);
-      setValorPagamento(0);
-      setOpcaoPagamento('');
       queryClient.invalidateQueries(['orders']);
       queryClient.invalidateQueries(['payments']);
     } catch (error) {
@@ -136,63 +126,12 @@ const Financeiro = () => {
           onChange={(e) => setFilters({...filters, numeroPedido: e.target.value})}
         />
       </div>
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Número do Pedido</TableHead>
-            <TableHead>Cliente</TableHead>
-            <TableHead>Valor Total</TableHead>
-            <TableHead>Valor Pago</TableHead>
-            <TableHead>Saldo Restante</TableHead>
-            <TableHead>Data do Pedido</TableHead>
-            <TableHead>Ações</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {pedidosFiltrados.map((pedido) => (
-            <TableRow key={pedido.id}>
-              <TableCell>{pedido.order_number}</TableCell>
-              <TableCell>{pedido.customer?.name || 'N/A'}</TableCell>
-              <TableCell>R$ {pedido.total_amount.toFixed(2)}</TableCell>
-              <TableCell>R$ {pedido.paid_amount.toFixed(2)}</TableCell>
-              <TableCell>R$ {pedido.remaining_balance.toFixed(2)}</TableCell>
-              <TableCell>{format(parseISO(pedido.created_at), 'dd/MM/yyyy', { locale: ptBR })}</TableCell>
-              <TableCell>
-                <Dialog>
-                  <DialogTrigger asChild>
-                    <Button onClick={() => setPedidoSelecionado(pedido)}>Pagar</Button>
-                  </DialogTrigger>
-                  <DialogContent>
-                    <DialogHeader>
-                      <DialogTitle>Pagamento do Saldo Restante</DialogTitle>
-                    </DialogHeader>
-                    <div className="space-y-4">
-                      <p>Saldo Restante: R$ {pedido.remaining_balance.toFixed(2)}</p>
-                      <Input
-                        type="number"
-                        placeholder="Valor do Pagamento"
-                        value={valorPagamento}
-                        onChange={(e) => setValorPagamento(parseFloat(e.target.value))}
-                      />
-                      <Select onValueChange={setOpcaoPagamento} value={opcaoPagamento}>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Opção de Pagamento" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {opcoesPagamento?.map((opcao) => (
-                            <SelectItem key={opcao.id} value={opcao.name}>{opcao.name}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <Button onClick={handlePagamento}>Confirmar Pagamento</Button>
-                    </div>
-                  </DialogContent>
-                </Dialog>
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
+      
+      <FinanceiroTable 
+        pedidos={pedidosFiltrados}
+        opcoesPagamento={opcoesPagamento}
+        handlePagamento={handlePagamento}
+      />
     </div>
   );
 };
