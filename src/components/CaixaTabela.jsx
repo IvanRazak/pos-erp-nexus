@@ -5,7 +5,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { useDeletePayment, useUpdateOrder, usePayments } from '../integrations/supabase';
+import { useDeletePayment, useUpdateOrder } from '../integrations/supabase';
 import { toast } from "sonner";
 import { useAuth } from '../hooks/useAuth';
 import { useQueryClient } from '@tanstack/react-query';
@@ -90,6 +90,7 @@ const CaixaTabela = ({ transacoes, setEditingPayment }) => {
     setItemsPerPage(newSize);
     setCurrentPage(1); // Reset to first page when changing page size
   };
+
   return (
     <div>
       <Table>
@@ -185,3 +186,5 @@ const CaixaTabela = ({ transacoes, setEditingPayment }) => {
     </div>
   );
 };
+
+export default CaixaTabela;
