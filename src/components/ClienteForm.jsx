@@ -98,7 +98,14 @@ const ClienteForm = ({ onSave, clienteInicial }) => {
 
       <Textarea {...register("observacoes")} placeholder="Observações" />
 
-
+      <div className="flex items-center space-x-2">
+        <Switch
+          id="bloqueado"
+          checked={watch('bloqueado')}
+          onCheckedChange={(checked) => setValue('bloqueado', checked)}
+        />
+        <label htmlFor="bloqueado">Bloquear cliente</label>
+      </div>
 
       <Button type="submit">
         {clienteInicial ? 'Atualizar Cliente' : 'Salvar Cliente'}
