@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { format, parseISO } from "date-fns";
 import { ptBR } from 'date-fns/locale';
@@ -10,10 +11,11 @@ import { toast } from "sonner";
 import { useAuth } from '../hooks/useAuth';
 import { useQueryClient } from '@tanstack/react-query';
 import { supabase } from '../lib/supabase';
+import PageSizeSelector from './ui/page-size-selector';
 
 const CaixaTabela = ({ transacoes, setEditingPayment }) => {
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 10;
+  const [itemsPerPage, setItemsPerPage] = useState(10);
   const deletePayment = useDeletePayment();
   const updateOrder = useUpdateOrder();
   const { user } = useAuth();
@@ -45,7 +47,7 @@ const CaixaTabela = ({ transacoes, setEditingPayment }) => {
 
         // Calcula o novo valor total pago somando os valores dos pagamentos
         const newPaidAmount = orderPayments.reduce((sum, p) => sum + (p.amount || 0), 0);
-        
+
         // Busca o valor total do pedido diretamente do banco
         const { data: orderData, error: orderError } = await supabase
           .from('orders')
@@ -57,7 +59,7 @@ const CaixaTabela = ({ transacoes, setEditingPayment }) => {
 
         // Calcula o novo saldo restante
         const newRemainingBalance = orderData.total_amount - newPaidAmount;
-        
+
         // Atualiza o pedido com os novos valores
         await updateOrder.mutateAsync({
           id: payment.order.id,
@@ -85,6 +87,10 @@ const CaixaTabela = ({ transacoes, setEditingPayment }) => {
   const currentItems = transacoes.slice(indexOfFirstItem, indexOfLastItem);
   const totalPages = Math.ceil(transacoes.length / itemsPerPage);
 
+  const handlePageSizeChange = (newSize) => {
+    setItemsPerPage(newSize);
+    setCurrentPage(1); // Reset to first page when changing page size
+  };
   return (
     <div>
       <Table>
@@ -154,8 +160,11 @@ const CaixaTabela = ({ transacoes, setEditingPayment }) => {
       </Table>
 
       <div className="flex justify-between items-center mt-4">
-        <div className="text-sm text-gray-500">
-          Mostrando {indexOfFirstItem + 1} a {Math.min(indexOfLastItem, transacoes.length)} de {transacoes.length} registros
+        <div className="flex items-center gap-4">
+          <div className="text-sm text-gray-500">
+            Mostrando {indexOfFirstItem + 1} a {Math.min(indexOfLastItem, transacoes.length)} de {transacoes.length} registros
+          </div>
+          <PageSizeSelector pageSize={itemsPerPage} onPageSizeChange={handlePageSizeChange} />
         </div>
         <div className="flex gap-2">
           <Button
@@ -177,5 +186,3 @@ const CaixaTabela = ({ transacoes, setEditingPayment }) => {
     </div>
   );
 };
-
-export default CaixaTabela;
