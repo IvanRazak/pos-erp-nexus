@@ -33,7 +33,7 @@ const CarrinhoItem = ({
 
   const renderDimensoes = () => {
     if (item.unit_type === 'square_meter') {
-      return item.largura && item.altura ? `${item.largura}m x ${item.altura}m` : 'N/A';
+      return item.largura && item.altura ? `${item.largura}m (L) x ${item.altura}m (A)` : 'N/A';
     }
     return item.format || 'N/A';
   };
