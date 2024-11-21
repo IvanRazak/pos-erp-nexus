@@ -4,7 +4,6 @@ import { ptBR } from 'date-fns/locale';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { useDeletePayment, useUpdateOrder, usePayments } from '../integrations/supabase';
 import { toast } from "sonner";
@@ -14,7 +13,7 @@ import { supabase } from '../lib/supabase';
 
 const CaixaTabela = ({ transacoes, setEditingPayment }) => {
   const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState(10);
+  const itemsPerPage = 10;
   const deletePayment = useDeletePayment();
   const updateOrder = useUpdateOrder();
   const { user } = useAuth();
@@ -88,26 +87,6 @@ const CaixaTabela = ({ transacoes, setEditingPayment }) => {
 
   return (
     <div>
-      <div className="flex justify-end mb-4">
-        <Select
-          value={itemsPerPage.toString()}
-          onValueChange={(value) => {
-            setItemsPerPage(Number(value));
-            setCurrentPage(1);
-          }}
-        >
-          <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="Itens por página" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="10">10 por página</SelectItem>
-            <SelectItem value="20">20 por página</SelectItem>
-            <SelectItem value="50">50 por página</SelectItem>
-            <SelectItem value="100">100 por página</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
-
       <Table>
         <TableHeader>
           <TableRow>
