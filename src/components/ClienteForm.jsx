@@ -11,7 +11,7 @@ import ClienteContactInfo from './cliente/ClienteContactInfo';
 import ClienteAddressInfo from './cliente/ClienteAddressInfo';
 import ClienteDocumentInfo from './cliente/ClienteDocumentInfo';
 
-const ClienteForm = ({ onSave, clienteInicial }) => {
+const ClienteForm = ({ onSave, clienteInicial, showBlockOption = false }) => {
   const { register, handleSubmit, setValue, watch, reset, formState: { errors } } = useForm({
     defaultValues: {
       ...clienteInicial,
@@ -98,14 +98,16 @@ const ClienteForm = ({ onSave, clienteInicial }) => {
 
       <Textarea {...register("observacoes")} placeholder="Observações" />
 
-      <div className="flex items-center space-x-2">
-        <Switch
-          id="bloqueado"
-          checked={watch('bloqueado')}
-          onCheckedChange={(checked) => setValue('bloqueado', checked)}
-        />
-        <label htmlFor="bloqueado">Bloquear cliente</label>
-      </div>
+      {showBlockOption && (
+        <div className="flex items-center space-x-2">
+          <Switch
+            id="bloqueado"
+            checked={watch('bloqueado')}
+            onCheckedChange={(checked) => setValue('bloqueado', checked)}
+          />
+          <label htmlFor="bloqueado">Bloquear cliente</label>
+        </div>
+      )}
 
       <Button type="submit">
         {clienteInicial ? 'Atualizar Cliente' : 'Salvar Cliente'}
