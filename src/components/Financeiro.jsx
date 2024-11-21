@@ -12,8 +12,11 @@ import { toast } from "sonner";
 import { format, isWithinInterval, parseISO, startOfDay, endOfDay } from "date-fns";
 import { ptBR } from 'date-fns/locale';
 import { useAuth } from '../hooks/useAuth';
+import PageSizeSelector from './ui/page-size-selector';
 
 const Financeiro = () => {
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
   const [filters, setFilters] = useState({
     dataInicio: null,
     dataFim: null,
@@ -24,6 +27,7 @@ const Financeiro = () => {
   const [pedidoSelecionado, setPedidoSelecionado] = useState(null);
   const [valorPagamento, setValorPagamento] = useState(0);
   const [opcaoPagamento, setOpcaoPagamento] = useState('');
+
   const navigate = useNavigate();
   const { user } = useAuth();
 
@@ -94,6 +98,16 @@ const Financeiro = () => {
     }
   };
 
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentItems = pedidosFiltrados.slice(indexOfFirstItem, indexOfLastItem);
+  const totalPages = Math.ceil(pedidosFiltrados.length / itemsPerPage);
+
+  const handlePageSizeChange = (newSize) => {
+    setItemsPerPage(newSize);
+    setCurrentPage(1);
+  };
+
   if (isLoadingPedidos || isLoadingOpcoesPagamento || isLoadingClientes) return <div>Carregando...</div>;
 
   return (
@@ -136,6 +150,7 @@ const Financeiro = () => {
           onChange={(e) => setFilters({...filters, numeroPedido: e.target.value})}
         />
       </div>
+      
       <Table>
         <TableHeader>
           <TableRow>
@@ -149,7 +164,7 @@ const Financeiro = () => {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {pedidosFiltrados.map((pedido) => (
+          {currentItems.map((pedido) => (
             <TableRow key={pedido.id}>
               <TableCell>{pedido.order_number}</TableCell>
               <TableCell>{pedido.customer?.name || 'N/A'}</TableCell>
@@ -193,6 +208,31 @@ const Financeiro = () => {
           ))}
         </TableBody>
       </Table>
+
+      <div className="flex justify-between items-center mt-4">
+        <div className="flex items-center gap-4">
+          <div className="text-sm text-gray-500">
+            Mostrando {indexOfFirstItem + 1} a {Math.min(indexOfLastItem, pedidosFiltrados.length)} de {pedidosFiltrados.length} registros
+          </div>
+          <PageSizeSelector pageSize={itemsPerPage} onPageSizeChange={handlePageSizeChange} />
+        </div>
+        <div className="flex gap-2">
+          <Button
+            variant="outline"
+            onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+            disabled={currentPage === 1}
+          >
+            Anterior
+          </Button>
+          <Button
+            variant="outline"
+            onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+            disabled={currentPage === totalPages}
+          >
+            Próximo
+          </Button>
+        </div>
+      </div>
     </div>
   );
 };
