@@ -58,7 +58,7 @@ const VendaCarrinho = ({
           <TableRow>
             <TableHead>Produto</TableHead>
             <TableHead>Quantidade</TableHead>
-            <TableHead>Dimensões</TableHead>
+            <TableHead>Medida</TableHead>
             <TableHead>M²</TableHead>
             <TableHead>Preço Unitário</TableHead>
             <TableHead>Extras</TableHead>
