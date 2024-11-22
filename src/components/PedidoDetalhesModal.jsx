@@ -8,6 +8,7 @@ import { supabase } from '../lib/supabase';
 import { getExtraOptionPrice } from '../utils/vendaUtils';
 import { generatePrintContent } from '../utils/printUtils';
 import PedidoDetalhesTable from './pedidos/PedidoDetalhesTable';
+import { toast } from "sonner";
 import jsPDF from 'jspdf';
 
 const PedidoDetalhesModal = ({ pedido, onClose }) => {
@@ -58,14 +59,21 @@ const PedidoDetalhesModal = ({ pedido, onClose }) => {
     },
   });
 
-  const handlePrint = () => {
-    const printWindow = window.open('', '_blank');
-    if (!printWindow) return;
-    
-    const printContent = generatePrintContent(pedido, itensPedido);
-    printWindow.document.write(printContent);
-    printWindow.document.close();
-    printWindow.print();
+  const handlePrint = async () => {
+    try {
+      const printWindow = window.open('', '_blank');
+      if (!printWindow) {
+        toast.error('Não foi possível abrir a janela de impressão');
+        return;
+      }
+      
+      const printContent = await generatePrintContent(pedido, itensPedido);
+      printWindow.document.write(printContent);
+      printWindow.document.close();
+      printWindow.print();
+    } catch (error) {
+      toast.error('Erro ao gerar impressão: ' + error.message);
+    }
   };
 
   const handleExportPDF = () => {

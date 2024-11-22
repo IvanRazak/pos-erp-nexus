@@ -15,6 +15,9 @@ const getTemplate = async (type) => {
 
 export const generatePrintContent = async (pedido, itensPedido) => {
   const template = await getTemplate('print');
+  if (!template) {
+    throw new Error('Template not found');
+  }
   
   const renderExtras = (extras, itemQuantity) => {
     if (!extras || extras.length === 0) return '';
@@ -48,7 +51,7 @@ export const generatePrintContent = async (pedido, itensPedido) => {
       }
       
       if (extra.extra_option.use_quantity_pricing) {
-        extraText += ' ';
+        extraText += ' *';
       }
       
       return extraText;
@@ -91,7 +94,7 @@ export const generatePrintContent = async (pedido, itensPedido) => {
     </p>` : '';
 
   return template.content
-    .replace(/{styles}/g, template.styles)
+    .replace(/{styles}/g, template.styles || '')
     .replace(/{order_number}/g, orderNumber)
     .replace(/{order_date}/g, orderDate)
     .replace(/{created_by}/g, pedido.created_by || 'N/A')
