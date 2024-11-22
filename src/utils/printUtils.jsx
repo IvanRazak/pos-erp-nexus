@@ -41,11 +41,18 @@ export const generatePrintContent = (pedido, itensPedido) => {
     }).join('<br>');
   };
 
-  // Get custom template from localStorage or use default
-  const customTemplate = localStorage.getItem('printTemplate');
-  const customStyles = localStorage.getItem('printStyles');
+  const customStyles = localStorage.getItem('printStyles') || `
+    body { font-family: Arial, sans-serif; padding: 20px; }
+    table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+    th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+    th { background-color: #f5f5f5; }
+    .total { font-weight: bold; margin-top: 20px; }
+    .discount-info { margin-top: 10px; color: #666; }
+    .description { font-style: italic; color: #666; margin-top: 4px; }
+    .order-info { margin-bottom: 20px; color: #666; }
+  `;
 
-  const template = customTemplate || `
+  const template = localStorage.getItem('printTemplate') || `
     <html>
       <head>
         <title>Pedido #{order_number}</title>
@@ -86,16 +93,8 @@ export const generatePrintContent = (pedido, itensPedido) => {
     </html>
   `;
 
-  const styles = customStyles || `
-    body { font-family: Arial, sans-serif; padding: 20px; }
-    table { width: 100%; border-collapse: collapse; margin: 20px 0; }
-    th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
-    th { background-color: #f5f5f5; }
-    .total { font-weight: bold; margin-top: 20px; }
-    .discount-info { margin-top: 10px; color: #666; }
-    .description { font-style: italic; color: #666; margin-top: 4px; }
-    .order-info { margin-bottom: 20px; color: #666; }
-  `;
+  const orderDate = pedido.created_at ? format(parseISO(pedido.created_at), 'dd/MM/yyyy HH:mm') : 'N/A';
+  const orderNumber = String(pedido.order_number || '');
 
   const itemsHtml = itensPedido?.map(item => {
     const subtotalProduto = item.quantity * item.unit_price;
@@ -106,21 +105,20 @@ export const generatePrintContent = (pedido, itensPedido) => {
     const subtotal = subtotalProduto + subtotalExtras;
     
     return `
-      <tr>
-        <td>
-          ${item.product.name}
-          ${item.description ? `<div class="description">Obs: ${item.description}</div>` : ''}
-        </td>
-        <td>${item.quantity}</td>
-        <td>${formatarDimensoes(item)}</td>
-        <td>${renderExtras(item.extras, item.quantity) || 'N/A'}</td>
-        <td>
-          R$ ${subtotal.toFixed(2)}
-          ${item.discount > 0 ? `<br><span class="discount-info">Desconto: R$ ${item.discount.toFixed(2)}</span>` : ''}
-        </td>
-      </tr>
-    `;
-  }).join('');
+    <tr>
+      <td>
+        ${item.product.name}
+        ${item.description ? `<div class="description">Obs: ${item.description}</div>` : ''}
+      </td>
+      <td>${item.quantity}</td>
+      <td>${formatarDimensoes(item)}</td>
+      <td>${renderExtras(item.extras, item.quantity) || 'N/A'}</td>
+      <td>
+        R$ ${subtotal.toFixed(2)}
+        ${item.discount > 0 ? `<br><span class="discount-info">Desconto: R$ ${item.discount.toFixed(2)}</span>` : ''}
+      </td>
+    </tr>
+  `}).join('');
 
   const discountHtml = pedido.discount > 0 ? 
     `<p class="discount-info">Desconto Geral: R$ ${pedido.discount.toFixed(2)}</p>` : '';
@@ -130,16 +128,13 @@ export const generatePrintContent = (pedido, itensPedido) => {
       ${pedido.additional_value_description ? `${pedido.additional_value_description}` : ''}: R$ ${pedido.additional_value.toFixed(2)}
     </p>` : '';
 
-  const orderDate = pedido.created_at ? format(parseISO(pedido.created_at), 'dd/MM/yyyy HH:mm') : 'N/A';
-  const deliveryDate = pedido.delivery_date ? format(parseISO(pedido.delivery_date), 'dd/MM/yyyy') : 'N/A';
-
   return template
-    .replace(/{styles}/g, styles)
-    .replace(/{order_number}/g, pedido.order_number || '')
+    .replace(/{styles}/g, customStyles)
+    .replace(/{order_number}/g, orderNumber)
     .replace(/{order_date}/g, orderDate)
     .replace(/{created_by}/g, pedido.created_by || 'N/A')
     .replace(/{customer_name}/g, pedido.customer?.name || 'N/A')
-    .replace(/{delivery_date}/g, deliveryDate)
+    .replace(/{delivery_date}/g, pedido.delivery_date ? format(parseISO(pedido.delivery_date), 'dd/MM/yyyy') : 'N/A')
     .replace(/{items}/g, itemsHtml)
     .replace(/{discount}/g, discountHtml)
     .replace(/{additional_value}/g, additionalValueHtml)

@@ -1,12 +1,14 @@
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Button } from "@/components/ui/button";
+import { Printer, FileDown } from "lucide-react";
 import { supabase } from '../lib/supabase';
 import { getExtraOptionPrice } from '../utils/vendaUtils';
 import { generatePrintContent } from '../utils/printUtils';
+import PedidoDetalhesTable from './pedidos/PedidoDetalhesTable';
 import jsPDF from 'jspdf';
-import PedidoDetalhesHeader from './pedidos/PedidoDetalhesHeader';
-import PedidoDetalhesContent from './pedidos/PedidoDetalhesContent';
 
 const PedidoDetalhesModal = ({ pedido, onClose }) => {
   const { data: itensPedido, isLoading } = useQuery({
@@ -70,13 +72,9 @@ const PedidoDetalhesModal = ({ pedido, onClose }) => {
     const doc = new jsPDF();
     const printContent = generatePrintContent(pedido, itensPedido);
     
-    // Get custom template from localStorage
-    const customTemplate = localStorage.getItem('printTemplate');
-    const content = customTemplate || printContent;
-    
     // Remove HTML tags and convert to plain text
     const tempDiv = document.createElement('div');
-    tempDiv.innerHTML = content;
+    tempDiv.innerHTML = printContent;
     const text = tempDiv.textContent || tempDiv.innerText || '';
     
     // Get PDF styles from localStorage or use defaults
@@ -94,7 +92,7 @@ const PedidoDetalhesModal = ({ pedido, onClose }) => {
     
     const styles = { ...defaultStyles, ...pdfStyles };
     
-    // Apply styles and content from template
+    // Title
     let y = styles.title.margin;
     doc.setFontSize(styles.title.fontSize);
     doc.text(`Pedido #${pedido.order_number}`, 10, y);
@@ -198,6 +196,14 @@ const PedidoDetalhesModal = ({ pedido, onClose }) => {
     doc.save(`pedido-${pedido.order_number}.pdf`);
   };
 
+  if (isLoading) return <div>Carregando detalhes do pedido...</div>;
+
+  const calcularTotalDescontos = () => {
+    const descontosIndividuais = itensPedido.reduce((sum, item) => sum + (item.discount || 0), 0);
+    const descontoGeral = pedido.discount || 0;
+    return descontosIndividuais + descontoGeral;
+  };
+
   const renderExtras = (extras, itemQuantity) => {
     return extras.map((extra) => {
       let extraText = `${extra.extra_option.name}: `;
@@ -231,28 +237,46 @@ const PedidoDetalhesModal = ({ pedido, onClose }) => {
     });
   };
 
-  const calcularTotalDescontos = () => {
-    const descontosIndividuais = itensPedido.reduce((sum, item) => sum + (item.discount || 0), 0);
-    const descontoGeral = pedido.discount || 0;
-    return descontosIndividuais + descontoGeral;
-  };
-
-  if (isLoading) return <div>Carregando detalhes do pedido...</div>;
-
   return (
     <Dialog open={true} onOpenChange={onClose}>
       <DialogContent className="w-[90vw] max-w-[90vw] h-[90vh] max-h-[90vh] p-0">
-        <PedidoDetalhesHeader 
-          pedido={pedido}
-          onPrint={handlePrint}
-          onExportPDF={handleExportPDF}
-        />
-        <PedidoDetalhesContent 
-          itensPedido={itensPedido}
-          pedido={pedido}
-          renderExtras={renderExtras}
-          calcularTotalDescontos={calcularTotalDescontos}
-        />
+        <DialogHeader className="p-6">
+          <div className="flex justify-between items-center">
+            <DialogTitle>Detalhes do Pedido #{pedido.order_number}</DialogTitle>
+            <div className="flex gap-2">
+              <Button onClick={handlePrint} variant="outline" size="icon">
+                <Printer className="h-4 w-4" />
+              </Button>
+              <Button onClick={handleExportPDF} variant="outline" size="icon">
+                <FileDown className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        </DialogHeader>
+        <div className="flex-1 overflow-hidden">
+          <ScrollArea className="h-[calc(90vh-8rem)] w-full">
+            <div className="p-6">
+              <div className="overflow-x-auto">
+                <PedidoDetalhesTable 
+                  itensPedido={itensPedido}
+                  renderExtras={renderExtras}
+                />
+              </div>
+              <div className="mt-4 p-4 bg-gray-50 rounded">
+                <p className="text-sm font-medium">Total Descontos (Individuais + Geral): R$ {calcularTotalDescontos().toFixed(2)}</p>
+                {pedido.additional_value > 0 && (
+                  <div className="text-sm font-medium">
+                    <p>Valor Adicional: R$ {pedido.additional_value.toFixed(2)}</p>
+                    {pedido.additional_value_description && (
+                      <p className="text-gray-600">Descrição: {pedido.additional_value_description}</p>
+                    )}
+                  </div>
+                )}
+                <p className="text-lg font-bold mt-2">Total Final: R$ {pedido.total_amount?.toFixed(2) || '0.00'}</p>
+              </div>
+            </div>
+          </ScrollArea>
+        </div>
       </DialogContent>
     </Dialog>
   );
