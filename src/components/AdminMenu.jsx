@@ -10,6 +10,7 @@ import bcrypt from 'bcryptjs';
 import GerenciarOpcoesExtras from './GerenciarOpcoesExtras';
 import GerenciarOpcoesSelecao from './GerenciarOpcoesSelecao';
 import PrintTemplateEditor from './PrintTemplateEditor';
+import PdfTemplateEditor from './PdfTemplateEditor';
 import { Menu } from 'lucide-react';
 
 const AdminMenu = () => {
@@ -146,6 +147,8 @@ const AdminMenu = () => {
           </Dialog>
 
           <PrintTemplateEditor />
+          
+          <PdfTemplateEditor />
 
           <Button className="w-full" onClick={() => setIsGerenciarOpcoesExtrasOpen(true)}>
             Gerenciar Opções Extras

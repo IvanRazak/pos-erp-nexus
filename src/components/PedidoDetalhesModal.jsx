@@ -77,99 +77,121 @@ const PedidoDetalhesModal = ({ pedido, onClose }) => {
     tempDiv.innerHTML = printContent;
     const text = tempDiv.textContent || tempDiv.innerText || '';
     
-    // Configure initial settings
-    doc.setFontSize(16);
-    doc.text(`Pedido #${pedido.order_number}`, 10, 20);
+    // Get PDF styles from localStorage or use defaults
+    const pdfStyles = JSON.parse(localStorage.getItem('pdfStyles') || '{}');
+    const defaultStyles = {
+      title: { fontSize: 16, margin: 20 },
+      header: { fontSize: 12, margin: 10 },
+      itemsTitle: { fontSize: 14, margin: 20 },
+      item: { fontSize: 12, margin: 7, indent: 15 },
+      itemDetails: { fontSize: 10, margin: 7, indent: 20 },
+      extras: { fontSize: 10, margin: 7, indent: 25 },
+      summary: { fontSize: 14, margin: 10, indent: 10 },
+      totals: { fontSize: 12, margin: 7, indent: 15 }
+    };
     
-    doc.setFontSize(12);
-    doc.text(`Cliente: ${pedido.customer?.name || 'N/A'}`, 10, 30);
-    doc.text(`Data do Pedido: ${pedido.created_at ? new Date(pedido.created_at).toLocaleDateString() : 'N/A'}`, 10, 40);
-    doc.text(`Data de Entrega: ${pedido.delivery_date ? new Date(pedido.delivery_date).toLocaleDateString() : 'N/A'}`, 10, 50);
+    const styles = { ...defaultStyles, ...pdfStyles };
     
-    // Add items table header
-    doc.setFontSize(14);
-    doc.text('Itens do Pedido:', 10, 70);
+    // Title
+    let y = styles.title.margin;
+    doc.setFontSize(styles.title.fontSize);
+    doc.text(`Pedido #${pedido.order_number}`, 10, y);
     
-    let y = 90;
+    // Header
+    y += styles.header.margin;
+    doc.setFontSize(styles.header.fontSize);
+    doc.text(`Cliente: ${pedido.customer?.name || 'N/A'}`, 10, y);
+    y += styles.header.margin;
+    doc.text(`Data do Pedido: ${pedido.created_at ? new Date(pedido.created_at).toLocaleDateString() : 'N/A'}`, 10, y);
+    y += styles.header.margin;
+    doc.text(`Data de Entrega: ${pedido.delivery_date ? new Date(pedido.delivery_date).toLocaleDateString() : 'N/A'}`, 10, y);
+    
+    // Items
+    y += styles.itemsTitle.margin;
+    doc.setFontSize(styles.itemsTitle.fontSize);
+    doc.text('Itens do Pedido:', 10, y);
+    
+    y += styles.item.margin;
     itensPedido?.forEach((item, index) => {
       if (y > 270) {
         doc.addPage();
         y = 20;
       }
       
-      doc.setFontSize(12);
-      doc.text(`${index + 1}. ${item.product.name}`, 15, y);
-      y += 7;
+      doc.setFontSize(styles.item.fontSize);
+      doc.text(`${index + 1}. ${item.product.name}`, styles.item.indent, y);
+      y += styles.itemDetails.margin;
       
-      doc.setFontSize(10);
-      doc.text(`Quantidade: ${item.quantity}`, 20, y);
-      y += 7;
+      doc.setFontSize(styles.itemDetails.fontSize);
+      doc.text(`Quantidade: ${item.quantity}`, styles.itemDetails.indent, y);
+      y += styles.itemDetails.margin;
       
       if (item.width && item.height) {
-        doc.text(`Dimensões: ${item.width}m x ${item.height}m`, 20, y);
-        y += 7;
+        doc.text(`Dimensões: ${item.width}m x ${item.height}m`, styles.itemDetails.indent, y);
+        y += styles.itemDetails.margin;
       }
       
       if (item.m2) {
-        doc.text(`M²: ${item.m2.toFixed(2)}`, 20, y);
-        y += 7;
+        doc.text(`M²: ${item.m2.toFixed(2)}`, styles.itemDetails.indent, y);
+        y += styles.itemDetails.margin;
       }
       
-      doc.text(`Valor Unitário: R$ ${item.unit_price.toFixed(2)}`, 20, y);
-      y += 7;
+      doc.text(`Valor Unitário: R$ ${item.unit_price.toFixed(2)}`, styles.itemDetails.indent, y);
+      y += styles.itemDetails.margin;
       
       if (item.extras?.length > 0) {
-        doc.text('Opções Extras:', 20, y);
-        y += 7;
+        doc.text('Opções Extras:', styles.itemDetails.indent, y);
+        y += styles.extras.margin;
         
         item.extras.forEach(extra => {
           const extraText = `- ${extra.extra_option.name}: R$ ${(extra.total_value || 0).toFixed(2)}`;
-          doc.text(extraText, 25, y);
-          y += 7;
+          doc.setFontSize(styles.extras.fontSize);
+          doc.text(extraText, styles.extras.indent, y);
+          y += styles.extras.margin;
         });
       }
       
       if (item.discount > 0) {
-        doc.text(`Desconto: R$ ${item.discount.toFixed(2)}`, 20, y);
-        y += 7;
+        doc.text(`Desconto: R$ ${item.discount.toFixed(2)}`, styles.itemDetails.indent, y);
+        y += styles.itemDetails.margin;
       }
       
       const subtotal = (item.quantity * item.unit_price) - (item.discount || 0);
-      doc.text(`Subtotal: R$ ${subtotal.toFixed(2)}`, 20, y);
-      y += 12;
+      doc.text(`Subtotal: R$ ${subtotal.toFixed(2)}`, styles.itemDetails.indent, y);
+      y += styles.item.margin;
     });
     
-    // Add totals section
+    // Summary
     if (y > 250) {
       doc.addPage();
-      y = 20;
+      y = styles.summary.margin;
     }
     
-    doc.setFontSize(14);
-    doc.text('Resumo:', 10, y);
-    y += 10;
+    doc.setFontSize(styles.summary.fontSize);
+    doc.text('Resumo:', styles.summary.indent, y);
+    y += styles.totals.margin;
     
-    doc.setFontSize(12);
+    doc.setFontSize(styles.totals.fontSize);
     if (pedido.discount > 0) {
-      doc.text(`Desconto Geral: R$ ${pedido.discount.toFixed(2)}`, 15, y);
-      y += 7;
+      doc.text(`Desconto Geral: R$ ${pedido.discount.toFixed(2)}`, styles.totals.indent, y);
+      y += styles.totals.margin;
     }
     
     if (pedido.additional_value > 0) {
-      doc.text(`Valor Adicional: R$ ${pedido.additional_value.toFixed(2)}`, 15, y);
+      doc.text(`Valor Adicional: R$ ${pedido.additional_value.toFixed(2)}`, styles.totals.indent, y);
       if (pedido.additional_value_description) {
-        doc.text(`Descrição: ${pedido.additional_value_description}`, 15, y + 7);
-        y += 14;
+        doc.text(`Descrição: ${pedido.additional_value_description}`, styles.totals.indent, y + styles.totals.margin);
+        y += styles.totals.margin * 2;
       } else {
-        y += 7;
+        y += styles.totals.margin;
       }
     }
     
-    doc.text(`Valor Total: R$ ${pedido.total_amount?.toFixed(2) || '0.00'}`, 15, y);
-    y += 7;
-    doc.text(`Valor Pago: R$ ${pedido.paid_amount?.toFixed(2) || '0.00'}`, 15, y);
-    y += 7;
-    doc.text(`Saldo Restante: R$ ${pedido.remaining_balance?.toFixed(2) || '0.00'}`, 15, y);
+    doc.text(`Valor Total: R$ ${pedido.total_amount?.toFixed(2) || '0.00'}`, styles.totals.indent, y);
+    y += styles.totals.margin;
+    doc.text(`Valor Pago: R$ ${pedido.paid_amount?.toFixed(2) || '0.00'}`, styles.totals.indent, y);
+    y += styles.totals.margin;
+    doc.text(`Saldo Restante: R$ ${pedido.remaining_balance?.toFixed(2) || '0.00'}`, styles.totals.indent, y);
     
     doc.save(`pedido-${pedido.order_number}.pdf`);
   };
