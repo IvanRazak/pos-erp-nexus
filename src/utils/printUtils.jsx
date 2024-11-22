@@ -70,9 +70,9 @@ export const generatePrintContent = (pedido, itensPedido) => {
         <table>
           <thead>
             <tr>
-              <th>Item</th>
-              <th>Qnt</th>
-              <th>Medida</th>
+              <th>Produto</th>
+              <th>Quantidade</th>
+              <th>Dimensões</th>
               <th>Opções Extras</th>
               <th>Subtotal</th>
             </tr>
@@ -93,13 +93,16 @@ export const generatePrintContent = (pedido, itensPedido) => {
     </html>
   `;
 
+  const orderDate = pedido.created_at ? format(parseISO(pedido.created_at), 'dd/MM/yyyy HH:mm') : 'N/A';
+  const orderNumber = String(pedido.order_number || '');
+
   const itemsHtml = itensPedido?.map(item => {
     const subtotalProduto = item.quantity * item.unit_price;
     const subtotalExtras = item.extras.reduce((sum, extra) => {
       const extraValue = extra.total_value || 0;
       return sum + (extra.extra_option.fixed_value ? extraValue : extraValue * item.quantity);
     }, 0);
-    const subtotalComDesconto = subtotalProduto + subtotalExtras - (item.discount || 0);
+    const subtotal = subtotalProduto + subtotalExtras;
     
     return `
     <tr>
@@ -111,7 +114,7 @@ export const generatePrintContent = (pedido, itensPedido) => {
       <td>${formatarDimensoes(item)}</td>
       <td>${renderExtras(item.extras, item.quantity) || 'N/A'}</td>
       <td>
-        R$ ${subtotalComDesconto.toFixed(2)}
+        R$ ${subtotal.toFixed(2)}
         ${item.discount > 0 ? `<br><span class="discount-info">Desconto: R$ ${item.discount.toFixed(2)}</span>` : ''}
       </td>
     </tr>
@@ -124,11 +127,6 @@ export const generatePrintContent = (pedido, itensPedido) => {
     `<p class="discount-info">
       ${pedido.additional_value_description ? `${pedido.additional_value_description}` : ''}: R$ ${pedido.additional_value.toFixed(2)}
     </p>` : '';
-
-  const orderDate = pedido.created_at ? format(parseISO(pedido.created_at), 'dd/MM/yyyy HH:mm') : 'N/A';
-
-  // Convert order_number to string to ensure it's not undefined
-  const orderNumber = String(pedido.order_number || '');
 
   return template
     .replace(/{styles}/g, customStyles)
