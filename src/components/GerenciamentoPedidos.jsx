@@ -10,6 +10,7 @@ import PedidoDetalhesModal from './PedidoDetalhesModal';
 import PedidosFiltros from './pedidos/PedidosFiltros';
 import PedidosTabela from './pedidos/PedidosTabela';
 import PageSizeSelector from './ui/page-size-selector';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 const GerenciamentoPedidos = () => {
   const [filters, setFilters] = useState({
@@ -103,7 +104,7 @@ const GerenciamentoPedidos = () => {
 
   const handlePageSizeChange = (newSize) => {
     setItemsPerPage(newSize);
-    setCurrentPage(1); // Reset to first page when changing page size
+    setCurrentPage(1);
   };
 
   if (isLoadingPedidos || isLoadingClientes) return <div>Carregando...</div>;
@@ -111,9 +112,6 @@ const GerenciamentoPedidos = () => {
   return (
     <div className="container mx-auto p-4">
       <h2 className="text-2xl font-bold mb-4">Gerenciamento de Pedidos</h2>
-      <div className="mb-4">
-        <PageSizeSelector pageSize={itemsPerPage} onPageSizeChange={handlePageSizeChange} />
-      </div>
       <PedidosFiltros filters={filters} setFilters={setFilters} />
       <PedidosTabela 
         pedidos={paginatedPedidos}
@@ -123,23 +121,32 @@ const GerenciamentoPedidos = () => {
         handleCancelarPedido={handleCancelarPedido}
         descontosIndividuais={descontosIndividuais}
       />
-      {totalPages > 1 && (
-        <div className="flex justify-center gap-2 mt-4">
-          {Array.from({ length: totalPages }, (_, i) => (
-            <button
-              key={i + 1}
-              onClick={() => setCurrentPage(i + 1)}
-              className={`px-3 py-1 rounded ${
-                currentPage === i + 1
-                  ? 'bg-blue-500 text-white'
-                  : 'bg-gray-200 hover:bg-gray-300'
-              }`}
-            >
-              {i + 1}
-            </button>
-          ))}
+      <div className="flex justify-between items-center mt-4">
+        <div className="flex items-center gap-4">
+          <div className="text-sm text-gray-500">
+            Mostrando {(currentPage - 1) * itemsPerPage + 1} a {Math.min(currentPage * itemsPerPage, pedidosFiltrados.length)} de {pedidosFiltrados.length} registros
+          </div>
+          <PageSizeSelector pageSize={itemsPerPage} onPageSizeChange={handlePageSizeChange} />
         </div>
-      )}
+        <div className="flex items-center gap-2">
+          <span className="text-sm text-gray-500">Página:</span>
+          <Select 
+            value={currentPage.toString()} 
+            onValueChange={(value) => setCurrentPage(parseInt(value))}
+          >
+            <SelectTrigger className="w-[100px]">
+              <SelectValue placeholder="Página" />
+            </SelectTrigger>
+            <SelectContent>
+              {Array.from({ length: totalPages }, (_, i) => (
+                <SelectItem key={i + 1} value={(i + 1).toString()}>
+                  {i + 1}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
       {pedidoSelecionado && (
         <PedidoDetalhesModal pedido={pedidoSelecionado} onClose={() => setPedidoSelecionado(null)} />
       )}
