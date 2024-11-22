@@ -1,7 +1,21 @@
 import { format, parseISO } from 'date-fns';
 import { formatarDimensoes } from './pedidoUtils';
+import { supabase } from '../lib/supabase';
 
-export const generatePrintContent = (pedido, itensPedido) => {
+const getTemplate = async (type) => {
+  const { data, error } = await supabase
+    .from('templates')
+    .select('*')
+    .eq('type', type)
+    .single();
+
+  if (error) throw error;
+  return data;
+};
+
+export const generatePrintContent = async (pedido, itensPedido) => {
+  const template = await getTemplate('print');
+  
   const renderExtras = (extras, itemQuantity) => {
     if (!extras || extras.length === 0) return '';
     
@@ -41,58 +55,6 @@ export const generatePrintContent = (pedido, itensPedido) => {
     }).join('<br>');
   };
 
-  const customStyles = localStorage.getItem('printStyles') || `
-    body { font-family: Arial, sans-serif; padding: 20px; }
-    table { width: 100%; border-collapse: collapse; margin: 20px 0; }
-    th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
-    th { background-color: #f5f5f5; }
-    .total { font-weight: bold; margin-top: 20px; }
-    .discount-info { margin-top: 10px; color: #666; }
-    .description { font-style: italic; color: #666; margin-top: 4px; }
-    .order-info { margin-bottom: 20px; color: #666; }
-  `;
-
-  const template = localStorage.getItem('printTemplate') || `
-    <html>
-      <head>
-        <title>Pedido #{order_number}</title>
-        <style>{styles}</style>
-      </head>
-      <body>
-        <h2>Pedido #{order_number}</h2>
-        <div class="order-info">
-          <p><strong>Data do Pedido:</strong> {order_date}</p>
-          <p><strong>Criado por:</strong> {created_by}</p>
-        </div>
-        <p><strong>Cliente:</strong> {customer_name}</p>
-        <p><strong>Data de Entrega:</strong> {delivery_date}</p>
-        
-        <table>
-          <thead>
-            <tr>
-              <th>Produto</th>
-              <th>Quantidade</th>
-              <th>Dimensões</th>
-              <th>Opções Extras</th>
-              <th>Subtotal</th>
-            </tr>
-          </thead>
-          <tbody>
-            {items}
-          </tbody>
-        </table>
-
-        <div class="total">
-          {discount}
-          {additional_value}
-          <p>Valor Total: R$ {total_amount}</p>
-          <p>Valor Pago: R$ {paid_amount} {payment_option}</p>
-          <p>Saldo Restante: R$ {remaining_balance}</p>
-        </div>
-      </body>
-    </html>
-  `;
-
   const orderDate = pedido.created_at ? format(parseISO(pedido.created_at), 'dd/MM/yyyy HH:mm') : 'N/A';
   const orderNumber = String(pedido.order_number || '');
 
@@ -128,8 +90,8 @@ export const generatePrintContent = (pedido, itensPedido) => {
       ${pedido.additional_value_description ? `${pedido.additional_value_description}` : ''}: R$ ${pedido.additional_value.toFixed(2)}
     </p>` : '';
 
-  return template
-    .replace(/{styles}/g, customStyles)
+  return template.content
+    .replace(/{styles}/g, template.styles)
     .replace(/{order_number}/g, orderNumber)
     .replace(/{order_date}/g, orderDate)
     .replace(/{created_by}/g, pedido.created_by || 'N/A')

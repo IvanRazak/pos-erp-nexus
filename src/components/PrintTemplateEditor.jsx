@@ -4,73 +4,55 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
+import { useTemplates, useUpdateTemplate } from '../integrations/supabase/hooks/templates';
 
 const PrintTemplateEditor = () => {
-  const [printStyles, setPrintStyles] = React.useState(
-    localStorage.getItem('printStyles') || `
-    body { font-family: Arial, sans-serif; padding: 20px; }
-    table { width: 100%; border-collapse: collapse; margin: 20px 0; }
-    th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
-    th { background-color: #f5f5f5; }
-    .total { font-weight: bold; margin-top: 20px; }
-    .discount-info { margin-top: 10px; color: #666; }
-    .description { font-style: italic; color: #666; margin-top: 4px; }
-    .order-info { margin-bottom: 20px; color: #666; }
-  `);
-
-  const [printTemplate, setPrintTemplate] = React.useState(
-    localStorage.getItem('printTemplate') || `
-    <html>
-      <head>
-        <title>Pedido #{order_number}</title>
-        <style>{styles}</style>
-      </head>
-      <body>
-        <h2>Pedido #{order_number}</h2>
-        <div class="order-info">
-          <p><strong>Data do Pedido:</strong> {order_date}</p>
-          <p><strong>Criado por:</strong> {created_by}</p>
-        </div>
-        <p><strong>Cliente:</strong> {customer_name}</p>
-        <p><strong>Data de Entrega:</strong> {delivery_date}</p>
-        
-        <table>
-          <thead>
-            <tr>
-              <th>Produto</th>
-              <th>Quantidade</th>
-              <th>Dimensões</th>
-              <th>Opções Extras</th>
-              <th>Subtotal</th>
-            </tr>
-          </thead>
-          <tbody>
-            {items}
-          </tbody>
-        </table>
-
-        <div class="total">
-          {discount}
-          {additional_value}
-          <p>Valor Total: R$ {total_amount}</p>
-          <p>Valor Pago: R$ {paid_amount} {payment_option}</p>
-          <p>Saldo Restante: R$ {remaining_balance}</p>
-        </div>
-      </body>
-    </html>
-  `);
+  const { data: template, isLoading } = useTemplates('print');
+  const updateTemplate = useUpdateTemplate();
 
   const handlePrintStylesChange = (newStyles) => {
-    setPrintStyles(newStyles);
-    localStorage.setItem('printStyles', newStyles);
-    toast.success("Estilos de impressão atualizados com sucesso!");
+    if (!template) return;
+    
+    updateTemplate.mutate(
+      { 
+        id: template.id, 
+        content: template.content,
+        styles: newStyles 
+      },
+      {
+        onSuccess: () => {
+          toast.success("Estilos de impressão atualizados com sucesso!");
+        },
+        onError: (error) => {
+          toast.error("Erro ao atualizar estilos: " + error.message);
+        }
+      }
+    );
   };
 
   const handlePrintTemplateChange = (newTemplate) => {
-    setPrintTemplate(newTemplate);
-    localStorage.setItem('printTemplate', newTemplate);
-    toast.success("Template de impressão atualizado com sucesso!");
+    if (!template) return;
+    
+    updateTemplate.mutate(
+      { 
+        id: template.id, 
+        content: newTemplate,
+        styles: template.styles 
+      },
+      {
+        onSuccess: () => {
+          toast.success("Template de impressão atualizado com sucesso!");
+        },
+        onError: (error) => {
+          toast.error("Erro ao atualizar template: " + error.message);
+        }
+      }
+    );
   };
+
+  if (isLoading) {
+    return null;
+  }
 
   return (
     <Dialog>
@@ -89,7 +71,7 @@ const PrintTemplateEditor = () => {
           <TabsContent value="html">
             <div className="space-y-4">
               <Textarea
-                value={printTemplate}
+                value={template?.content}
                 onChange={(e) => handlePrintTemplateChange(e.target.value)}
                 className="min-h-[400px] font-mono"
                 placeholder="Digite o template HTML aqui..."
@@ -115,7 +97,7 @@ const PrintTemplateEditor = () => {
           <TabsContent value="css">
             <div className="space-y-4">
               <Textarea
-                value={printStyles}
+                value={template?.styles}
                 onChange={(e) => handlePrintStylesChange(e.target.value)}
                 className="min-h-[400px] font-mono"
                 placeholder="Digite os estilos CSS aqui..."

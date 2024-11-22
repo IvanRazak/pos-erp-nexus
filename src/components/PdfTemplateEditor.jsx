@@ -4,109 +4,60 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
+import { useTemplates, useUpdateTemplate } from '../integrations/supabase/hooks/templates';
 
 const PdfTemplateEditor = () => {
-  const [pdfStyles, setPdfStyles] = React.useState(
-    localStorage.getItem('pdfStyles') || `
-    {
-      "title": {
-        "fontSize": 16,
-        "margin": 20
-      },
-      "header": {
-        "fontSize": 12,
-        "margin": 10
-      },
-      "itemsTitle": {
-        "fontSize": 14,
-        "margin": 20
-      },
-      "item": {
-        "fontSize": 12,
-        "margin": 7,
-        "indent": 15
-      },
-      "itemDetails": {
-        "fontSize": 10,
-        "margin": 7,
-        "indent": 20
-      },
-      "extras": {
-        "fontSize": 10,
-        "margin": 7,
-        "indent": 25
-      },
-      "summary": {
-        "fontSize": 14,
-        "margin": 10,
-        "indent": 10
-      },
-      "totals": {
-        "fontSize": 12,
-        "margin": 7,
-        "indent": 15
-      }
-    }
-  `);
-
-  const [pdfTemplate, setPdfTemplate] = React.useState(
-    localStorage.getItem('printTemplate') || `
-    <html>
-      <head>
-        <title>Pedido #{order_number}</title>
-        <style>{styles}</style>
-      </head>
-      <body>
-        <h2>Pedido #{order_number}</h2>
-        <div class="order-info">
-          <p><strong>Data do Pedido:</strong> {order_date}</p>
-          <p><strong>Criado por:</strong> {created_by}</p>
-        </div>
-        <p><strong>Cliente:</strong> {customer_name}</p>
-        <p><strong>Data de Entrega:</strong> {delivery_date}</p>
-        
-        <table>
-          <thead>
-            <tr>
-              <th>Produto</th>
-              <th>Quantidade</th>
-              <th>Dimensões</th>
-              <th>Opções Extras</th>
-              <th>Subtotal</th>
-            </tr>
-          </thead>
-          <tbody>
-            {items}
-          </tbody>
-        </table>
-
-        <div class="total">
-          {discount}
-          {additional_value}
-          <p>Valor Total: R$ {total_amount}</p>
-          <p>Valor Pago: R$ {paid_amount} {payment_option}</p>
-          <p>Saldo Restante: R$ {remaining_balance}</p>
-        </div>
-      </body>
-    </html>
-  `);
+  const { data: template, isLoading } = useTemplates('pdf');
+  const updateTemplate = useUpdateTemplate();
 
   const handlePdfStylesChange = (newStyles) => {
     try {
-      JSON.parse(newStyles);
-      setPdfStyles(newStyles);
-      localStorage.setItem('pdfStyles', newStyles);
-      toast.success("Estilos do PDF atualizados com sucesso!");
+      JSON.parse(newStyles); // Validate JSON
+      if (!template) return;
+      
+      updateTemplate.mutate(
+        { 
+          id: template.id, 
+          content: template.content,
+          styles: newStyles 
+        },
+        {
+          onSuccess: () => {
+            toast.success("Estilos do PDF atualizados com sucesso!");
+          },
+          onError: (error) => {
+            toast.error("Erro ao atualizar estilos: " + error.message);
+          }
+        }
+      );
     } catch (error) {
       toast.error("JSON inválido! Por favor, verifique o formato.");
     }
   };
 
   const handlePdfTemplateChange = (newTemplate) => {
-    setPdfTemplate(newTemplate);
-    localStorage.setItem('printTemplate', newTemplate);
-    toast.success("Template do PDF atualizado com sucesso!");
+    if (!template) return;
+    
+    updateTemplate.mutate(
+      { 
+        id: template.id, 
+        content: newTemplate,
+        styles: template.styles 
+      },
+      {
+        onSuccess: () => {
+          toast.success("Template do PDF atualizado com sucesso!");
+        },
+        onError: (error) => {
+          toast.error("Erro ao atualizar template: " + error.message);
+        }
+      }
+    );
   };
+
+  if (isLoading) {
+    return null;
+  }
 
   return (
     <Dialog>
@@ -125,7 +76,7 @@ const PdfTemplateEditor = () => {
           <TabsContent value="styles">
             <div className="space-y-4">
               <Textarea
-                value={pdfStyles}
+                value={template?.styles}
                 onChange={(e) => handlePdfStylesChange(e.target.value)}
                 className="min-h-[400px] font-mono"
                 placeholder="Digite o template JSON aqui..."
@@ -154,7 +105,7 @@ const PdfTemplateEditor = () => {
           <TabsContent value="content">
             <div className="space-y-4">
               <Textarea
-                value={pdfTemplate}
+                value={template?.content}
                 onChange={(e) => handlePdfTemplateChange(e.target.value)}
                 className="min-h-[400px] font-mono"
                 placeholder="Digite o template HTML aqui..."
