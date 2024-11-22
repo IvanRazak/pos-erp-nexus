@@ -9,6 +9,7 @@ import { useAuth } from '../hooks/useAuth';
 import PedidoDetalhesModal from './PedidoDetalhesModal';
 import PedidosFiltros from './pedidos/PedidosFiltros';
 import PedidosTabela from './pedidos/PedidosTabela';
+import PageSizeSelector from './ui/page-size-selector';
 
 const GerenciamentoPedidos = () => {
   const [filters, setFilters] = useState({
@@ -21,10 +22,10 @@ const GerenciamentoPedidos = () => {
     status: 'all'
   });
   const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(20);
   const [pedidoSelecionado, setPedidoSelecionado] = useState(null);
   const navigate = useNavigate();
   const { user } = useAuth();
-  const itemsPerPage = 20;
 
   const { data: pedidos, isLoading: isLoadingPedidos } = useOrders();
   const { data: clientes, isLoading: isLoadingClientes } = useCustomers();
@@ -65,7 +66,7 @@ const GerenciamentoPedidos = () => {
     const startIndex = (currentPage - 1) * itemsPerPage;
     const endIndex = startIndex + itemsPerPage;
     return pedidosFiltrados.slice(startIndex, endIndex);
-  }, [pedidosFiltrados, currentPage]);
+  }, [pedidosFiltrados, currentPage, itemsPerPage]);
 
   const totalPages = Math.ceil(pedidosFiltrados.length / itemsPerPage);
 
@@ -100,11 +101,19 @@ const GerenciamentoPedidos = () => {
     );
   };
 
+  const handlePageSizeChange = (newSize) => {
+    setItemsPerPage(newSize);
+    setCurrentPage(1); // Reset to first page when changing page size
+  };
+
   if (isLoadingPedidos || isLoadingClientes) return <div>Carregando...</div>;
 
   return (
     <div className="container mx-auto p-4">
       <h2 className="text-2xl font-bold mb-4">Gerenciamento de Pedidos</h2>
+      <div className="mb-4">
+        <PageSizeSelector pageSize={itemsPerPage} onPageSizeChange={handlePageSizeChange} />
+      </div>
       <PedidosFiltros filters={filters} setFilters={setFilters} />
       <PedidosTabela 
         pedidos={paginatedPedidos}
