@@ -3,11 +3,12 @@ import { useQuery } from '@tanstack/react-query';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
-import { Printer } from "lucide-react";
+import { Printer, FileDown } from "lucide-react";
 import { supabase } from '../lib/supabase';
 import { getExtraOptionPrice } from '../utils/vendaUtils';
 import { generatePrintContent } from '../utils/printUtils';
 import PedidoDetalhesTable from './pedidos/PedidoDetalhesTable';
+import jsPDF from 'jspdf';
 
 const PedidoDetalhesModal = ({ pedido, onClose }) => {
   const { data: itensPedido, isLoading } = useQuery({
@@ -67,6 +68,31 @@ const PedidoDetalhesModal = ({ pedido, onClose }) => {
     printWindow.print();
   };
 
+  const handleExportPDF = () => {
+    const doc = new jsPDF();
+    const printContent = generatePrintContent(pedido, itensPedido);
+    
+    // Remove HTML tags and convert to plain text
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = printContent;
+    const text = tempDiv.textContent || tempDiv.innerText || '';
+    
+    // Split text into lines and add to PDF
+    const lines = text.split('\n');
+    let y = 10;
+    lines.forEach(line => {
+      if (y > 280) {
+        doc.addPage();
+        y = 10;
+      }
+      doc.setFontSize(10);
+      doc.text(10, y, line.trim());
+      y += 5;
+    });
+    
+    doc.save(`pedido-${pedido.order_number}.pdf`);
+  };
+
   if (isLoading) return <div>Carregando detalhes do pedido...</div>;
 
   const calcularTotalDescontos = () => {
@@ -114,9 +140,14 @@ const PedidoDetalhesModal = ({ pedido, onClose }) => {
         <DialogHeader className="p-6">
           <div className="flex justify-between items-center">
             <DialogTitle>Detalhes do Pedido #{pedido.order_number}</DialogTitle>
-            <Button onClick={handlePrint} variant="outline" size="icon">
-              <Printer className="h-4 w-4" />
-            </Button>
+            <div className="flex gap-2">
+              <Button onClick={handlePrint} variant="outline" size="icon">
+                <Printer className="h-4 w-4" />
+              </Button>
+              <Button onClick={handleExportPDF} variant="outline" size="icon">
+                <FileDown className="h-4 w-4" />
+              </Button>
+            </div>
           </div>
         </DialogHeader>
         <div className="flex-1 overflow-hidden">
