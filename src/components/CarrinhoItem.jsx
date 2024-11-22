@@ -119,7 +119,9 @@ const CarrinhoItem = ({
     <TableRow>
       <TableCell>{item.name}</TableCell>
       <TableCell>
-        {editingQuantity ? (
+        {item.unit_type === 'sheets' ? (
+          <span className="text-gray-600">{item.quantidade}</span>
+        ) : editingQuantity ? (
           <Input
             type="number"
             value={tempQuantity}
