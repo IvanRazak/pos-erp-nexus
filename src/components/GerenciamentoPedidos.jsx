@@ -20,9 +20,11 @@ const GerenciamentoPedidos = () => {
     valorMaximo: '',
     status: 'all'
   });
+  const [currentPage, setCurrentPage] = useState(1);
   const [pedidoSelecionado, setPedidoSelecionado] = useState(null);
   const navigate = useNavigate();
   const { user } = useAuth();
+  const itemsPerPage = 20;
 
   const { data: pedidos, isLoading: isLoadingPedidos } = useOrders();
   const { data: clientes, isLoading: isLoadingClientes } = useCustomers();
@@ -58,6 +60,14 @@ const GerenciamentoPedidos = () => {
       return matchData && matchCliente && matchNumeroPedido && matchValor && matchStatus;
     });
   }, [pedidos, filters]);
+
+  const paginatedPedidos = useMemo(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    return pedidosFiltrados.slice(startIndex, endIndex);
+  }, [pedidosFiltrados, currentPage]);
+
+  const totalPages = Math.ceil(pedidosFiltrados.length / itemsPerPage);
 
   const handleCancelarPedido = (pedidoId) => {
     updateOrder.mutate(
@@ -97,13 +107,30 @@ const GerenciamentoPedidos = () => {
       <h2 className="text-2xl font-bold mb-4">Gerenciamento de Pedidos</h2>
       <PedidosFiltros filters={filters} setFilters={setFilters} />
       <PedidosTabela 
-        pedidos={pedidosFiltrados}
+        pedidos={paginatedPedidos}
         clientes={clientes}
         atualizarStatus={atualizarStatus}
         abrirModalDetalhes={setPedidoSelecionado}
         handleCancelarPedido={handleCancelarPedido}
         descontosIndividuais={descontosIndividuais}
       />
+      {totalPages > 1 && (
+        <div className="flex justify-center gap-2 mt-4">
+          {Array.from({ length: totalPages }, (_, i) => (
+            <button
+              key={i + 1}
+              onClick={() => setCurrentPage(i + 1)}
+              className={`px-3 py-1 rounded ${
+                currentPage === i + 1
+                  ? 'bg-blue-500 text-white'
+                  : 'bg-gray-200 hover:bg-gray-300'
+              }`}
+            >
+              {i + 1}
+            </button>
+          ))}
+        </div>
+      )}
       {pedidoSelecionado && (
         <PedidoDetalhesModal pedido={pedidoSelecionado} onClose={() => setPedidoSelecionado(null)} />
       )}
