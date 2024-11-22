@@ -77,18 +77,99 @@ const PedidoDetalhesModal = ({ pedido, onClose }) => {
     tempDiv.innerHTML = printContent;
     const text = tempDiv.textContent || tempDiv.innerText || '';
     
-    // Split text into lines and add to PDF
-    const lines = text.split('\n');
-    let y = 10;
-    lines.forEach(line => {
-      if (y > 280) {
+    // Configure initial settings
+    doc.setFontSize(16);
+    doc.text(`Pedido #${pedido.order_number}`, 10, 20);
+    
+    doc.setFontSize(12);
+    doc.text(`Cliente: ${pedido.customer?.name || 'N/A'}`, 10, 30);
+    doc.text(`Data do Pedido: ${pedido.created_at ? new Date(pedido.created_at).toLocaleDateString() : 'N/A'}`, 10, 40);
+    doc.text(`Data de Entrega: ${pedido.delivery_date ? new Date(pedido.delivery_date).toLocaleDateString() : 'N/A'}`, 10, 50);
+    
+    // Add items table header
+    doc.setFontSize(14);
+    doc.text('Itens do Pedido:', 10, 70);
+    
+    let y = 90;
+    itensPedido?.forEach((item, index) => {
+      if (y > 270) {
         doc.addPage();
-        y = 10;
+        y = 20;
       }
+      
+      doc.setFontSize(12);
+      doc.text(`${index + 1}. ${item.product.name}`, 15, y);
+      y += 7;
+      
       doc.setFontSize(10);
-      doc.text(10, y, line.trim());
-      y += 5;
+      doc.text(`Quantidade: ${item.quantity}`, 20, y);
+      y += 7;
+      
+      if (item.width && item.height) {
+        doc.text(`Dimensões: ${item.width}m x ${item.height}m`, 20, y);
+        y += 7;
+      }
+      
+      if (item.m2) {
+        doc.text(`M²: ${item.m2.toFixed(2)}`, 20, y);
+        y += 7;
+      }
+      
+      doc.text(`Valor Unitário: R$ ${item.unit_price.toFixed(2)}`, 20, y);
+      y += 7;
+      
+      if (item.extras?.length > 0) {
+        doc.text('Opções Extras:', 20, y);
+        y += 7;
+        
+        item.extras.forEach(extra => {
+          const extraText = `- ${extra.extra_option.name}: R$ ${(extra.total_value || 0).toFixed(2)}`;
+          doc.text(extraText, 25, y);
+          y += 7;
+        });
+      }
+      
+      if (item.discount > 0) {
+        doc.text(`Desconto: R$ ${item.discount.toFixed(2)}`, 20, y);
+        y += 7;
+      }
+      
+      const subtotal = (item.quantity * item.unit_price) - (item.discount || 0);
+      doc.text(`Subtotal: R$ ${subtotal.toFixed(2)}`, 20, y);
+      y += 12;
     });
+    
+    // Add totals section
+    if (y > 250) {
+      doc.addPage();
+      y = 20;
+    }
+    
+    doc.setFontSize(14);
+    doc.text('Resumo:', 10, y);
+    y += 10;
+    
+    doc.setFontSize(12);
+    if (pedido.discount > 0) {
+      doc.text(`Desconto Geral: R$ ${pedido.discount.toFixed(2)}`, 15, y);
+      y += 7;
+    }
+    
+    if (pedido.additional_value > 0) {
+      doc.text(`Valor Adicional: R$ ${pedido.additional_value.toFixed(2)}`, 15, y);
+      if (pedido.additional_value_description) {
+        doc.text(`Descrição: ${pedido.additional_value_description}`, 15, y + 7);
+        y += 14;
+      } else {
+        y += 7;
+      }
+    }
+    
+    doc.text(`Valor Total: R$ ${pedido.total_amount?.toFixed(2) || '0.00'}`, 15, y);
+    y += 7;
+    doc.text(`Valor Pago: R$ ${pedido.paid_amount?.toFixed(2) || '0.00'}`, 15, y);
+    y += 7;
+    doc.text(`Saldo Restante: R$ ${pedido.remaining_balance?.toFixed(2) || '0.00'}`, 15, y);
     
     doc.save(`pedido-${pedido.order_number}.pdf`);
   };
