@@ -10,7 +10,7 @@ import VendaCarrinho from './VendaCarrinho';
 import VendaHeader from './VendaHeader';
 import ArteModal from './ArteModal';
 import VendaFinalizadaModal from './VendaFinalizadaModal';
-import { calcularTotalItem, calcularTotal, resetCarrinho } from '../utils/vendaUtils';
+import { calcularTotalItem, calcularTotal, resetCarrinho, handleFinalizarVenda } from '../utils/vendaUtils';
 import { handleNewClientSuccess, handleSelectCliente, handleSelectProduto } from '../utils/clientUtils';
 import { getSheetPrice } from '../utils/productUtils';
 import { toast } from "sonner";
@@ -52,136 +52,39 @@ const Venda = () => {
     return () => clearTimeout(timer);
   }, [user, navigate]);
 
-  const handleDiscountChange = (item, newDiscount) => {
-    setCarrinho(carrinho.map(cartItem => 
-      cartItem === item ? { ...cartItem, discount: newDiscount } : cartItem
-    ));
-  };
-
-  const handleDeleteFromCart = (itemToDelete) => {
-    setCarrinho(carrinho.filter(item => item !== itemToDelete));
-  };
-
-  const handleEditCartItem = (itemToEdit) => {
-    setProdutoSelecionado(itemToEdit);
-    setCarrinho(carrinho.filter(item => item !== itemToEdit));
-    setIsExtraOptionsModalOpen(true);
-  };
-
-  const handleAdicionarAoCarrinhoComExtras = (extrasEscolhidas) => {
-    const novoItem = {
-      ...produtoSelecionado,
-      cartItemId: Date.now().toString(),
-      extras: extrasEscolhidas,
-      total: calcularTotalItem(produtoSelecionado, extrasEscolhidas),
-      description: '',
-    };
-    
-    if (novoItem.quantidade > 1) {
-      setTempProduto(novoItem);
-      setIsArteModalOpen(true);
-    } else {
-      adicionarAoCarrinho(novoItem);
-    }
-    
-    setProdutoSelecionado(null);
-    setIsExtraOptionsModalOpen(false);
-    toast.success("Produto adicionado ao carrinho!");
-  };
-
-  const adicionarAoCarrinho = (item, arteOption = null) => {
-    const itemComArte = arteOption ? { ...item, arteOption } : item;
-    setCarrinho([...carrinho, itemComArte]);
-  };
-
-  const handleArteModalConfirm = (arteOption) => {
-    if (itemToUpdateArte) {
-      updateItemQuantity(itemToUpdateArte, itemToUpdateArte.quantidade);
-      setCarrinho(carrinho.map(item => 
-        item.cartItemId === itemToUpdateArte.cartItemId 
-          ? { ...item, arteOption, quantidade: itemToUpdateArte.quantidade }
-          : item
-      ));
-      setItemToUpdateArte(null);
-    } else if (tempProduto) {
-      adicionarAoCarrinho({ ...tempProduto, arteOption });
-      setTempProduto(null);
-    }
-    setIsArteModalOpen(false);
-  };
-
   const finalizarVenda = async () => {
-    const erros = [];
-    if (!clienteSelecionado) erros.push("Selecione um cliente");
-    if (carrinho.length === 0) erros.push("O carrinho está vazio");
-    if (!dataEntrega) erros.push("Defina uma data de entrega");
-    if (!opcaoPagamento) erros.push("Selecione uma opção de pagamento");
-    if (valorPago <= 0) erros.push("Insira um valor pago maior que zero");
-    
-    if (erros.length > 0) {
-      toast.error("Não foi possível finalizar a venda:\n\n" + erros.join("\n"));
-      return;
-    }
-    
-    if (!user) {
-      toast.error("Erro ao finalizar venda: Usuário não está autenticado.");
-      return;
-    }
-
-    try {
-      const totalVenda = await calcularTotal(carrinho) - parseFloat(desconto) + parseFloat(valorAdicional);
-      const saldoRestante = totalVenda - valorPago;
-
-      const novaVenda = {
-        customer_id: clienteSelecionado,
-        total_amount: totalVenda,
-        paid_amount: valorPago,
-        remaining_balance: saldoRestante,
-        status: saldoRestante > 0 ? 'partial_payment' : 'in_production',
-        delivery_date: format(dataEntrega, 'yyyy-MM-dd'),
-        payment_option: opcaoPagamento,
-        items: carrinho.map(item => ({
-          product_id: item.id,
-          quantity: item.quantidade,
-          unit_price: item.unitPrice || item.sale_price,
-          extras: item.extras,
-          width: item.largura,
-          height: item.altura,
-          m2: item.m2,
-          cartItemId: item.cartItemId,
-          description: item.description,
-          arte_option: item.arteOption || null,
-          discount: parseFloat(item.discount) || 0,
-        })),
-        created_by: user.username,
-        discount: parseFloat(desconto) || 0,
-        additional_value: parseFloat(valorAdicional) || 0,
-        additional_value_description: descricaoValorAdicional,
-      };
-
-      const { data, error } = await addOrder.mutateAsync(novaVenda);
-      
-      if (error) {
-        throw error;
+    const result = await handleFinalizarVenda({
+      clienteSelecionado,
+      carrinho,
+      dataEntrega,
+      opcaoPagamento,
+      valorPago,
+      desconto,
+      valorAdicional,
+      descricaoValorAdicional,
+      user,
+      addOrder,
+      format,
+      toast,
+      onSuccess: (pedido, itens) => {
+        setPedidoFinalizado(pedido);
+        setItensPedidoFinalizado(itens);
+        setVendaFinalizadaModalOpen(true);
+        resetCarrinho(setCarrinho, setClienteSelecionado, setDataEntrega, setOpcaoPagamento, setDesconto, setValorPago);
+        setValorAdicional(0);
+        setDescricaoValorAdicional('');
+        toast.success("Venda finalizada com sucesso!");
+      },
+      onError: (error) => {
+        toast.error("Erro ao finalizar venda: " + error.message);
       }
+    });
 
-      if (!data || data.length === 0) {
-        throw new Error('Erro ao criar pedido: Nenhum dado retornado');
-      }
-
-      // Set the finalized order data and open the modal
-      setPedidoFinalizado(data[0]);
-      setItensPedidoFinalizado(carrinho);
+    if (result) {
+      const { pedido, carrinho: itens } = result;
+      setPedidoFinalizado(pedido);
+      setItensPedidoFinalizado(itens);
       setVendaFinalizadaModalOpen(true);
-      
-      // Reset the form after successful order creation
-      resetCarrinho(setCarrinho, setClienteSelecionado, setDataEntrega, setOpcaoPagamento, setDesconto, setValorPago);
-      setValorAdicional(0);
-      setDescricaoValorAdicional('');
-      
-      toast.success("Venda finalizada com sucesso!");
-    } catch (error) {
-      toast.error("Erro ao finalizar venda: " + error.message);
     }
   };
 
@@ -197,7 +100,7 @@ const Venda = () => {
         const updatedItem = {
           ...cartItem,
           unitPrice: newUnitPrice,
-          total: calcularTotalItem({ ...cartItem, unitPrice: newUnitPrice }, cartItem.extras)
+          total: await calcularTotalItem({ ...cartItem, unitPrice: newUnitPrice }, cartItem.extras)
         };
         return updatedItem;
       }
@@ -229,7 +132,7 @@ const Venda = () => {
           ...cartItem,
           quantidade: newQuantity,
           unitPrice: newUnitPrice,
-          total: calcularTotalItem({ ...cartItem, quantidade: newQuantity, unitPrice: newUnitPrice }, cartItem.extras)
+          total: await calcularTotalItem({ ...cartItem, quantidade: newQuantity, unitPrice: newUnitPrice }, cartItem.extras)
         };
         return updatedItem;
       }
@@ -263,7 +166,6 @@ const Venda = () => {
         opcoesPagamento={opcoesPagamento}
         valorPago={valorPago}
         setValorPago={setValorPago}
-        calcularTotal={() => calcularTotal(carrinho, desconto)}
         finalizarVenda={finalizarVenda}
         onDescriptionChange={handleDescriptionChange}
         valorAdicional={valorAdicional}
@@ -272,7 +174,6 @@ const Venda = () => {
         setDescricaoValorAdicional={setDescricaoValorAdicional}
         onUnitPriceChange={handleUnitPriceChange}
         onQuantityChange={handleQuantityChange}
-        onDiscountChange={handleDiscountChange}
       />
       <BuscarClienteModal
         isOpen={isBuscarClienteModalOpen}
