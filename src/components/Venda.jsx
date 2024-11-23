@@ -10,9 +10,9 @@ import VendaCarrinho from './VendaCarrinho';
 import VendaHeader from './VendaHeader';
 import ArteModal from './ArteModal';
 import VendaFinalizadaModal from './VendaFinalizadaModal';
-import { calcularTotalItem, calcularTotal, resetCarrinho, handleFinalizarVenda } from '../utils/vendaUtils';
+import { calcularTotal, resetCarrinho, handleFinalizarVenda } from '../utils/vendaUtils';
 import { handleNewClientSuccess, handleSelectCliente, handleSelectProduto } from '../utils/clientUtils';
-import { getSheetPrice } from '../utils/productUtils';
+import { updateCartItemWithNewPrice, updateCartItemWithNewQuantity } from '../utils/cartUtils';
 import { toast } from "sonner";
 
 const Venda = () => {
@@ -95,17 +95,13 @@ const Venda = () => {
   };
 
   const handleUnitPriceChange = async (item, newUnitPrice) => {
-    setCarrinho(carrinho.map(cartItem => {
-      if (cartItem === item) {
-        const updatedItem = {
-          ...cartItem,
-          unitPrice: newUnitPrice,
-          total: await calcularTotalItem({ ...cartItem, unitPrice: newUnitPrice }, cartItem.extras)
-        };
-        return updatedItem;
-      }
-      return cartItem;
-    }));
+    const updatedItems = [...carrinho];
+    const index = updatedItems.findIndex(cartItem => cartItem === item);
+    
+    if (index !== -1) {
+      updatedItems[index] = await updateCartItemWithNewPrice(item, newUnitPrice);
+      setCarrinho(updatedItems);
+    }
   };
 
   const handleQuantityChange = async (item, newQuantity) => {
@@ -118,26 +114,13 @@ const Venda = () => {
   };
 
   const updateItemQuantity = async (item, newQuantity) => {
-    let newUnitPrice = item.unitPrice;
-    if (item.unit_type === 'sheets') {
-      const sheetPrice = await getSheetPrice(item.id, newQuantity);
-      if (sheetPrice) {
-        newUnitPrice = sheetPrice;
-      }
+    const updatedItems = [...carrinho];
+    const index = updatedItems.findIndex(cartItem => cartItem === item);
+    
+    if (index !== -1) {
+      updatedItems[index] = await updateCartItemWithNewQuantity(item, newQuantity);
+      setCarrinho(updatedItems);
     }
-
-    setCarrinho(carrinho.map(cartItem => {
-      if (cartItem === item) {
-        const updatedItem = {
-          ...cartItem,
-          quantidade: newQuantity,
-          unitPrice: newUnitPrice,
-          total: await calcularTotalItem({ ...cartItem, quantidade: newQuantity, unitPrice: newUnitPrice }, cartItem.extras)
-        };
-        return updatedItem;
-      }
-      return cartItem;
-    }));
   };
 
   return (
