@@ -159,10 +159,18 @@ const Venda = () => {
         additional_value_description: descricaoValorAdicional,
       };
 
-      const result = await addOrder.mutateAsync(novaVenda);
+      const { data, error } = await addOrder.mutateAsync(novaVenda);
       
+      if (error) {
+        throw error;
+      }
+
+      if (!data || data.length === 0) {
+        throw new Error('Erro ao criar pedido: Nenhum dado retornado');
+      }
+
       // Set the finalized order data and open the modal
-      setPedidoFinalizado(result.data[0]);
+      setPedidoFinalizado(data[0]);
       setItensPedidoFinalizado(carrinho);
       setVendaFinalizadaModalOpen(true);
       
