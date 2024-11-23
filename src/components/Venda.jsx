@@ -1,15 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useProducts, useCustomers, useExtraOptions, usePaymentOptions, useAddOrder } from '../integrations/supabase';
+import { useProducts, useCustomers, useExtraOptions, usePaymentOptions } from '../integrations/supabase';
 import { useAuth } from '../hooks/useAuth';
-import { format } from "date-fns";
 import ProdutoExtraOptionsModal from './ProdutoExtraOptionsModal';
 import BuscarClienteModal from './BuscarClienteModal';
 import BuscarProdutoModal from './BuscarProdutoModal';
 import VendaCarrinho from './VendaCarrinho';
 import VendaHeader from './VendaHeader';
+import VendaFinalizacao from './venda/VendaFinalizacao';
 import ArteModal from './ArteModal';
-import { calcularTotalItem, calcularTotal, resetCarrinho } from '../utils/vendaUtils';
+import { calcularTotalItem, resetCarrinho } from '../utils/vendaUtils';
 import { handleNewClientSuccess, handleSelectCliente, handleSelectProduto } from '../utils/clientUtils';
 import { getSheetPrice } from '../utils/productUtils';
 import { toast } from "sonner";
@@ -38,7 +38,6 @@ const Venda = () => {
   const { data: clientes } = useCustomers();
   const { data: opcoesExtras } = useExtraOptions();
   const { data: opcoesPagamento } = usePaymentOptions();
-  const addOrder = useAddOrder();
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -47,6 +46,12 @@ const Venda = () => {
     }, 1000);
     return () => clearTimeout(timer);
   }, [user, navigate]);
+
+  const handleSuccess = () => {
+    resetCarrinho(setCarrinho, setClienteSelecionado, setDataEntrega, setOpcaoPagamento, setDesconto, setValorPago);
+    setValorAdicional(0);
+    setDescricaoValorAdicional('');
+  };
 
   const handleDiscountChange = (item, newDiscount) => {
     setCarrinho(carrinho.map(cartItem => 
@@ -104,65 +109,6 @@ const Venda = () => {
       setTempProduto(null);
     }
     setIsArteModalOpen(false);
-  };
-
-  const finalizarVenda = async () => {
-    const erros = [];
-    if (!clienteSelecionado) erros.push("Selecione um cliente");
-    if (carrinho.length === 0) erros.push("O carrinho está vazio");
-    if (!dataEntrega) erros.push("Defina uma data de entrega");
-    if (!opcaoPagamento) erros.push("Selecione uma opção de pagamento");
-    if (valorPago <= 0) erros.push("Insira um valor pago maior que zero");
-    
-    if (erros.length > 0) {
-      toast.error("Não foi possível finalizar a venda:\n\n" + erros.join("\n"));
-      return;
-    }
-    
-    if (!user) {
-      toast.error("Erro ao finalizar venda: Usuário não está autenticado.");
-      return;
-    }
-
-    try {
-      const totalVenda = await calcularTotal(carrinho) - parseFloat(desconto) + parseFloat(valorAdicional);
-      const saldoRestante = totalVenda - valorPago;
-
-      const novaVenda = {
-        customer_id: clienteSelecionado,
-        total_amount: totalVenda,
-        paid_amount: valorPago,
-        remaining_balance: saldoRestante,
-        status: saldoRestante > 0 ? 'partial_payment' : 'in_production',
-        delivery_date: format(dataEntrega, 'yyyy-MM-dd'),
-        payment_option: opcaoPagamento,
-        items: carrinho.map(item => ({
-          product_id: item.id,
-          quantity: item.quantidade,
-          unit_price: item.unitPrice || item.sale_price,
-          extras: item.extras,
-          width: item.largura,
-          height: item.altura,
-          m2: item.m2,
-          cartItemId: item.cartItemId,
-          description: item.description,
-          arte_option: item.arteOption || null,
-          discount: parseFloat(item.discount) || 0,
-        })),
-        created_by: user.username,
-        discount: parseFloat(desconto) || 0,
-        additional_value: parseFloat(valorAdicional) || 0,
-        additional_value_description: descricaoValorAdicional,
-      };
-
-      await addOrder.mutateAsync(novaVenda);
-      toast.success("Venda finalizada com sucesso!");
-      resetCarrinho(setCarrinho, setClienteSelecionado, setDataEntrega, setOpcaoPagamento, setDesconto, setValorPago);
-      setValorAdicional(0);
-      setDescricaoValorAdicional('');
-    } catch (error) {
-      toast.error("Erro ao finalizar venda: " + error.message);
-    }
   };
 
   const handleDescriptionChange = (item, newDescription) => {
@@ -244,7 +190,6 @@ const Venda = () => {
         valorPago={valorPago}
         setValorPago={setValorPago}
         calcularTotal={() => calcularTotal(carrinho, desconto)}
-        finalizarVenda={finalizarVenda}
         onDescriptionChange={handleDescriptionChange}
         valorAdicional={valorAdicional}
         setValorAdicional={setValorAdicional}
@@ -254,6 +199,19 @@ const Venda = () => {
         onQuantityChange={handleQuantityChange}
         onDiscountChange={handleDiscountChange}
       />
+      <VendaFinalizacao 
+        carrinho={carrinho}
+        clienteSelecionado={clienteSelecionado}
+        dataEntrega={dataEntrega}
+        opcaoPagamento={opcaoPagamento}
+        valorPago={valorPago}
+        desconto={desconto}
+        valorAdicional={valorAdicional}
+        descricaoValorAdicional={descricaoValorAdicional}
+        user={user}
+        onSuccess={handleSuccess}
+      />
+      
       <BuscarClienteModal
         isOpen={isBuscarClienteModalOpen}
         onClose={() => setIsBuscarClienteModalOpen(false)}
