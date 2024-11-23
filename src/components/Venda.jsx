@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useProducts, useCustomers, useExtraOptions, usePaymentOptions, useAddOrder } from '../integrations/supabase';
+import { supabase } from '../lib/supabase';  // Add this import
 import { useAuth } from '../hooks/useAuth';
 import { format } from "date-fns";
 import ProdutoExtraOptionsModal from './ProdutoExtraOptionsModal';
