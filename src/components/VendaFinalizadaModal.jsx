@@ -17,8 +17,12 @@ const VendaFinalizadaModal = ({ isOpen, onClose, pedido, itensPedido }) => {
       const printContent = await generatePrintContent(pedido, itensPedido);
       printWindow.document.write(printContent);
       printWindow.document.close();
-      printWindow.print();
+      
+      setTimeout(() => {
+        printWindow.print();
+      }, 500);
     } catch (error) {
+      console.error('Erro ao gerar impressão:', error);
       toast.error('Erro ao gerar impressão: ' + error.message);
     }
   };
