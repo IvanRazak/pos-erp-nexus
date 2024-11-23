@@ -12,6 +12,7 @@ import ArteModal from './ArteModal';
 import { calcularTotalItem, calcularTotal, resetCarrinho } from '../utils/vendaUtils';
 import { handleNewClientSuccess, handleSelectCliente, handleSelectProduto } from '../utils/clientUtils';
 import { getSheetPrice } from '../utils/productUtils';
+import { generatePrintContent } from '../utils/printUtils';
 import { toast } from "sonner";
 
 const Venda = () => {
@@ -155,7 +156,17 @@ const Venda = () => {
         additional_value_description: descricaoValorAdicional,
       };
 
-      await addOrder.mutateAsync(novaVenda);
+      const novoPedido = await addOrder.mutateAsync(novaVenda);
+      
+      // Gerar e imprimir o conteúdo do pedido
+      const printContent = await generatePrintContent(novoPedido, novoPedido.items);
+      const printWindow = window.open('', '_blank');
+      if (printWindow) {
+        printWindow.document.write(printContent);
+        printWindow.document.close();
+        printWindow.print();
+      }
+
       toast.success("Venda finalizada com sucesso!");
       resetCarrinho(setCarrinho, setClienteSelecionado, setDataEntrega, setOpcaoPagamento, setDesconto, setValorPago);
       setValorAdicional(0);
