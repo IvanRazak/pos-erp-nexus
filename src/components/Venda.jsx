@@ -158,14 +158,43 @@ const Venda = () => {
 
       const novoPedido = await addOrder.mutateAsync(novaVenda);
       
-      // Gerar e imprimir o conteúdo do pedido
-      const printContent = await generatePrintContent(novoPedido, novoPedido.items);
-      const printWindow = window.open('', '_blank');
-      if (printWindow) {
-        printWindow.document.write(printContent);
-        printWindow.document.close();
-        printWindow.print();
-      }
+      // Add a delay to ensure data is properly loaded
+      setTimeout(async () => {
+        try {
+          // Fetch the complete order data with items
+          const { data: orderData, error } = await supabase
+            .from('orders')
+            .select(`
+              *,
+              customer:customers(name),
+              items:order_items(
+                *,
+                product:products(*),
+                extras:order_item_extras(
+                  *,
+                  extra_option:extra_options(*),
+                  selected_option:selection_options(*)
+                )
+              )
+            `)
+            .eq('id', novoPedido.id)
+            .single();
+
+          if (error) throw error;
+
+          // Generate and print the content
+          const printContent = await generatePrintContent(orderData, orderData.items);
+          const printWindow = window.open('', '_blank');
+          if (printWindow) {
+            printWindow.document.write(printContent);
+            printWindow.document.close();
+            printWindow.print();
+          }
+        } catch (printError) {
+          console.error('Error generating print:', printError);
+          toast.error("Erro ao gerar impressão: " + printError.message);
+        }
+      }, 1000); // Wait 1 second before printing
 
       toast.success("Venda finalizada com sucesso!");
       resetCarrinho(setCarrinho, setClienteSelecionado, setDataEntrega, setOpcaoPagamento, setDesconto, setValorPago);
