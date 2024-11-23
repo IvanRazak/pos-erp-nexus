@@ -9,6 +9,7 @@ import BuscarProdutoModal from './BuscarProdutoModal';
 import VendaCarrinho from './VendaCarrinho';
 import VendaHeader from './VendaHeader';
 import ArteModal from './ArteModal';
+import VendaFinalizadaModal from './VendaFinalizadaModal';
 import { calcularTotalItem, calcularTotal, resetCarrinho } from '../utils/vendaUtils';
 import { handleNewClientSuccess, handleSelectCliente, handleSelectProduto } from '../utils/clientUtils';
 import { getSheetPrice } from '../utils/productUtils';
@@ -34,6 +35,9 @@ const Venda = () => {
   const [isArteModalOpen, setIsArteModalOpen] = useState(false);
   const [tempProduto, setTempProduto] = useState(null);
   const [itemToUpdateArte, setItemToUpdateArte] = useState(null);
+  const [vendaFinalizadaModalOpen, setVendaFinalizadaModalOpen] = useState(false);
+  const [pedidoFinalizado, setPedidoFinalizado] = useState(null);
+  const [itensPedidoFinalizado, setItensPedidoFinalizado] = useState(null);
 
   const { data: clientes } = useCustomers();
   const { data: opcoesExtras } = useExtraOptions();
@@ -155,11 +159,19 @@ const Venda = () => {
         additional_value_description: descricaoValorAdicional,
       };
 
-      await addOrder.mutateAsync(novaVenda);
-      toast.success("Venda finalizada com sucesso!");
+      const result = await addOrder.mutateAsync(novaVenda);
+      
+      // Set the finalized order data and open the modal
+      setPedidoFinalizado(result.data[0]);
+      setItensPedidoFinalizado(carrinho);
+      setVendaFinalizadaModalOpen(true);
+      
+      // Reset the form after successful order creation
       resetCarrinho(setCarrinho, setClienteSelecionado, setDataEntrega, setOpcaoPagamento, setDesconto, setValorPago);
       setValorAdicional(0);
       setDescricaoValorAdicional('');
+      
+      toast.success("Venda finalizada com sucesso!");
     } catch (error) {
       toast.error("Erro ao finalizar venda: " + error.message);
     }
@@ -280,6 +292,12 @@ const Venda = () => {
           setTempProduto(null);
         }}
         onConfirm={handleArteModalConfirm}
+      />
+      <VendaFinalizadaModal
+        isOpen={vendaFinalizadaModalOpen}
+        onClose={() => setVendaFinalizadaModalOpen(false)}
+        pedido={pedidoFinalizado}
+        itensPedido={itensPedidoFinalizado}
       />
     </div>
   );
