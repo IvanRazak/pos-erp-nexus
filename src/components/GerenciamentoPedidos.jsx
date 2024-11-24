@@ -89,6 +89,15 @@ const GerenciamentoPedidos = () => {
   };
 
   const atualizarStatus = (pedidoId, novoStatus) => {
+    const pedido = pedidos.find(p => p.id === pedidoId);
+    
+    if (novoStatus === 'delivered' && pedido.remaining_balance > 0) {
+      toast.error("Não é possível marcar como entregue!", {
+        description: "Este pedido possui saldo restante a ser pago."
+      });
+      return;
+    }
+
     updateOrder.mutate(
       { id: pedidoId, status: novoStatus },
       {
