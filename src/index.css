@@ -78,6 +78,10 @@
  background-color: #1e293b;
 }
 
+.py-2 {
+ min-width: max-content;
+}
+
 .dark .bg-gray-100 {
   @apply bg-zinc-900;
 }
