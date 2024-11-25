@@ -74,6 +74,10 @@
   @apply bg-gray-800;
 }
 
+.dark .[&_tr]:border-b {
+ background-color: #1e293b;
+}
+
 .dark .bg-gray-100 {
   @apply bg-zinc-900;
 }
