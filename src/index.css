@@ -67,7 +67,7 @@
 
   @variants dark {
     .bg-red-50 {
-      background-color: hsl(0 62.8% 20%);
+      background-color: hsl(222 19% 24%);
     }
     .bg-gray-50 {
       background-color: hsl(217.2 32.6% 25%);
