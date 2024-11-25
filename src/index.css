@@ -64,15 +64,18 @@
     --input: 217.2 32.6% 17.5%;
     --ring: 212.7 26.8% 83.9%;
   }
+}
 
-  @variants dark {
-    .bg-red-50 {
-      background-color: hsl(222 19% 24%);
-    }
-    .bg-gray-50 {
-      background-color: hsl(217.2 32.6% 25%);
-    }
-  }
+.dark .bg-red-50 {
+  @apply bg-red-900/20;
+}
+
+.dark .bg-gray-50 {
+  @apply bg-gray-800;
+}
+
+.dark .bg-gray-100 {
+  @apply bg-gray-900;
 }
  
 @layer base {
