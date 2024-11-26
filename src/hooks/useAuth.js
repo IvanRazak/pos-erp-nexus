@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
+import { useAddEventLog } from '../integrations/supabase/hooks/events_log';
 
 export const useAuth = () => {
   const [error, setError] = useState(null);
   const [user, setUser] = useState(null);
+  const addEventLog = useAddEventLog();
 
   useEffect(() => {
     const storedUser = localStorage.getItem('user');
@@ -26,6 +28,14 @@ export const useAuth = () => {
         const userData = { username, isAdmin: data.role === 'admin', role: data.role };
         localStorage.setItem('user', JSON.stringify(userData));
         setUser(userData);
+
+        // Log login event
+        await addEventLog.mutateAsync({
+          user_name: username,
+          description: 'User logged in',
+          ip_address: window.location.hostname
+        });
+
         return true;
       } else {
         setError('Invalid username or password');

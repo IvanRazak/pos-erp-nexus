@@ -12,8 +12,8 @@ import * as paymentOptionsHooks from './hooks/payment_options';
 import * as paymentsHooks from './hooks/payments';
 import * as productsHooks from './hooks/products';
 import * as usersHooks from './hooks/users';
+import * as eventsLogHooks from './hooks/events_log';
 
-// Export all the imported functions and objects
 export {
   supabase,
   SupabaseAuthProvider,
@@ -106,3 +106,7 @@ export const {
   useUpdateUser,
   useDeleteUser,
 } = usersHooks;
+
+export const {
+  useAddEventLog,
+} = eventsLogHooks;

@@ -8,6 +8,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { DatePicker } from "@/components/ui/date-picker";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useOrders, usePaymentOptions, useUpdateOrder, useAddPayment, useCustomers } from '../integrations/supabase';
+import { useAddEventLog } from '../integrations/supabase/hooks/events_log';
 import { toast } from "sonner";
 import { format, isWithinInterval, parseISO, startOfDay, endOfDay } from "date-fns";
 import { ptBR } from 'date-fns/locale';
@@ -36,6 +37,7 @@ const Financeiro = () => {
   const { data: clientes, isLoading: isLoadingClientes } = useCustomers();
   const updateOrder = useUpdateOrder();
   const addPayment = useAddPayment();
+  const addEventLog = useAddEventLog();
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -83,6 +85,13 @@ const Financeiro = () => {
         order_id: pedidoSelecionado.id,
         amount: valorPagamento,
         payment_option: opcaoPagamento,
+      });
+
+      // Log payment event
+      await addEventLog.mutateAsync({
+        user_name: user.username,
+        description: `Confirmou pagamento de R$ ${valorPagamento.toFixed(2)} para o pedido ${pedidoSelecionado.order_number}`,
+        ip_address: window.location.hostname
       });
 
       toast.success(`Pagamento processado com sucesso! Novo saldo restante: R$ ${novoSaldoRestante.toFixed(2)}`);

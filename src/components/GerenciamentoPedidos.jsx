@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import { useOrders, useCustomers, useUpdateOrder } from '../integrations/supabase';
 import { useOrderDiscounts } from '../integrations/supabase/hooks/order_discounts';
+import { useAddEventLog } from '../integrations/supabase/hooks/events_log';
 import { toast } from "sonner";
 import { isWithinInterval, parseISO, startOfDay, endOfDay } from "date-fns";
 import { useAuth } from '../hooks/useAuth';
@@ -31,6 +32,7 @@ const GerenciamentoPedidos = () => {
   const { data: pedidos, isLoading: isLoadingPedidos } = useOrders();
   const { data: clientes, isLoading: isLoadingClientes } = useCustomers();
   const updateOrder = useUpdateOrder();
+  const addEventLog = useAddEventLog();
 
   const { data: descontosIndividuais = {} } = useOrderDiscounts(
     pedidos?.map(pedido => pedido.id) || []
@@ -88,7 +90,7 @@ const GerenciamentoPedidos = () => {
     );
   };
 
-  const atualizarStatus = (pedidoId, novoStatus) => {
+  const atualizarStatus = async (pedidoId, novoStatus) => {
     const pedido = pedidos.find(p => p.id === pedidoId);
     
     if (novoStatus === 'delivered' && pedido.remaining_balance > 0) {
@@ -103,6 +105,12 @@ const GerenciamentoPedidos = () => {
       {
         onSuccess: () => {
           toast.success("Status do pedido atualizado com sucesso!");
+          // Log status change event
+          addEventLog.mutate({
+            user_name: user.username,
+            description: `Alterou status do pedido ${pedido.order_number} para ${novoStatus}`,
+            ip_address: window.location.hostname
+          });
         },
         onError: (error) => {
           toast.error("Erro ao atualizar status do pedido: " + error.message);
