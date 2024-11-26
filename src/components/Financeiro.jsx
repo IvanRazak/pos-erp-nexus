@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import { Input } from "@/components/ui/input";
@@ -90,8 +90,7 @@ const Financeiro = () => {
       // Log payment event
       await addEventLog.mutateAsync({
         user_name: user.username,
-        description: `Confirmou pagamento de R$ ${valorPagamento.toFixed(2)} para o pedido ${pedidoSelecionado.order_number}`,
-        ip_address: window.location.hostname
+        description: `Confirmou pagamento de R$ ${valorPagamento.toFixed(2)} via ${opcaoPagamento} para o pedido ${pedidoSelecionado.order_number}`,
       });
 
       toast.success(`Pagamento processado com sucesso! Novo saldo restante: R$ ${novoSaldoRestante.toFixed(2)}`);

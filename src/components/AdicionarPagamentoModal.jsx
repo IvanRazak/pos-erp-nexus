@@ -34,8 +34,7 @@ const AdicionarPagamentoModal = ({ isOpen, onClose, paymentOptions }) => {
       // Log the payment addition event
       await addEventLog.mutateAsync({
         user_name: user.username,
-        description: `Adicionou pagamento de R$ ${paymentData.amount.toFixed(2)} via ${paymentData.payment_option}`,
-        ip_address: window.location.hostname
+        description: `Adicionou pagamento de R$ ${paymentData.amount.toFixed(2)} via ${paymentData.payment_option}${paymentData.description ? ` (${paymentData.description})` : ''}`,
       });
 
       toast({
