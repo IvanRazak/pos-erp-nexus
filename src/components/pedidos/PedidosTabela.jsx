@@ -5,6 +5,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { format, parseISO } from "date-fns";
 import { ptBR } from 'date-fns/locale';
+import { useAddEventLog } from '../../integrations/supabase/hooks/events_log';
+import { useAuth } from '../../hooks/useAuth';
 
 const PedidosTabela = ({ 
   pedidos, 
@@ -14,6 +16,21 @@ const PedidosTabela = ({
   handleCancelarPedido,
   descontosIndividuais = {} 
 }) => {
+  const addEventLog = useAddEventLog();
+  const { user } = useAuth();
+
+  const handleStatusChange = async (pedidoId, novoStatus, pedidoAtual) => {
+    await atualizarStatus(pedidoId, novoStatus);
+    
+    // Registrar a mudança de status no log de eventos
+    if (user) {
+      await addEventLog.mutateAsync({
+        user_name: user.username,
+        description: `Alterou status do pedido ${pedidoAtual.order_number} de ${pedidoAtual.status} para ${novoStatus}`,
+      });
+    }
+  };
+
   return (
     <Table>
       <TableHeader>
@@ -52,7 +69,10 @@ const PedidosTabela = ({
             ) : 'N/A'}</TableCell>
             <TableCell>{pedido.delivery_date ? format(parseISO(pedido.delivery_date), 'dd/MM/yyyy', { locale: ptBR }) : 'N/A'}</TableCell>
             <TableCell>
-              <Select defaultValue={pedido.status} onValueChange={(value) => atualizarStatus(pedido.id, value)}>
+              <Select 
+                defaultValue={pedido.status} 
+                onValueChange={(value) => handleStatusChange(pedido.id, value, pedido)}
+              >
                 <SelectTrigger>
                   <SelectValue placeholder="Atualizar Status" />
                 </SelectTrigger>
