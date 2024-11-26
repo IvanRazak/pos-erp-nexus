@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useAddEventLog } from '../integrations/supabase/hooks/events_log';
+import { getIpAddress } from '../utils/ipUtils';
 
 export const useAuth = () => {
   const [error, setError] = useState(null);
@@ -15,17 +16,6 @@ export const useAuth = () => {
     }
     setLoading(false);
   }, []);
-
-  const getIpAddress = async () => {
-    try {
-      const response = await fetch('https://api.ipify.org?format=json');
-      const data = await response.json();
-      return data.ip;
-    } catch (error) {
-      console.error('Erro ao obter IP:', error);
-      return '0.0.0.0'; // IP padrão em caso de erro
-    }
-  };
 
   const login = async (username, password) => {
     try {
@@ -63,10 +53,8 @@ export const useAuth = () => {
       localStorage.setItem('user', JSON.stringify(userData));
       setUser(userData);
 
-      // Obtém o IP real do usuário
       const ipAddress = await getIpAddress();
 
-      // Log do evento de login com IP real
       await addEventLog.mutateAsync({
         user_name: username,
         description: 'Login realizado com sucesso',
@@ -83,9 +71,20 @@ export const useAuth = () => {
     }
   };
 
-  const logout = () => {
-    localStorage.removeItem('user');
-    setUser(null);
+  const logout = async () => {
+    try {
+      const ipAddress = await getIpAddress();
+      await addEventLog.mutateAsync({
+        user_name: user?.username,
+        description: 'Logout realizado',
+        ip_address: ipAddress
+      });
+    } catch (error) {
+      console.error('Erro ao registrar logout:', error);
+    } finally {
+      localStorage.removeItem('user');
+      setUser(null);
+    }
   };
 
   return { login, logout, error, user, loading };

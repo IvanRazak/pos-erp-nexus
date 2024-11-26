@@ -1,5 +1,6 @@
 import { useMutation } from '@tanstack/react-query';
 import { supabase } from '../supabase';
+import { getIpAddress } from '../../../utils/ipUtils';
 
 const fromSupabase = async (query) => {
   const { data, error } = await query;
@@ -9,6 +10,12 @@ const fromSupabase = async (query) => {
 
 export const useAddEventLog = () => {
   return useMutation({
-    mutationFn: (newLog) => fromSupabase(supabase.from('events_log').insert([newLog])),
+    mutationFn: async (newLog) => {
+      const ipAddress = !newLog.ip_address ? await getIpAddress() : newLog.ip_address;
+      return fromSupabase(supabase.from('events_log').insert([{
+        ...newLog,
+        ip_address: ipAddress
+      }]));
+    },
   });
 };
