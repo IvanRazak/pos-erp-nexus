@@ -16,6 +16,17 @@ export const useAuth = () => {
     setLoading(false);
   }, []);
 
+  const getIpAddress = async () => {
+    try {
+      const response = await fetch('https://api.ipify.org?format=json');
+      const data = await response.json();
+      return data.ip;
+    } catch (error) {
+      console.error('Erro ao obter IP:', error);
+      return '0.0.0.0'; // IP padrão em caso de erro
+    }
+  };
+
   const login = async (username, password) => {
     try {
       setLoading(true);
@@ -52,11 +63,14 @@ export const useAuth = () => {
       localStorage.setItem('user', JSON.stringify(userData));
       setUser(userData);
 
-      // Log do evento de login com IP padrão para teste
+      // Obtém o IP real do usuário
+      const ipAddress = await getIpAddress();
+
+      // Log do evento de login com IP real
       await addEventLog.mutateAsync({
         user_name: username,
         description: 'Login realizado com sucesso',
-        ip_address: '127.0.0.1'
+        ip_address: ipAddress
       });
 
       return true;
