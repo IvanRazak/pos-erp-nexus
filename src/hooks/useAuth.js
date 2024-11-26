@@ -5,6 +5,7 @@ import { useAddEventLog } from '../integrations/supabase/hooks/events_log';
 export const useAuth = () => {
   const [error, setError] = useState(null);
   const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
   const addEventLog = useAddEventLog();
 
   useEffect(() => {
@@ -12,39 +13,59 @@ export const useAuth = () => {
     if (storedUser) {
       setUser(JSON.parse(storedUser));
     }
+    setLoading(false);
   }, []);
 
   const login = async (username, password) => {
     try {
-      const { data, error } = await supabase
+      setLoading(true);
+      setError(null);
+
+      if (!username || !password) {
+        setError('Usuário e senha são obrigatórios');
+        return false;
+      }
+
+      const { data: user, error: userError } = await supabase
         .from('users')
         .select('*')
         .eq('username', username)
         .single();
 
-      if (error) throw error;
-
-      if (data && data.password_hash === password) {
-        const userData = { username, isAdmin: data.role === 'admin', role: data.role };
-        localStorage.setItem('user', JSON.stringify(userData));
-        setUser(userData);
-
-        // Log login event with proper IP address format
-        await addEventLog.mutateAsync({
-          user_name: username,
-          description: 'User logged in',
-          ip_address: window.location.hostname
-        });
-
-        return true;
-      } else {
-        setError('Invalid username or password');
+      if (userError || !user) {
+        setError('Usuário não encontrado');
         return false;
       }
-    } catch (error) {
-      setError('An error occurred during login');
-      console.error('Login error:', error);
+
+      if (user.password_hash !== password) {
+        setError('Senha incorreta');
+        return false;
+      }
+
+      const userData = {
+        id: user.id,
+        username: user.username,
+        isAdmin: user.role === 'admin',
+        role: user.role
+      };
+
+      localStorage.setItem('user', JSON.stringify(userData));
+      setUser(userData);
+
+      // Log do evento de login com IP padrão para teste
+      await addEventLog.mutateAsync({
+        user_name: username,
+        description: 'Login realizado com sucesso',
+        ip_address: '127.0.0.1'
+      });
+
+      return true;
+    } catch (err) {
+      console.error('Erro no login:', err);
+      setError('Erro ao fazer login. Tente novamente.');
       return false;
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -53,5 +74,5 @@ export const useAuth = () => {
     setUser(null);
   };
 
-  return { login, logout, error, user };
+  return { login, logout, error, user, loading };
 };
