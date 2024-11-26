@@ -4,6 +4,8 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useAddPayment } from '../integrations/supabase';
+import { useAddEventLog } from '../integrations/supabase/hooks/events_log';
+import { useAuth } from '../hooks/useAuth';
 import { toast } from "@/components/ui/use-toast";
 
 const AdicionarPagamentoModal = ({ isOpen, onClose, paymentOptions }) => {
@@ -15,6 +17,8 @@ const AdicionarPagamentoModal = ({ isOpen, onClose, paymentOptions }) => {
   });
 
   const addPayment = useAddPayment();
+  const addEventLog = useAddEventLog();
+  const { user } = useAuth();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -22,10 +26,18 @@ const AdicionarPagamentoModal = ({ isOpen, onClose, paymentOptions }) => {
       const paymentData = {
         ...newPayment,
         amount: parseFloat(newPayment.amount),
-        order_id: newPayment.order_id || null // Ensure null if empty
+        order_id: newPayment.order_id || null
       };
 
       await addPayment.mutateAsync(paymentData);
+
+      // Log the payment addition event
+      await addEventLog.mutateAsync({
+        user_name: user.username,
+        description: `Adicionou pagamento de R$ ${paymentData.amount.toFixed(2)} via ${paymentData.payment_option}`,
+        ip_address: window.location.hostname
+      });
+
       toast({
         title: "Pagamento adicionado com sucesso!",
       });

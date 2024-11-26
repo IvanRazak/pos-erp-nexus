@@ -29,7 +29,7 @@ export const useAuth = () => {
         localStorage.setItem('user', JSON.stringify(userData));
         setUser(userData);
 
-        // Log login event
+        // Log login event with proper IP address format
         await addEventLog.mutateAsync({
           user_name: username,
           description: 'User logged in',

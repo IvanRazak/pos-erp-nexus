@@ -3,7 +3,7 @@ CREATE TABLE events_log (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     user_name TEXT NOT NULL,
     event_date TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    ip_address TEXT,
+    ip_address INET,
     description TEXT NOT NULL,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
