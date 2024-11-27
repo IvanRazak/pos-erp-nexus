@@ -2,7 +2,7 @@ import React from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 
-const ProdutosTable = ({ produtos, extraOptions, onEdit, onDelete, isAdmin }) => {
+const ProdutosTable = ({ produtos, extraOptions, onEdit, onDelete, canDelete }) => {
   return (
     <Table>
       <TableHeader>
@@ -41,7 +41,7 @@ const ProdutosTable = ({ produtos, extraOptions, onEdit, onDelete, isAdmin }) =>
             </TableCell>
             <TableCell>
               <Button onClick={() => onEdit(produto)} className="mr-2">Editar</Button>
-              {isAdmin && (
+              {canDelete && (
                 <Button onClick={() => onDelete(produto.id)} variant="destructive">Excluir</Button>
               )}
             </TableCell>

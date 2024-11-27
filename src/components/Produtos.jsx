@@ -30,7 +30,8 @@ const Produtos = () => {
     return () => clearTimeout(timer);
   }, [user, navigate]);
 
-  const isAdmin = session?.user?.user_metadata?.role === 'admin';
+  const userRole = session?.user?.user_metadata?.role;
+  const canDelete = userRole === 'admin' || userRole === 'operator';
 
   const { data: produtos, isLoading } = useProducts();
   const { data: extraOptions } = useExtraOptions();
@@ -102,7 +103,7 @@ const Produtos = () => {
         extraOptions={extraOptions}
         onEdit={handleOpenEditModal}
         onDelete={handleDeleteProduct}
-        isAdmin={isAdmin}
+        canDelete={canDelete}
       />
       <div className="flex justify-between items-center mt-4">
         <div className="flex items-center gap-4">
