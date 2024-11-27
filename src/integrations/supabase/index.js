@@ -109,4 +109,5 @@ export const {
 
 export const {
   useAddEventLog,
+  useEventsLog,
 } = eventsLogHooks;
