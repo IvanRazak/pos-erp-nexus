@@ -4,25 +4,22 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
-import { useAddPaymentOption, useAddCustomerType, useAddUser, useEventsLog } from '../integrations/supabase';
+import { useAddPaymentOption, useAddCustomerType, useAddUser } from '../integrations/supabase';
 import { toast } from "sonner";
 import bcrypt from 'bcryptjs';
 import GerenciarOpcoesExtras from './GerenciarOpcoesExtras';
 import GerenciarOpcoesSelecao from './GerenciarOpcoesSelecao';
 import PrintTemplateEditor from './PrintTemplateEditor';
 import PdfTemplateEditor from './PdfTemplateEditor';
-import EventsLogModal from './EventsLogModal';
 import { Menu } from 'lucide-react';
 
 const AdminMenu = () => {
   const [isGerenciarOpcoesExtrasOpen, setIsGerenciarOpcoesExtrasOpen] = useState(false);
   const [isGerenciarOpcoesSelecaoOpen, setIsGerenciarOpcoesSelecaoOpen] = useState(false);
-  const [isEventsLogOpen, setIsEventsLogOpen] = useState(false);
   
   const addPaymentOption = useAddPaymentOption();
   const addCustomerType = useAddCustomerType();
   const addUser = useAddUser();
-  const { data: eventsLog } = useEventsLog();
 
   const handleCadastrarOpcaoPagamento = (event) => {
     event.preventDefault();
@@ -149,16 +146,28 @@ const AdminMenu = () => {
             </DialogContent>
           </Dialog>
 
-          <Button className="w-full" onClick={() => setIsEventsLogOpen(true)}>
-            Log de Eventos
+          <PrintTemplateEditor />
+          
+          <PdfTemplateEditor />
+
+          <Button className="w-full" onClick={() => setIsGerenciarOpcoesExtrasOpen(true)}>
+            Gerenciar Opções Extras
           </Button>
 
-          <EventsLogModal
-            isOpen={isEventsLogOpen}
-            onClose={() => setIsEventsLogOpen(false)}
-            events={eventsLog}
-          />
+          <Button className="w-full" onClick={() => setIsGerenciarOpcoesSelecaoOpen(true)}>
+            Gerenciar Opções de Seleção
+          </Button>
         </div>
+
+        <GerenciarOpcoesExtras
+          isOpen={isGerenciarOpcoesExtrasOpen}
+          onClose={() => setIsGerenciarOpcoesExtrasOpen(false)}
+        />
+
+        <GerenciarOpcoesSelecao
+          isOpen={isGerenciarOpcoesSelecaoOpen}
+          onClose={() => setIsGerenciarOpcoesSelecaoOpen(false)}
+        />
       </SheetContent>
     </Sheet>
   );
