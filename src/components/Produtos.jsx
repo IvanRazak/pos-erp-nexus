@@ -9,10 +9,13 @@ import { useAuth } from '../hooks/useAuth';
 import ProdutoForm from './ProdutoForm';
 import ProdutosTable from './ProdutosTable';
 import { toast } from "sonner";
+import PageSizeSelector from './ui/page-size-selector';
 
 const Produtos = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingProduto, setEditingProduto] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(20);
   const { session } = useSupabaseAuth() || {};
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -66,6 +69,18 @@ const Produtos = () => {
     });
   };
 
+  const handlePageSizeChange = (newSize) => {
+    setItemsPerPage(newSize);
+    setCurrentPage(1);
+  };
+
+  const paginatedProdutos = produtos ? produtos.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  ) : [];
+
+  const totalPages = produtos ? Math.ceil(produtos.length / itemsPerPage) : 0;
+
   if (isLoading) return <div>Carregando...</div>;
 
   return (
@@ -83,12 +98,36 @@ const Produtos = () => {
         </DialogContent>
       </Dialog>
       <ProdutosTable 
-        produtos={produtos}
+        produtos={paginatedProdutos}
         extraOptions={extraOptions}
         onEdit={handleOpenEditModal}
         onDelete={handleDeleteProduct}
         isAdmin={isAdmin}
       />
+      <div className="flex justify-between items-center mt-4">
+        <div className="flex items-center gap-4">
+          <div className="text-sm text-gray-500">
+            Mostrando {Math.min((currentPage - 1) * itemsPerPage + 1, produtos?.length || 0)} a {Math.min(currentPage * itemsPerPage, produtos?.length || 0)} de {produtos?.length || 0} produtos
+          </div>
+          <PageSizeSelector pageSize={itemsPerPage} onPageSizeChange={handlePageSizeChange} />
+        </div>
+        <div className="flex gap-2">
+          <Button
+            onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+            disabled={currentPage === 1}
+            variant="outline"
+          >
+            Anterior
+          </Button>
+          <Button
+            onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+            disabled={currentPage === totalPages}
+            variant="outline"
+          >
+            Próximo
+          </Button>
+        </div>
+      </div>
       {editingProduto && (
         <EditProdutoModal 
           produto={editingProduto} 
