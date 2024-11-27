@@ -123,7 +123,9 @@ const CaixaTabela = ({ transacoes, setEditingPayment }) => {
                   }}
                 />
               </TableCell>
-              <TableCell>R$ {transacao.amount ? transacao.amount.toFixed(2) : '0.00'}</TableCell>
+              <TableCell className={transacao.amount < 0 ? 'text-red-500 font-semibold' : ''}>
+                R$ {transacao.amount ? transacao.amount.toFixed(2) : '0.00'}
+              </TableCell>
               <TableCell>
                 <div className="flex gap-2">
                   {user?.isAdmin && (
