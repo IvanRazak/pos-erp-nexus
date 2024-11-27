@@ -66,16 +66,11 @@ const ProdutosTable = ({
                   extraOptions?.find(o => o.id === optionId)?.name
                 ).join(', ')}
               </TableCell>
-              <TableCell className="space-x-2">
-                 {isAdmin && (
-                  <>
-                    <Button onClick={() => onEdit(produto)} variant="outline" size="sm">
-                      Editar
-                    </Button>
-                    <Button onClick={() => onDelete(produto.id)} variant="destructive" size="sm">
-                      Excluir
-                    </Button>
-                  </>
+              <TableCell>
+                {isAdmin && (
+                  <Button onClick={() => onEdit(produto)} variant="outline" size="sm">
+                    Editar
+                  </Button>
                 )}
               </TableCell>
             </TableRow>
