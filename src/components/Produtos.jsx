@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useSupabaseAuth } from '../integrations/supabase/auth';
 import EditProdutoModal from './EditProdutoModal';
-import { useProducts, useAddProduct, useExtraOptions } from '../integrations/supabase';
+import { useProducts, useAddProduct, useUpdateProduct, useDeleteProduct, useExtraOptions } from '../integrations/supabase';
 import { useAuth } from '../hooks/useAuth';
 import ProdutoForm from './ProdutoForm';
 import ProdutosTable from './ProdutosTable';
@@ -16,7 +16,7 @@ const Produtos = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   
-  const { session } = useSupabaseAuth();
+  const { session } = useSupabaseAuth() || {};
   const navigate = useNavigate();
   const { user } = useAuth();
 
@@ -35,6 +35,8 @@ const Produtos = () => {
   const { data: produtos, isLoading } = useProducts();
   const { data: extraOptions } = useExtraOptions();
   const addProduct = useAddProduct();
+  const updateProduct = useUpdateProduct();
+  const deleteProduct = useDeleteProduct();
 
   const handleSubmit = (novoProduto) => {
     addProduct.mutate(novoProduto, {
@@ -56,13 +58,24 @@ const Produtos = () => {
     setEditingProduto(null);
   };
 
+  const handleDeleteProduct = (id) => {
+    deleteProduct.mutate(id, {
+      onSuccess: () => {
+        toast.success("Produto excluído com sucesso!");
+      },
+      onError: (error) => {
+        toast.error("Erro ao excluir produto: " + error.message);
+      }
+    });
+  };
+
   const handlePageChange = (newPage) => {
     setCurrentPage(newPage);
   };
 
   const handlePageSizeChange = (newSize) => {
     setPageSize(newSize);
-    setCurrentPage(1);
+    setCurrentPage(1); // Reset to first page when changing page size
   };
 
   if (isLoading) return <div>Carregando...</div>;
@@ -70,23 +83,22 @@ const Produtos = () => {
   return (
     <div className="container mx-auto p-4">
       <h2 className="text-2xl font-bold mb-4">Produtos</h2>
-      {isAdmin && (
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogTrigger asChild>
-            <Button className="mb-4">Cadastrar Novo Produto</Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Cadastro de Produto</DialogTitle>
-            </DialogHeader>
-            <ProdutoForm onSubmit={handleSubmit} extraOptions={extraOptions} />
-          </DialogContent>
-        </Dialog>
-      )}
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <DialogTrigger asChild>
+          <Button className="mb-4">Cadastrar Novo Produto</Button>
+        </DialogTrigger>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Cadastro de Produto</DialogTitle>
+          </DialogHeader>
+          <ProdutoForm onSubmit={handleSubmit} extraOptions={extraOptions} />
+        </DialogContent>
+      </Dialog>
       <ProdutosTable 
         produtos={produtos}
         extraOptions={extraOptions}
         onEdit={handleOpenEditModal}
+        onDelete={handleDeleteProduct}
         isAdmin={isAdmin}
         currentPage={currentPage}
         pageSize={pageSize}

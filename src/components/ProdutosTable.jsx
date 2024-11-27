@@ -8,6 +8,7 @@ const ProdutosTable = ({
   produtos, 
   extraOptions, 
   onEdit, 
+  onDelete,
   isAdmin,
   currentPage,
   pageSize,
@@ -43,7 +44,7 @@ const ProdutosTable = ({
             <TableHead>Tipo de Unidade</TableHead>
             <TableHead>Tipo</TableHead>
             <TableHead>Opções Extras</TableHead>
-            {isAdmin && <TableHead>Ações</TableHead>}
+            <TableHead>Ações</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -64,18 +65,18 @@ const ProdutosTable = ({
                   extraOptions?.find(o => o.id === optionId)?.name
                 ).join(', ')}
               </TableCell>
-              {isAdmin && (
-                <TableCell>
-                  <Button 
-                    onClick={() => onEdit(produto)} 
-                    variant="outline" 
-                    size="sm"
-                    className="w-full"
-                  >
-                    Editar
-                  </Button>
-                </TableCell>
-              )}
+              <TableCell className="space-x-2">
+                {isAdmin && (
+                  <>
+                    <Button onClick={() => onEdit(produto)} variant="outline" size="sm">
+                      Editar
+                    </Button>
+                    <Button onClick={() => onDelete(produto.id)} variant="destructive" size="sm">
+                      Excluir
+                    </Button>
+                  </>
+                )}
+              </TableCell>
             </TableRow>
           ))}
         </TableBody>
