@@ -16,7 +16,7 @@ const Produtos = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   
-  const { session } = useSupabaseAuth() || {};
+  const { session } = useSupabaseAuth();
   const navigate = useNavigate();
   const { user } = useAuth();
 
@@ -75,7 +75,7 @@ const Produtos = () => {
 
   const handlePageSizeChange = (newSize) => {
     setPageSize(newSize);
-    setCurrentPage(1); // Reset to first page when changing page size
+    setCurrentPage(1);
   };
 
   if (isLoading) return <div>Carregando...</div>;

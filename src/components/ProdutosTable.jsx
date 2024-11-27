@@ -3,7 +3,6 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Button } from "@/components/ui/button";
 import { Pagination, PaginationContent, PaginationItem, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
 import PageSizeSelector from "@/components/ui/page-size-selector";
-import { useAuth } from '../hooks/useAuth';
 
 const ProdutosTable = ({ 
   produtos, 
@@ -45,7 +44,7 @@ const ProdutosTable = ({
             <TableHead>Tipo de Unidade</TableHead>
             <TableHead>Tipo</TableHead>
             <TableHead>Opções Extras</TableHead>
-            <TableHead>Ações</TableHead>
+            {isAdmin && <TableHead>Ações</TableHead>}
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -66,13 +65,13 @@ const ProdutosTable = ({
                   extraOptions?.find(o => o.id === optionId)?.name
                 ).join(', ')}
               </TableCell>
-              <TableCell>
-                {isAdmin && (
+              {isAdmin && (
+                <TableCell>
                   <Button onClick={() => onEdit(produto)} variant="outline" size="sm">
                     Editar
                   </Button>
-                )}
-              </TableCell>
+                </TableCell>
+              )}
             </TableRow>
           ))}
         </TableBody>
