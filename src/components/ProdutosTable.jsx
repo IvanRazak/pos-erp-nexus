@@ -8,7 +8,6 @@ const ProdutosTable = ({
   produtos, 
   extraOptions, 
   onEdit, 
-  onDelete,
   isAdmin,
   currentPage,
   pageSize,
@@ -67,7 +66,12 @@ const ProdutosTable = ({
               </TableCell>
               {isAdmin && (
                 <TableCell>
-                  <Button onClick={() => onEdit(produto)} variant="outline" size="sm">
+                  <Button 
+                    onClick={() => onEdit(produto)} 
+                    variant="outline" 
+                    size="sm"
+                    className="w-full"
+                  >
                     Editar
                   </Button>
                 </TableCell>

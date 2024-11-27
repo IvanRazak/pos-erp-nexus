@@ -58,17 +58,6 @@ const Produtos = () => {
     setEditingProduto(null);
   };
 
-  const handleDeleteProduct = (id) => {
-    deleteProduct.mutate(id, {
-      onSuccess: () => {
-        toast.success("Produto excluído com sucesso!");
-      },
-      onError: (error) => {
-        toast.error("Erro ao excluir produto: " + error.message);
-      }
-    });
-  };
-
   const handlePageChange = (newPage) => {
     setCurrentPage(newPage);
   };
@@ -98,7 +87,6 @@ const Produtos = () => {
         produtos={produtos}
         extraOptions={extraOptions}
         onEdit={handleOpenEditModal}
-        onDelete={handleDeleteProduct}
         isAdmin={isAdmin}
         currentPage={currentPage}
         pageSize={pageSize}
