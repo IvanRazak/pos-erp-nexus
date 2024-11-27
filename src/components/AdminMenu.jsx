@@ -11,11 +11,13 @@ import GerenciarOpcoesExtras from './GerenciarOpcoesExtras';
 import GerenciarOpcoesSelecao from './GerenciarOpcoesSelecao';
 import PrintTemplateEditor from './PrintTemplateEditor';
 import PdfTemplateEditor from './PdfTemplateEditor';
+import EventsLogModal from './EventsLogModal';
 import { Menu } from 'lucide-react';
 
 const AdminMenu = () => {
   const [isGerenciarOpcoesExtrasOpen, setIsGerenciarOpcoesExtrasOpen] = useState(false);
   const [isGerenciarOpcoesSelecaoOpen, setIsGerenciarOpcoesSelecaoOpen] = useState(false);
+  const [isEventsLogOpen, setIsEventsLogOpen] = useState(false);
   
   const addPaymentOption = useAddPaymentOption();
   const addCustomerType = useAddCustomerType();
@@ -157,6 +159,10 @@ const AdminMenu = () => {
           <Button className="w-full" onClick={() => setIsGerenciarOpcoesSelecaoOpen(true)}>
             Gerenciar Opções de Seleção
           </Button>
+
+          <Button className="w-full" onClick={() => setIsEventsLogOpen(true)}>
+            Log de Eventos
+          </Button>
         </div>
 
         <GerenciarOpcoesExtras
@@ -167,6 +173,11 @@ const AdminMenu = () => {
         <GerenciarOpcoesSelecao
           isOpen={isGerenciarOpcoesSelecaoOpen}
           onClose={() => setIsGerenciarOpcoesSelecaoOpen(false)}
+        />
+
+        <EventsLogModal
+          isOpen={isEventsLogOpen}
+          onClose={() => setIsEventsLogOpen(false)}
         />
       </SheetContent>
     </Sheet>
