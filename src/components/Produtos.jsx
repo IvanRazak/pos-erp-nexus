@@ -16,7 +16,7 @@ const Produtos = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   
-  const { session } = useSupabaseAuth() || {};
+  const { session } = useSupabaseAuth();
   const navigate = useNavigate();
   const { user } = useAuth();
 
@@ -75,7 +75,7 @@ const Produtos = () => {
 
   const handlePageSizeChange = (newSize) => {
     setPageSize(newSize);
-    setCurrentPage(1); // Reset to first page when changing page size
+    setCurrentPage(1);
   };
 
   if (isLoading) return <div>Carregando...</div>;
@@ -83,17 +83,19 @@ const Produtos = () => {
   return (
     <div className="container mx-auto p-4">
       <h2 className="text-2xl font-bold mb-4">Produtos</h2>
-      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogTrigger asChild>
-          <Button className="mb-4">Cadastrar Novo Produto</Button>
-        </DialogTrigger>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Cadastro de Produto</DialogTitle>
-          </DialogHeader>
-          <ProdutoForm onSubmit={handleSubmit} extraOptions={extraOptions} />
-        </DialogContent>
-      </Dialog>
+      {isAdmin && (
+        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+          <DialogTrigger asChild>
+            <Button className="mb-4">Cadastrar Novo Produto</Button>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Cadastro de Produto</DialogTitle>
+            </DialogHeader>
+            <ProdutoForm onSubmit={handleSubmit} extraOptions={extraOptions} />
+          </DialogContent>
+        </Dialog>
+      )}
       <ProdutosTable 
         produtos={produtos}
         extraOptions={extraOptions}
