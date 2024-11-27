@@ -66,7 +66,7 @@ const ProdutosTable = ({
                 ).join(', ')}
               </TableCell>
               <TableCell className="space-x-2">
-                {isAdmin && (
+                 {user?.isAdmin && (
                   <>
                     <Button onClick={() => onEdit(produto)} variant="outline" size="sm">
                       Editar
