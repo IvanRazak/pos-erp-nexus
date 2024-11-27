@@ -13,6 +13,9 @@ import { toast } from "sonner";
 const Produtos = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingProduto, setEditingProduto] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+  
   const { session } = useSupabaseAuth() || {};
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -66,6 +69,15 @@ const Produtos = () => {
     });
   };
 
+  const handlePageChange = (newPage) => {
+    setCurrentPage(newPage);
+  };
+
+  const handlePageSizeChange = (newSize) => {
+    setPageSize(newSize);
+    setCurrentPage(1); // Reset to first page when changing page size
+  };
+
   if (isLoading) return <div>Carregando...</div>;
 
   return (
@@ -88,6 +100,11 @@ const Produtos = () => {
         onEdit={handleOpenEditModal}
         onDelete={handleDeleteProduct}
         isAdmin={isAdmin}
+        currentPage={currentPage}
+        pageSize={pageSize}
+        onPageChange={handlePageChange}
+        onPageSizeChange={handlePageSizeChange}
+        totalItems={produtos?.length || 0}
       />
       {editingProduto && (
         <EditProdutoModal 
