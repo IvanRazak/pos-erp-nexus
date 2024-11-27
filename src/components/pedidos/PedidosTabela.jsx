@@ -90,7 +90,7 @@ const PedidosTabela = ({
                 <Button onClick={() => abrirModalDetalhes(pedido)}>
                   Ver Detalhes
                 </Button>
-                {pedido.status !== 'cancelled' && (
+                {user?.isAdmin && pedido.status !== 'cancelled' && (
                   <AlertDialog>
                     <AlertDialogTrigger asChild>
                       <Button variant="destructive">Cancelar</Button>
