@@ -31,7 +31,9 @@ const Produtos = () => {
   }, [user, navigate]);
 
   const userRole = session?.user?.user_metadata?.role;
+  console.log('User Role:', userRole); // Debug log
   const canDelete = userRole === 'admin' || userRole === 'operator';
+  console.log('Can Delete:', canDelete); // Debug log
 
   const { data: produtos, isLoading } = useProducts();
   const { data: extraOptions } = useExtraOptions();

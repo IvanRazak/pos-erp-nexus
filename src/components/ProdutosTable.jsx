@@ -3,6 +3,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Button } from "@/components/ui/button";
 
 const ProdutosTable = ({ produtos, extraOptions, onEdit, onDelete, canDelete }) => {
+  console.log('ProdutosTable canDelete:', canDelete); // Debug log
+
   return (
     <Table>
       <TableHeader>
@@ -39,10 +41,17 @@ const ProdutosTable = ({ produtos, extraOptions, onEdit, onDelete, canDelete }) 
                 extraOptions?.find(o => o.id === optionId)?.name
               ).join(', ')}
             </TableCell>
-            <TableCell>
-              <Button onClick={() => onEdit(produto)} className="mr-2">Editar</Button>
+            <TableCell className="space-x-2">
+              <Button onClick={() => onEdit(produto)} variant="outline">
+                Editar
+              </Button>
               {canDelete && (
-                <Button onClick={() => onDelete(produto.id)} variant="destructive">Excluir</Button>
+                <Button 
+                  onClick={() => onDelete(produto.id)} 
+                  variant="destructive"
+                >
+                  Excluir
+                </Button>
               )}
             </TableCell>
           </TableRow>
