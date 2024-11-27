@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useSupabaseAuth } from '../integrations/supabase/auth';
 import EditProdutoModal from './EditProdutoModal';
-import { useProducts, useAddProduct, useUpdateProduct, useDeleteProduct, useExtraOptions } from '../integrations/supabase';
+import { useProducts, useAddProduct, useExtraOptions } from '../integrations/supabase';
 import { useAuth } from '../hooks/useAuth';
 import ProdutoForm from './ProdutoForm';
 import ProdutosTable from './ProdutosTable';
@@ -35,8 +35,6 @@ const Produtos = () => {
   const { data: produtos, isLoading } = useProducts();
   const { data: extraOptions } = useExtraOptions();
   const addProduct = useAddProduct();
-  const updateProduct = useUpdateProduct();
-  const deleteProduct = useDeleteProduct();
 
   const handleSubmit = (novoProduto) => {
     addProduct.mutate(novoProduto, {
@@ -72,17 +70,19 @@ const Produtos = () => {
   return (
     <div className="container mx-auto p-4">
       <h2 className="text-2xl font-bold mb-4">Produtos</h2>
-      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogTrigger asChild>
-          <Button className="mb-4">Cadastrar Novo Produto</Button>
-        </DialogTrigger>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Cadastro de Produto</DialogTitle>
-          </DialogHeader>
-          <ProdutoForm onSubmit={handleSubmit} extraOptions={extraOptions} />
-        </DialogContent>
-      </Dialog>
+      {isAdmin && (
+        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+          <DialogTrigger asChild>
+            <Button className="mb-4">Cadastrar Novo Produto</Button>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Cadastro de Produto</DialogTitle>
+            </DialogHeader>
+            <ProdutoForm onSubmit={handleSubmit} extraOptions={extraOptions} />
+          </DialogContent>
+        </Dialog>
+      )}
       <ProdutosTable 
         produtos={produtos}
         extraOptions={extraOptions}
