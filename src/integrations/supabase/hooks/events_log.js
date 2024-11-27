@@ -1,5 +1,6 @@
-import { useQuery } from '@tanstack/react-query';
-import { supabase } from '../../../lib/supabase';
+import { useMutation } from '@tanstack/react-query';
+import { supabase } from '../supabase';
+import { getIpAddress } from '../../../utils/ipUtils';
 
 const fromSupabase = async (query) => {
   const { data, error } = await query;
@@ -16,17 +17,5 @@ export const useAddEventLog = () => {
         ip_address: ipAddress
       }]));
     },
-  });
-};
-
-export const useEventsLog = () => {
-  return useQuery({
-    queryKey: ['events_log'],
-    queryFn: () => fromSupabase(
-      supabase
-        .from('events_log')
-        .select('*')
-        .order('event_date', { ascending: false })
-    ),
   });
 };
