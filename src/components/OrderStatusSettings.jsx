@@ -36,6 +36,17 @@ const OrderStatusSettings = ({ isOpen, onClose }) => {
     onClose();
   };
 
+  const statusOptions = [
+    { value: 'in_production', label: 'Em Produção' },
+    { value: 'pending', label: 'Pendente' },
+    { value: 'paid', label: 'Pago' },
+    { value: 'partial_payment', label: 'Pagamento Parcial' },
+    { value: 'awaiting_approval', label: 'Aguardando Aprovação' },
+    { value: 'ready_for_pickup', label: 'Pronto para Retirada' },
+    { value: 'delivered', label: 'Entregue' },
+    { value: 'cancelled', label: 'Cancelado' }
+  ];
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent>
@@ -50,9 +61,11 @@ const OrderStatusSettings = ({ isOpen, onClose }) => {
                 <SelectValue placeholder="Selecione o status" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="in_production">Em Produção</SelectItem>
-                <SelectItem value="pending">Pendente</SelectItem>
-                <SelectItem value="paid">Pago</SelectItem>
+                {statusOptions.map(option => (
+                  <SelectItem key={option.value} value={option.value}>
+                    {option.label}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>
@@ -64,9 +77,11 @@ const OrderStatusSettings = ({ isOpen, onClose }) => {
                 <SelectValue placeholder="Selecione o status" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="partial_payment">Pagamento Parcial</SelectItem>
-                <SelectItem value="pending">Pendente</SelectItem>
-                <SelectItem value="in_production">Em Produção</SelectItem>
+                {statusOptions.map(option => (
+                  <SelectItem key={option.value} value={option.value}>
+                    {option.label}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>
@@ -78,8 +93,11 @@ const OrderStatusSettings = ({ isOpen, onClose }) => {
                 <SelectValue placeholder="Selecione o status" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="pending">Pendente</SelectItem>
-                <SelectItem value="in_production">Em Produção</SelectItem>
+                {statusOptions.map(option => (
+                  <SelectItem key={option.value} value={option.value}>
+                    {option.label}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>
