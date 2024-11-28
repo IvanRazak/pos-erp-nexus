@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useProducts, useCustomers, useExtraOptions, usePaymentOptions, useAddOrder } from '../integrations/supabase';
-import { supabase } from '../lib/supabase';  // Add this import
+import { supabase } from '../lib/supabase';
 import { useAuth } from '../hooks/useAuth';
 import { format } from "date-fns";
 import ProdutoExtraOptionsModal from './ProdutoExtraOptionsModal';
@@ -130,7 +130,6 @@ const Venda = () => {
       const totalVenda = await calcularTotal(carrinho) - parseFloat(desconto) + parseFloat(valorAdicional);
       const saldoRestante = totalVenda - valorPago;
 
-      // Get the status based on the payment configuration
       const status = getOrderStatus(totalVenda, valorPago);
 
       const novaVenda = {
@@ -161,44 +160,36 @@ const Venda = () => {
       };
 
       const novoPedido = await addOrder.mutateAsync(novaVenda);
-      
-      // Add a delay to ensure data is properly loaded
-      setTimeout(async () => {
-        try {
-          // Fetch the complete order data with items
-          const { data: orderData, error } = await supabase
-            .from('orders')
-            .select(`
+
+      // Fetch order data first
+      const { data: orderData, error: orderError } = await supabase
+        .from('orders')
+        .select(`
+          *,
+          customer:customers(name),
+          items:order_items(
+            *,
+            product:products(*),
+            extras:order_item_extras(
               *,
-              customer:customers(name),
-              items:order_items(
-                *,
-                product:products(*),
-                extras:order_item_extras(
-                  *,
-                  extra_option:extra_options(*),
-                  selected_option:selection_options(*)
-                )
-              )
-            `)
-            .eq('id', novoPedido.id)
-            .single();
+              extra_option:extra_options(*),
+              selected_option:selection_options(*)
+            )
+          )
+        `)
+        .eq('id', novoPedido.id)
+        .single();
 
-          if (error) throw error;
+      if (orderError) throw orderError;
 
-          // Generate and print the content
-          const printContent = await generatePrintContent(orderData, orderData.items);
-          const printWindow = window.open('', '_blank');
-          if (printWindow) {
-            printWindow.document.write(printContent);
-            printWindow.document.close();
-            printWindow.print();
-          }
-        } catch (printError) {
-          console.error('Error generating print:', printError);
-          toast.error("Erro ao gerar impressão: " + printError.message);
-        }
-      }, 1000); // Wait 1 second before printing
+      // Generate and print content
+      const printContent = await generatePrintContent(orderData, orderData.items);
+      const printWindow = window.open('', '_blank');
+      if (printWindow) {
+        printWindow.document.write(printContent);
+        printWindow.document.close();
+        printWindow.print();
+      }
 
       toast.success("Venda finalizada com sucesso!");
       resetCarrinho(setCarrinho, setClienteSelecionado, setDataEntrega, setOpcaoPagamento, setDesconto, setValorPago);
