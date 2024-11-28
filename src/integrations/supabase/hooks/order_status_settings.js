@@ -22,12 +22,11 @@ export const useUpdateOrderStatusSettings = () => {
       const { data, error } = await supabase
         .from('order_status_settings')
         .upsert({
-          id: 1,
+          id: 1, // Using a fixed ID since we only need one settings record
           full_payment_status: settings.fullPaymentStatus,
           partial_payment_status: settings.partialPaymentStatus,
           zero_payment_status: settings.zeroPaymentStatus,
-          allow_zero_payment: settings.allowZeroPayment,
-          full_payment_status_financeiro: settings.fullPaymentStatusFinanceiro
+          allow_zero_payment: settings.allowZeroPayment
         });
 
       if (error) throw error;

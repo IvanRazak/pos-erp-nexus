@@ -12,7 +12,6 @@ const OrderStatusSettings = ({ isOpen, onClose }) => {
   const [partialPaymentStatus, setPartialPaymentStatus] = useState('partial_payment');
   const [zeroPaymentStatus, setZeroPaymentStatus] = useState('pending');
   const [allowZeroPayment, setAllowZeroPayment] = useState(false);
-  const [fullPaymentStatusFinanceiro, setFullPaymentStatusFinanceiro] = useState('paid');
 
   const { data: settings } = useOrderStatusSettings();
   const updateSettings = useUpdateOrderStatusSettings();
@@ -23,7 +22,6 @@ const OrderStatusSettings = ({ isOpen, onClose }) => {
       setPartialPaymentStatus(settings.partial_payment_status);
       setZeroPaymentStatus(settings.zero_payment_status);
       setAllowZeroPayment(settings.allow_zero_payment);
-      setFullPaymentStatusFinanceiro(settings.full_payment_status_financeiro);
     }
   }, [settings]);
 
@@ -32,8 +30,7 @@ const OrderStatusSettings = ({ isOpen, onClose }) => {
       fullPaymentStatus,
       partialPaymentStatus,
       zeroPaymentStatus,
-      allowZeroPayment,
-      fullPaymentStatusFinanceiro
+      allowZeroPayment
     }, {
       onSuccess: () => {
         toast.success("Configurações salvas com sucesso!");
@@ -64,24 +61,8 @@ const OrderStatusSettings = ({ isOpen, onClose }) => {
         </DialogHeader>
         <div className="space-y-6 py-4">
           <div className="space-y-2">
-            <Label>Status para Pagamento Total (Venda)</Label>
+            <Label>Status para Pagamento Total</Label>
             <Select value={fullPaymentStatus} onValueChange={setFullPaymentStatus}>
-              <SelectTrigger>
-                <SelectValue placeholder="Selecione o status" />
-              </SelectTrigger>
-              <SelectContent>
-                {statusOptions.map(option => (
-                  <SelectItem key={option.value} value={option.value}>
-                    {option.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="space-y-2">
-            <Label>Status para Pagamento Total (Financeiro)</Label>
-            <Select value={fullPaymentStatusFinanceiro} onValueChange={setFullPaymentStatusFinanceiro}>
               <SelectTrigger>
                 <SelectValue placeholder="Selecione o status" />
               </SelectTrigger>
