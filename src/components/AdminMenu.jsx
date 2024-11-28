@@ -13,13 +13,11 @@ import PrintTemplateEditor from './PrintTemplateEditor';
 import PdfTemplateEditor from './PdfTemplateEditor';
 import EventsLogModal from './EventsLogModal';
 import { Menu } from 'lucide-react';
-import { useLocalStorage } from '../hooks/useLocalStorage';
 
 const AdminMenu = () => {
   const [isGerenciarOpcoesExtrasOpen, setIsGerenciarOpcoesExtrasOpen] = useState(false);
   const [isGerenciarOpcoesSelecaoOpen, setIsGerenciarOpcoesSelecaoOpen] = useState(false);
   const [isEventsLogOpen, setIsEventsLogOpen] = useState(false);
-  const [defaultOrderStatus, setDefaultOrderStatus] = useLocalStorage('defaultOrderStatus', 'in_production');
   
   const addPaymentOption = useAddPaymentOption();
   const addCustomerType = useAddCustomerType();
@@ -81,11 +79,6 @@ const AdminMenu = () => {
     }
   };
 
-  const handleDefaultStatusChange = (newStatus) => {
-    setDefaultOrderStatus(newStatus);
-    toast.success("Status padrão atualizado com sucesso!");
-  };
-
   return (
     <Sheet>
       <SheetTrigger asChild>
@@ -98,33 +91,6 @@ const AdminMenu = () => {
           <SheetTitle>Menu Administrativo</SheetTitle>
         </SheetHeader>
         <div className="space-y-4 mt-4">
-          <Dialog>
-            <DialogTrigger asChild>
-              <Button className="w-full">Configurar Status Padrão</Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Status Padrão de Pedidos</DialogTitle>
-              </DialogHeader>
-              <div className="space-y-4">
-                <p className="text-sm text-muted-foreground">
-                  Selecione o status padrão que será aplicado aos pedidos quando uma venda for finalizada.
-                </p>
-                <Select value={defaultOrderStatus} onValueChange={handleDefaultStatusChange}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione o status padrão" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="in_production">Em Produção</SelectItem>
-                    <SelectItem value="awaiting_approval">Aguardando Aprovação</SelectItem>
-                    <SelectItem value="ready_for_pickup">Pronto para Retirada</SelectItem>
-                    <SelectItem value="partial_payment">Pagamento Parcial</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </DialogContent>
-          </Dialog>
-
           <Dialog>
             <DialogTrigger asChild>
               <Button className="w-full">Cadastrar Opção de Pagamento</Button>

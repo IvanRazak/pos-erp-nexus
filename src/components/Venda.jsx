@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useProducts, useCustomers, useExtraOptions, usePaymentOptions, useAddOrder } from '../integrations/supabase';
+import { supabase } from '../lib/supabase';  // Add this import
 import { useAuth } from '../hooks/useAuth';
 import { format } from "date-fns";
 import ProdutoExtraOptionsModal from './ProdutoExtraOptionsModal';
@@ -12,7 +13,7 @@ import ArteModal from './ArteModal';
 import { calcularTotalItem, calcularTotal, resetCarrinho } from '../utils/vendaUtils';
 import { handleNewClientSuccess, handleSelectCliente, handleSelectProduto } from '../utils/clientUtils';
 import { getSheetPrice } from '../utils/productUtils';
-import { createOrder, fetchOrderDetails, handleOrderPrint } from '../utils/orderUtils';
+import { generatePrintContent } from '../utils/printUtils';
 import { toast } from "sonner";
 
 const Venda = () => {
@@ -128,14 +129,13 @@ const Venda = () => {
     try {
       const totalVenda = await calcularTotal(carrinho) - parseFloat(desconto) + parseFloat(valorAdicional);
       const saldoRestante = totalVenda - valorPago;
-      const defaultStatus = localStorage.getItem('defaultOrderStatus') || 'in_production';
 
-      const orderData = {
+      const novaVenda = {
         customer_id: clienteSelecionado,
         total_amount: totalVenda,
         paid_amount: valorPago,
         remaining_balance: saldoRestante,
-        status: saldoRestante > 0 ? 'partial_payment' : defaultStatus,
+        status: saldoRestante > 0 ? 'partial_payment' : 'in_production',
         delivery_date: format(dataEntrega, 'yyyy-MM-dd'),
         payment_option: opcaoPagamento,
         items: carrinho.map(item => ({
@@ -151,22 +151,51 @@ const Venda = () => {
           arte_option: item.arteOption || null,
           discount: parseFloat(item.discount) || 0,
         })),
+        created_by: user.username,
         discount: parseFloat(desconto) || 0,
         additional_value: parseFloat(valorAdicional) || 0,
         additional_value_description: descricaoValorAdicional,
       };
 
-      const novoPedido = await createOrder(orderData, user);
+      const novoPedido = await addOrder.mutateAsync(novaVenda);
       
+      // Add a delay to ensure data is properly loaded
       setTimeout(async () => {
         try {
-          const orderDetails = await fetchOrderDetails(novoPedido.id);
-          await handleOrderPrint(orderDetails);
-        } catch (error) {
-          console.error('Error handling order print:', error);
-          toast.error("Erro ao processar impressão: " + error.message);
+          // Fetch the complete order data with items
+          const { data: orderData, error } = await supabase
+            .from('orders')
+            .select(`
+              *,
+              customer:customers(name),
+              items:order_items(
+                *,
+                product:products(*),
+                extras:order_item_extras(
+                  *,
+                  extra_option:extra_options(*),
+                  selected_option:selection_options(*)
+                )
+              )
+            `)
+            .eq('id', novoPedido.id)
+            .single();
+
+          if (error) throw error;
+
+          // Generate and print the content
+          const printContent = await generatePrintContent(orderData, orderData.items);
+          const printWindow = window.open('', '_blank');
+          if (printWindow) {
+            printWindow.document.write(printContent);
+            printWindow.document.close();
+            printWindow.print();
+          }
+        } catch (printError) {
+          console.error('Error generating print:', printError);
+          toast.error("Erro ao gerar impressão: " + printError.message);
         }
-      }, 1000);
+      }, 1000); // Wait 1 second before printing
 
       toast.success("Venda finalizada com sucesso!");
       resetCarrinho(setCarrinho, setClienteSelecionado, setDataEntrega, setOpcaoPagamento, setDesconto, setValorPago);
