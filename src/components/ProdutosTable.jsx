@@ -2,9 +2,7 @@ import React from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 
-const ProdutosTable = ({ produtos, extraOptions, onEdit, onDelete, canDelete }) => {
-  console.log('ProdutosTable canDelete:', canDelete); // Debug log
-
+const ProdutosTable = ({ produtos, extraOptions, onEdit, onDelete, isAdmin }) => {
   return (
     <Table>
       <TableHeader>
@@ -45,7 +43,7 @@ const ProdutosTable = ({ produtos, extraOptions, onEdit, onDelete, canDelete }) 
               <Button onClick={() => onEdit(produto)} variant="outline">
                 Editar
               </Button>
-              {canDelete && (
+              {isAdmin && (
                 <Button 
                   onClick={() => onDelete(produto.id)} 
                   variant="destructive"

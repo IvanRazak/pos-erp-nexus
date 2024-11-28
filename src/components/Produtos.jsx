@@ -30,11 +30,6 @@ const Produtos = () => {
     return () => clearTimeout(timer);
   }, [user, navigate]);
 
-  const userRole = session?.user?.user_metadata?.role;
-  console.log('User Role:', userRole); // Debug log
-  const canDelete = userRole === 'admin' || userRole === 'operator';
-  console.log('Can Delete:', canDelete); // Debug log
-
   const { data: produtos, isLoading } = useProducts();
   const { data: extraOptions } = useExtraOptions();
   const addProduct = useAddProduct();
@@ -105,7 +100,7 @@ const Produtos = () => {
         extraOptions={extraOptions}
         onEdit={handleOpenEditModal}
         onDelete={handleDeleteProduct}
-        canDelete={canDelete}
+        isAdmin={user?.isAdmin}
       />
       <div className="flex justify-between items-center mt-4">
         <div className="flex items-center gap-4">
