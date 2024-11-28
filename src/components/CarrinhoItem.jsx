@@ -18,6 +18,10 @@ const CarrinhoItem = ({
   const [tempUnitPrice, setTempUnitPrice] = useState(item.unitPrice);
   const [editingQuantity, setEditingQuantity] = useState(false);
   const [tempQuantity, setTempQuantity] = useState(item.quantidade);
+  const [editingDiscountPercentage, setEditingDiscountPercentage] = useState(false);
+  const [tempDiscountPercentage, setTempDiscountPercentage] = useState(
+    calculateDiscountPercentage(item.discount || 0, item.unitPrice)
+  );
   const [extrasPrices, setExtrasPrices] = useState({});
 
   useEffect(() => {
@@ -83,11 +87,16 @@ const CarrinhoItem = ({
     return basePrice + extrasTotal;
   };
 
-  const calculateDiscountPercentage = () => {
-    const total = calculateItemTotal();
-    const discount = parseFloat(item.discount) || 0;
-    if (total === 0) return 0;
-    return (discount / total) * 100;
+  const calculateDiscountPercentage = (discount, unitPrice) => {
+    if (unitPrice === 0) return 0;
+    return (discount / unitPrice) * 100;
+  };
+
+  const handleDiscountPercentageChange = (percentage) => {
+    const newPercentage = parseFloat(percentage) || 0;
+    setTempDiscountPercentage(newPercentage);
+    const newDiscount = (newPercentage / 100) * item.unitPrice;
+    onDiscountChange(item, newDiscount);
   };
 
   const renderUnitPrice = () => {
@@ -113,7 +122,6 @@ const CarrinhoItem = ({
   };
 
   const total = calculateItemTotal();
-  const discountPercentage = calculateDiscountPercentage();
 
   return (
     <TableRow>
@@ -163,8 +171,15 @@ const CarrinhoItem = ({
             onChange={(e) => onDiscountChange(item, parseFloat(e.target.value) || 0)}
             className="w-24"
           />
-          <div className="text-sm text-gray-500">
-            {discountPercentage.toFixed(2)}% de desconto
+          <div className="flex items-center space-x-2">
+            <Input
+              type="number"
+              placeholder="Porcentagem"
+              value={tempDiscountPercentage}
+              onChange={(e) => handleDiscountPercentageChange(e.target.value)}
+              className="w-24"
+            />
+            <span className="text-sm text-gray-500">%</span>
           </div>
         </div>
       </TableCell>
