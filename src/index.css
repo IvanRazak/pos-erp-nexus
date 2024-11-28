@@ -75,7 +75,7 @@
 }
 
 .bg-gray-50 {
-  @apply bg-gray-300;
+  @apply bg-gray-200;
 }
 
 .dark .\[\&_tr\]\:border-b tr {
@@ -83,7 +83,7 @@
 }
 
 .\[\&_tr\]\:border-b tr {
- background-color: #d1d5db;
+ background-color: #eaf1f6;
 }
 
 .py-2 {
