@@ -83,47 +83,75 @@ const VendaCarrinho = ({
           ))}
         </TableBody>
       </Table>
+      
+      <div className="mt-4 grid grid-cols-2 gap-4">
+        <div className="space-y-4">
+          <div className="flex gap-4">
+            <Input 
+              type="number" 
+              placeholder="Desconto Geral" 
+              value={desconto} 
+              onChange={(e) => setDesconto(parseFloat(e.target.value) || 0)}
+              className="w-full"
+            />
+            <Input 
+              type="number" 
+              placeholder="Valor Adicional" 
+              value={valorAdicional} 
+              onChange={(e) => setValorAdicional(parseFloat(e.target.value) || 0)}
+              className="w-full"
+            />
+          </div>
+          <Input 
+            type="text" 
+            placeholder="Descrição do Valor Adicional" 
+            value={descricaoValorAdicional} 
+            onChange={(e) => setDescricaoValorAdicional(e.target.value)}
+          />
+        </div>
+        
+        <div className="space-y-4">
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button variant={"outline"} className={cn("w-full justify-start text-left font-normal", !dataEntrega && "text-muted-foreground")}>
+                <CalendarIcon className="mr-2 h-4 w-4" />
+                {dataEntrega ? format(dataEntrega, "PPP") : <span>Selecione a data de entrega</span>}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0">
+              <Calendar mode="single" selected={dataEntrega} onSelect={setDataEntrega} initialFocus />
+            </PopoverContent>
+          </Popover>
+          
+          <div className="flex gap-4">
+            <Select onValueChange={setOpcaoPagamento} value={opcaoPagamento} className="w-full">
+              <SelectTrigger>
+                <SelectValue placeholder="Opção de Pagamento" />
+              </SelectTrigger>
+              <SelectContent>
+                {opcoesPagamento?.map((opcao) => (
+                  <SelectItem key={opcao.id} value={opcao.name}>{opcao.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            
+            <Input 
+              type="number" 
+              placeholder="Valor Pago" 
+              value={valorPago} 
+              onChange={(e) => setValorPago(parseFloat(e.target.value) || 0)}
+              className="w-full"
+            />
+          </div>
+        </div>
+      </div>
+
       <div className="mt-4 space-y-2">
-        <Input type="number" placeholder="Desconto Geral" value={desconto} onChange={(e) => setDesconto(parseFloat(e.target.value) || 0)} />
-        <Input 
-          type="number" 
-          placeholder="Valor Adicional" 
-          value={valorAdicional} 
-          onChange={(e) => setValorAdicional(parseFloat(e.target.value) || 0)} 
-        />
-        <Input 
-          type="text" 
-          placeholder="Descrição do Valor Adicional" 
-          value={descricaoValorAdicional} 
-          onChange={(e) => setDescricaoValorAdicional(e.target.value)} 
-        />
-        <Popover>
-          <PopoverTrigger asChild>
-            <Button variant={"outline"} className={cn("w-[280px] justify-start text-left font-normal", !dataEntrega && "text-muted-foreground")}>
-              <CalendarIcon className="mr-2 h-4 w-4" />
-              {dataEntrega ? format(dataEntrega, "PPP") : <span>Selecione a data de entrega</span>}
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-auto p-0">
-            <Calendar mode="single" selected={dataEntrega} onSelect={setDataEntrega} initialFocus />
-          </PopoverContent>
-        </Popover>
-        <Select onValueChange={setOpcaoPagamento} value={opcaoPagamento}>
-          <SelectTrigger>
-            <SelectValue placeholder="Opção de Pagamento" />
-          </SelectTrigger>
-          <SelectContent>
-            {opcoesPagamento?.map((opcao) => (
-              <SelectItem key={opcao.id} value={opcao.name}>{opcao.name}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        <Input type="number" placeholder="Valor Pago" value={valorPago} onChange={(e) => setValorPago(parseFloat(e.target.value) || 0)} />
         <p className="text-xl">Total Descontos (Individuais + Geral): R$ {calcularTotalDescontos().toFixed(2)}</p>
         <p className="text-xl">Valor Adicional: R$ {valorAdicional.toFixed(2)}</p>
         <p className="text-xl font-bold">Total: R$ {total.toFixed(2)}</p>
         <p className="text-xl font-bold">Saldo Restante: R$ {Math.max(total - valorPago, 0).toFixed(2)}</p>
-        <Button onClick={finalizarVenda}>Finalizar Venda</Button>
+        <Button onClick={finalizarVenda} className="w-full">Finalizar Venda</Button>
       </div>
     </div>
   );
