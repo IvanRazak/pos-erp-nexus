@@ -129,14 +129,13 @@ const Venda = () => {
     try {
       const totalVenda = await calcularTotal(carrinho) - parseFloat(desconto) + parseFloat(valorAdicional);
       const saldoRestante = totalVenda - valorPago;
-      const defaultStatus = localStorage.getItem('defaultOrderStatus') || 'in_production';
 
       const novaVenda = {
         customer_id: clienteSelecionado,
         total_amount: totalVenda,
         paid_amount: valorPago,
         remaining_balance: saldoRestante,
-        status: saldoRestante > 0 ? 'partial_payment' : defaultStatus,
+        status: saldoRestante > 0 ? 'partial_payment' : 'in_production',
         delivery_date: format(dataEntrega, 'yyyy-MM-dd'),
         payment_option: opcaoPagamento,
         items: carrinho.map(item => ({
