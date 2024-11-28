@@ -40,16 +40,18 @@ const ProdutosTable = ({ produtos, extraOptions, onEdit, onDelete, isAdmin }) =>
               ).join(', ')}
             </TableCell>
             <TableCell className="space-x-2">
-              <Button onClick={() => onEdit(produto)} variant="outline">
-                Editar
-              </Button>
               {isAdmin && (
-                <Button 
-                  onClick={() => onDelete(produto.id)} 
-                  variant="destructive"
-                >
-                  Excluir
-                </Button>
+                <>
+                  <Button onClick={() => onEdit(produto)} variant="outline">
+                    Editar
+                  </Button>
+                  <Button 
+                    onClick={() => onDelete(produto.id)} 
+                    variant="destructive"
+                  >
+                    Excluir
+                  </Button>
+                </>
               )}
             </TableCell>
           </TableRow>
