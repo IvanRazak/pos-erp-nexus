@@ -8,6 +8,17 @@ import { format, parseISO } from "date-fns";
 import { ptBR } from 'date-fns/locale';
 import PageSizeSelector from '../ui/page-size-selector';
 
+const ORDER_STATUS_OPTIONS = [
+  'in_production',
+  'pending',
+  'paid',
+  'partial_payment',
+  'waiting_approval',
+  'ready_for_pickup',
+  'delivered',
+  'cancelled'
+];
+
 const FinanceiroTable = ({ 
   pedidosFiltrados,
   opcoesPagamento,
@@ -16,7 +27,9 @@ const FinanceiroTable = ({
   valorPagamento,
   setValorPagamento,
   opcaoPagamento,
-  setOpcaoPagamento 
+  setOpcaoPagamento,
+  selectedStatus,
+  setSelectedStatus
 }) => {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
@@ -29,6 +42,20 @@ const FinanceiroTable = ({
   const handlePageSizeChange = (newSize) => {
     setItemsPerPage(newSize);
     setCurrentPage(1);
+  };
+
+  const formatStatus = (status) => {
+    const statusMap = {
+      'in_production': 'Em Produção',
+      'pending': 'Pendente',
+      'paid': 'Pago',
+      'partial_payment': 'Pagamento Parcial',
+      'waiting_approval': 'Aguardando Aprovação',
+      'ready_for_pickup': 'Pronto para Retirada',
+      'delivered': 'Entregue',
+      'cancelled': 'Cancelado'
+    };
+    return statusMap[status] || status;
   };
 
   return (
@@ -78,6 +105,18 @@ const FinanceiroTable = ({
                         <SelectContent>
                           {opcoesPagamento?.map((opcao) => (
                             <SelectItem key={opcao.id} value={opcao.name}>{opcao.name}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <Select onValueChange={setSelectedStatus} value={selectedStatus}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Status do Pedido" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {ORDER_STATUS_OPTIONS.map((status) => (
+                            <SelectItem key={status} value={status}>
+                              {formatStatus(status)}
+                            </SelectItem>
                           ))}
                         </SelectContent>
                       </Select>
