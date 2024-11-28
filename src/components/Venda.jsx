@@ -15,6 +15,7 @@ import { handleNewClientSuccess, handleSelectCliente, handleSelectProduto } from
 import { getSheetPrice } from '../utils/productUtils';
 import { generatePrintContent } from '../utils/printUtils';
 import { toast } from "sonner";
+import { getOrderStatus } from '../utils/orderStatusUtils';
 
 const Venda = () => {
   const navigate = useNavigate();
@@ -114,7 +115,6 @@ const Venda = () => {
     if (carrinho.length === 0) erros.push("O carrinho está vazio");
     if (!dataEntrega) erros.push("Defina uma data de entrega");
     if (!opcaoPagamento) erros.push("Selecione uma opção de pagamento");
-    if (valorPago <= 0) erros.push("Insira um valor pago maior que zero");
     
     if (erros.length > 0) {
       toast.error("Não foi possível finalizar a venda:\n\n" + erros.join("\n"));
@@ -130,12 +130,15 @@ const Venda = () => {
       const totalVenda = await calcularTotal(carrinho) - parseFloat(desconto) + parseFloat(valorAdicional);
       const saldoRestante = totalVenda - valorPago;
 
+      // Get the status based on the payment configuration
+      const status = getOrderStatus(totalVenda, valorPago);
+
       const novaVenda = {
         customer_id: clienteSelecionado,
         total_amount: totalVenda,
         paid_amount: valorPago,
         remaining_balance: saldoRestante,
-        status: saldoRestante > 0 ? 'partial_payment' : 'in_production',
+        status: status,
         delivery_date: format(dataEntrega, 'yyyy-MM-dd'),
         payment_option: opcaoPagamento,
         items: carrinho.map(item => ({

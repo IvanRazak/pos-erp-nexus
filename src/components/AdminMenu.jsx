@@ -12,12 +12,14 @@ import GerenciarOpcoesSelecao from './GerenciarOpcoesSelecao';
 import PrintTemplateEditor from './PrintTemplateEditor';
 import PdfTemplateEditor from './PdfTemplateEditor';
 import EventsLogModal from './EventsLogModal';
+import OrderStatusSettings from './OrderStatusSettings';
 import { Menu } from 'lucide-react';
 
 const AdminMenu = () => {
   const [isGerenciarOpcoesExtrasOpen, setIsGerenciarOpcoesExtrasOpen] = useState(false);
   const [isGerenciarOpcoesSelecaoOpen, setIsGerenciarOpcoesSelecaoOpen] = useState(false);
   const [isEventsLogOpen, setIsEventsLogOpen] = useState(false);
+  const [isOrderStatusSettingsOpen, setIsOrderStatusSettingsOpen] = useState(false);
   
   const addPaymentOption = useAddPaymentOption();
   const addCustomerType = useAddCustomerType();
@@ -91,6 +93,10 @@ const AdminMenu = () => {
           <SheetTitle>Menu Administrativo</SheetTitle>
         </SheetHeader>
         <div className="space-y-4 mt-4">
+          <Button className="w-full" onClick={() => setIsOrderStatusSettingsOpen(true)}>
+            Configurar Status dos Pedidos
+          </Button>
+
           <Dialog>
             <DialogTrigger asChild>
               <Button className="w-full">Cadastrar Opção de Pagamento</Button>
@@ -164,6 +170,11 @@ const AdminMenu = () => {
             Log de Eventos
           </Button>
         </div>
+
+        <OrderStatusSettings
+          isOpen={isOrderStatusSettingsOpen}
+          onClose={() => setIsOrderStatusSettingsOpen(false)}
+        />
 
         <GerenciarOpcoesExtras
           isOpen={isGerenciarOpcoesExtrasOpen}
