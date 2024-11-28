@@ -10,6 +10,7 @@ import ProdutoForm from './ProdutoForm';
 import ProdutosTable from './ProdutosTable';
 import { toast } from "sonner";
 import PageSizeSelector from './ui/page-size-selector';
+import { useAddEventLog } from '../integrations/supabase/hooks/events_log';
 
 const Produtos = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -19,6 +20,7 @@ const Produtos = () => {
   const { session } = useSupabaseAuth() || {};
   const navigate = useNavigate();
   const { user } = useAuth();
+  const addEventLog = useAddEventLog();
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -41,6 +43,11 @@ const Produtos = () => {
       onSuccess: () => {
         toast.success("Produto cadastrado com sucesso!");
         setIsDialogOpen(false);
+        // Registrar o evento no log
+        addEventLog.mutate({
+          user_name: user?.email || 'Usuário não identificado',
+          description: `Cadastrou o produto: ${novoProduto.name}`
+        });
       },
       onError: (error) => {
         toast.error("Erro ao cadastrar produto: " + error.message);
