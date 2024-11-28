@@ -1,11 +1,23 @@
 import React, { useState } from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import PageSizeSelector from '../ui/page-size-selector';
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { format, parseISO } from "date-fns";
 import { ptBR } from 'date-fns/locale';
+import PageSizeSelector from '../ui/page-size-selector';
 
-const FinanceiroTable = ({ pedidosFiltrados, renderPagamentoButton }) => {
+const FinanceiroTable = ({ 
+  pedidosFiltrados,
+  opcoesPagamento,
+  handlePagamento,
+  setPedidoSelecionado,
+  valorPagamento,
+  setValorPagamento,
+  opcaoPagamento,
+  setOpcaoPagamento 
+}) => {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
 
@@ -43,7 +55,36 @@ const FinanceiroTable = ({ pedidosFiltrados, renderPagamentoButton }) => {
               <TableCell>R$ {pedido.remaining_balance.toFixed(2)}</TableCell>
               <TableCell>{format(parseISO(pedido.created_at), 'dd/MM/yyyy', { locale: ptBR })}</TableCell>
               <TableCell>
-                {renderPagamentoButton(pedido)}
+                <Dialog>
+                  <DialogTrigger asChild>
+                    <Button onClick={() => setPedidoSelecionado(pedido)}>Pagar</Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Pagamento do Saldo Restante</DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-4">
+                      <p>Saldo Restante: R$ {pedido.remaining_balance.toFixed(2)}</p>
+                      <Input
+                        type="number"
+                        placeholder="Valor do Pagamento"
+                        value={valorPagamento}
+                        onChange={(e) => setValorPagamento(parseFloat(e.target.value))}
+                      />
+                      <Select onValueChange={setOpcaoPagamento} value={opcaoPagamento}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Opção de Pagamento" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {opcoesPagamento?.map((opcao) => (
+                            <SelectItem key={opcao.id} value={opcao.name}>{opcao.name}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <Button onClick={handlePagamento}>Confirmar Pagamento</Button>
+                    </div>
+                  </DialogContent>
+                </Dialog>
               </TableCell>
             </TableRow>
           ))}
