@@ -38,21 +38,21 @@ const Produtos = () => {
   const updateProduct = useUpdateProduct();
   const deleteProduct = useDeleteProduct();
 
-  const handleSubmit = (novoProduto) => {
-    addProduct.mutate(novoProduto, {
-      onSuccess: () => {
-        toast.success("Produto cadastrado com sucesso!");
-        setIsDialogOpen(false);
-        // Registrar o evento no log
-        addEventLog.mutate({
-          user_name: user?.email || 'Usuário não identificado',
-          description: `Cadastrou o produto: ${novoProduto.name}`
-        });
-      },
-      onError: (error) => {
-        toast.error("Erro ao cadastrar produto: " + error.message);
-      }
-    });
+  const handleSubmit = async (novoProduto) => {
+    try {
+      await addProduct.mutateAsync(novoProduto);
+      
+      // Log the product addition event
+      await addEventLog.mutateAsync({
+        user_name: user.username,
+        description: `Cadastrou o produto: ${novoProduto.name}`,
+      });
+
+      toast.success("Produto cadastrado com sucesso!");
+      setIsDialogOpen(false);
+    } catch (error) {
+      toast.error("Erro ao cadastrar produto: " + error.message);
+    }
   };
 
   const handleOpenEditModal = (produto) => {
