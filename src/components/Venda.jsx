@@ -110,27 +110,28 @@ const Venda = () => {
   };
 
   const finalizarVenda = async () => {
-    const erros = [];
-    if (!clienteSelecionado) erros.push("Selecione um cliente");
-    if (carrinho.length === 0) erros.push("O carrinho está vazio");
-    if (!dataEntrega) erros.push("Defina uma data de entrega");
-    if (!opcaoPagamento) erros.push("Selecione uma opção de pagamento");
-    
-    if (erros.length > 0) {
-      toast.error("Não foi possível finalizar a venda:\n\n" + erros.join("\n"));
-      return;
-    }
-    
-    if (!user) {
-      toast.error("Erro ao finalizar venda: Usuário não está autenticado.");
-      return;
-    }
-
     try {
+      const erros = [];
+      if (!clienteSelecionado) erros.push("Selecione um cliente");
+      if (carrinho.length === 0) erros.push("O carrinho está vazio");
+      if (!dataEntrega) erros.push("Defina uma data de entrega");
+      if (!opcaoPagamento) erros.push("Selecione uma opção de pagamento");
+      
+      if (erros.length > 0) {
+        toast.error("Não foi possível finalizar a venda:\n\n" + erros.join("\n"));
+        return;
+      }
+      
+      if (!user) {
+        toast.error("Erro ao finalizar venda: Usuário não está autenticado.");
+        return;
+      }
+
       const totalVenda = await calcularTotal(carrinho) - parseFloat(desconto) + parseFloat(valorAdicional);
       const saldoRestante = totalVenda - valorPago;
 
-      const status = getOrderStatus(totalVenda, valorPago);
+      // Obter o status do pedido de forma assíncrona
+      const status = await getOrderStatus(totalVenda, valorPago);
 
       const novaVenda = {
         customer_id: clienteSelecionado,
@@ -161,7 +162,7 @@ const Venda = () => {
 
       const novoPedido = await addOrder.mutateAsync(novaVenda);
 
-      // Fetch order data first
+      // Buscar dados do pedido
       const { data: orderData, error: orderError } = await supabase
         .from('orders')
         .select(`
@@ -182,7 +183,7 @@ const Venda = () => {
 
       if (orderError) throw orderError;
 
-      // Generate and print content
+      // Gerar e imprimir conteúdo
       const printContent = await generatePrintContent(orderData, orderData.items);
       const printWindow = window.open('', '_blank');
       if (printWindow) {
@@ -196,6 +197,7 @@ const Venda = () => {
       setValorAdicional(0);
       setDescricaoValorAdicional('');
     } catch (error) {
+      console.error('Erro ao finalizar venda:', error);
       toast.error("Erro ao finalizar venda: " + error.message);
     }
   };
