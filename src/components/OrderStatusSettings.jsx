@@ -5,6 +5,7 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import { useOrderStatusSettings, useUpdateOrderStatusSettings } from '../integrations/supabase/hooks/order_status_settings';
 
 const OrderStatusSettings = ({ isOpen, onClose }) => {
   const [fullPaymentStatus, setFullPaymentStatus] = useState('in_production');
@@ -12,28 +13,33 @@ const OrderStatusSettings = ({ isOpen, onClose }) => {
   const [zeroPaymentStatus, setZeroPaymentStatus] = useState('pending');
   const [allowZeroPayment, setAllowZeroPayment] = useState(false);
 
+  const { data: settings } = useOrderStatusSettings();
+  const updateSettings = useUpdateOrderStatusSettings();
+
   useEffect(() => {
-    // Load saved settings from localStorage
-    const savedSettings = localStorage.getItem('orderStatusSettings');
-    if (savedSettings) {
-      const settings = JSON.parse(savedSettings);
-      setFullPaymentStatus(settings.fullPaymentStatus || 'in_production');
-      setPartialPaymentStatus(settings.partialPaymentStatus || 'partial_payment');
-      setZeroPaymentStatus(settings.zeroPaymentStatus || 'pending');
-      setAllowZeroPayment(settings.allowZeroPayment || false);
+    if (settings) {
+      setFullPaymentStatus(settings.full_payment_status);
+      setPartialPaymentStatus(settings.partial_payment_status);
+      setZeroPaymentStatus(settings.zero_payment_status);
+      setAllowZeroPayment(settings.allow_zero_payment);
     }
-  }, []);
+  }, [settings]);
 
   const handleSave = () => {
-    const settings = {
+    updateSettings.mutate({
       fullPaymentStatus,
       partialPaymentStatus,
       zeroPaymentStatus,
       allowZeroPayment
-    };
-    localStorage.setItem('orderStatusSettings', JSON.stringify(settings));
-    toast.success("Configurações salvas com sucesso!");
-    onClose();
+    }, {
+      onSuccess: () => {
+        toast.success("Configurações salvas com sucesso!");
+        onClose();
+      },
+      onError: (error) => {
+        toast.error("Erro ao salvar configurações: " + error.message);
+      }
+    });
   };
 
   const statusOptions = [
