@@ -18,10 +18,6 @@ const CarrinhoItem = ({
   const [tempUnitPrice, setTempUnitPrice] = useState(item.unitPrice);
   const [editingQuantity, setEditingQuantity] = useState(false);
   const [tempQuantity, setTempQuantity] = useState(item.quantidade);
-  const [editingDiscountPercentage, setEditingDiscountPercentage] = useState(false);
-  const [tempDiscountPercentage, setTempDiscountPercentage] = useState(
-    item.discount ? (item.discount / (item.unitPrice)) * 100 : 0
-  );
   const [extrasPrices, setExtrasPrices] = useState({});
 
   useEffect(() => {
@@ -75,13 +71,6 @@ const CarrinhoItem = ({
     }
   };
 
-  const handleDiscountPercentageChange = (e) => {
-    const percentage = parseFloat(e.target.value) || 0;
-    setTempDiscountPercentage(percentage);
-    const newDiscount = (percentage / 100) * item.unitPrice;
-    onDiscountChange(item, newDiscount);
-  };
-
   const calculateItemTotal = () => {
     const basePrice = item.unitPrice * item.quantidade;
     const extrasTotal = item.extras.reduce((sum, extra) => {
@@ -95,8 +84,10 @@ const CarrinhoItem = ({
   };
 
   const calculateDiscountPercentage = () => {
+    const total = calculateItemTotal();
     const discount = parseFloat(item.discount) || 0;
-    return (discount / item.unitPrice) * 100;
+    if (total === 0) return 0;
+    return (discount / total) * 100;
   };
 
   const renderUnitPrice = () => {
@@ -122,6 +113,7 @@ const CarrinhoItem = ({
   };
 
   const total = calculateItemTotal();
+  const discountPercentage = calculateDiscountPercentage();
 
   return (
     <TableRow>
@@ -171,17 +163,8 @@ const CarrinhoItem = ({
             onChange={(e) => onDiscountChange(item, parseFloat(e.target.value) || 0)}
             className="w-24"
           />
-          <div className="flex items-center space-x-2">
-            <Input
-              type="number"
-              value={tempDiscountPercentage}
-              onChange={handleDiscountPercentageChange}
-              className="w-16"
-              min="0"
-              max="100"
-              step="0.1"
-            />
-            <span className="text-sm text-gray-500">%</span>
+          <div className="text-sm text-gray-500">
+            {discountPercentage.toFixed(2)}% de desconto
           </div>
         </div>
       </TableCell>
