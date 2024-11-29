@@ -58,7 +58,7 @@ const Financeiro = () => {
       const matchOpcaoPagamento = !filters.opcaoPagamento || pedido.payment_option === filters.opcaoPagamento;
       const matchCliente = !filters.cliente || (pedido.customer?.name && pedido.customer.name.toLowerCase().includes(filters.cliente.toLowerCase()));
       const matchNumeroPedido = !filters.numeroPedido || pedido.order_number?.toString().includes(filters.numeroPedido);
-      const matchPago = filters.mostrarPagos || pedido.remaining_balance > 0;
+      const matchPago = !filters.mostrarPagos || pedido.remaining_balance === 0;
       return matchData && matchOpcaoPagamento && matchCliente && matchNumeroPedido && matchPago && pedido.status !== 'cancelled';
     });
   }, [pedidos, filters]);
