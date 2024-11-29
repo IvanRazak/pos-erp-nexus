@@ -28,7 +28,7 @@ const FinanceiroFiltros = ({ filters, setFilters, opcoesPagamento }) => {
             <SelectValue placeholder="Opção de Pagamento" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">Todas</SelectItem>
+            <SelectItem value="all">Todas</SelectItem>
             {opcoesPagamento?.map((option) => (
               <SelectItem key={option.id} value={option.name}>{option.name}</SelectItem>
             ))}
@@ -49,8 +49,7 @@ const FinanceiroFiltros = ({ filters, setFilters, opcoesPagamento }) => {
         <Toggle
           pressed={filters.mostrarPagos}
           onPressedChange={(pressed) => setFilters({...filters, mostrarPagos: pressed})}
-          className="w-full justify-start data-[state=on]:bg-primary data-[state=on]:text-primary-foreground transition-colors"
-          aria-label="Mostrar pedidos pagos"
+          className="w-full justify-start"
         >
           Mostrar pedidos pagos
         </Toggle>
