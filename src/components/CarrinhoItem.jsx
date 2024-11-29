@@ -20,7 +20,7 @@ const CarrinhoItem = ({
   const [tempQuantity, setTempQuantity] = useState(item.quantidade);
   const [editingDiscountPercentage, setEditingDiscountPercentage] = useState(false);
   const [tempDiscountPercentage, setTempDiscountPercentage] = useState(
-    item.discount ? (item.discount / (item.unitPrice)) * 100 : 0
+    item.discount ? (item.discount / (item.unitPrice * item.quantidade)) * 100 : 0
   );
   const [extrasPrices, setExtrasPrices] = useState({});
 
@@ -78,7 +78,7 @@ const CarrinhoItem = ({
   const handleDiscountPercentageChange = (e) => {
     const percentage = parseFloat(e.target.value) || 0;
     setTempDiscountPercentage(percentage);
-    const newDiscount = (percentage / 100) * item.unitPrice;
+    const newDiscount = (percentage / 100) * item.unitPrice * item.quantidade;
     onDiscountChange(item, newDiscount);
   };
 
@@ -96,7 +96,7 @@ const CarrinhoItem = ({
 
   const calculateDiscountPercentage = () => {
     const discount = parseFloat(item.discount) || 0;
-    return (discount / item.unitPrice) * 100;
+    return (discount / (item.unitPrice * item.quantidade)) * 100;
   };
 
   const renderUnitPrice = () => {
