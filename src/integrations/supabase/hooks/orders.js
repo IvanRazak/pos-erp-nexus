@@ -81,15 +81,18 @@ export const useAddOrder = () => {
         if (extrasError) throw extrasError;
       }
 
-      const { error: paymentError } = await supabase
-        .from('payments')
-        .insert([{
-          order_id: order.id,
-          amount: newOrder.paid_amount,
-          payment_option: newOrder.payment_option,
-        }]);
+      // Only create payment record if paid amount is greater than 0
+      if (newOrder.paid_amount > 0) {
+        const { error: paymentError } = await supabase
+          .from('payments')
+          .insert([{
+            order_id: order.id,
+            amount: newOrder.paid_amount,
+            payment_option: newOrder.payment_option,
+          }]);
 
-      if (paymentError) throw paymentError;
+        if (paymentError) throw paymentError;
+      }
 
       return order;
     },
