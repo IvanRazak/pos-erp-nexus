@@ -67,7 +67,6 @@ export const generatePrintContent = async (pedido, itensPedido) => {
       const extraValue = extra.total_value || 0;
       return sum + (extra.extra_option.fixed_value ? extraValue : extraValue * item.quantity);
     }, 0);
-    const subtotal = subtotalProduto + subtotalExtras;
     
     return `
     <tr>
@@ -77,11 +76,11 @@ export const generatePrintContent = async (pedido, itensPedido) => {
       </td>
       <td>${item.quantity}</td>
       <td>${formatarDimensoes(item)}</td>
-      <td>${renderExtras(item.extras, item.quantity) || 'N/A'}</td>
       <td>
-        R$ ${subtotal.toFixed(2)}
+        R$ ${subtotalProduto.toFixed(2)}
         ${item.discount > 0 ? `<br><span class="discount-info">Desconto: R$ ${item.discount.toFixed(2)}</span>` : ''}
       </td>
+      <td>${renderExtras(item.extras, item.quantity) || 'N/A'}</td>
     </tr>
   `}).join('');
 

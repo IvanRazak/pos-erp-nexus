@@ -1,0 +1,3 @@
+UPDATE templates 
+SET content = '<html><head><title>Pedido #{order_number}</title><style>{styles}</style></head><body><h2>Pedido #{order_number}</h2><div class="order-info"><p><strong>Data do Pedido:</strong> {order_date}</p><p><strong>Criado por:</strong> {created_by}</p></div><p><strong>Cliente:</strong> {customer_name}</p><p><strong>Data de Entrega:</strong> {delivery_date}</p><table><thead><tr><th>Produto</th><th>Quantidade</th><th>Dimensões</th><th>Subtotal</th><th>Opções Extras</th></tr></thead><tbody>{items}</tbody></table><div class="total">{discount}{additional_value}<p>Valor Total: R$ {total_amount}</p><p>Valor Pago: R$ {paid_amount} {payment_option}</p><p>Saldo Restante: R$ {remaining_balance}</p></div></body></html>'
+WHERE type = 'print';
