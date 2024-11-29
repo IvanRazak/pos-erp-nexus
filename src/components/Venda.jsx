@@ -130,8 +130,10 @@ const Venda = () => {
       const totalVenda = await calcularTotal(carrinho) - parseFloat(desconto) + parseFloat(valorAdicional);
       const saldoRestante = totalVenda - valorPago;
 
-      // Obter o status do pedido de forma assíncrona
-      const status = await getOrderStatus(totalVenda, valorPago);
+      // Obter o status do pedido
+      const status = valorPago === 0 ? 'pending' : 
+                    saldoRestante > 0 ? 'partial_payment' : 
+                    'in_production';
 
       const novaVenda = {
         customer_id: clienteSelecionado,
