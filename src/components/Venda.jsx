@@ -115,7 +115,7 @@ const Venda = () => {
       if (!clienteSelecionado) erros.push("Selecione um cliente");
       if (carrinho.length === 0) erros.push("O carrinho está vazio");
       if (!dataEntrega) erros.push("Defina uma data de entrega");
-      if (valorPago > 0 && !opcaoPagamento) erros.push("Selecione uma opção de pagamento");
+      if (!opcaoPagamento) erros.push("Selecione uma opção de pagamento");
       
       if (erros.length > 0) {
         toast.error("Não foi possível finalizar a venda:\n\n" + erros.join("\n"));
@@ -140,7 +140,7 @@ const Venda = () => {
         remaining_balance: saldoRestante,
         status: status,
         delivery_date: format(dataEntrega, 'yyyy-MM-dd'),
-        payment_option: valorPago > 0 ? opcaoPagamento : null,
+        payment_option: opcaoPagamento,
         items: carrinho.map(item => ({
           product_id: item.id,
           quantity: item.quantidade,
