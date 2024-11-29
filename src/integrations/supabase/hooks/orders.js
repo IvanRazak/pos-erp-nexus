@@ -82,14 +82,32 @@ export const useAddOrder = () => {
       }
 
 
-      const { error: paymentError } = await supabase
-        .from('payments')
-        .insert([{
-          order_id: order.id,
-          amount: newOrder.paid_amount,
-          payment_option: newOrder.payment_option,
-        }]);
-      if (paymentError) throw paymentError;
+      try {
+  // Desestruturação para facilitar o acesso às propriedades
+  const { paid_amount, payment_option } = newOrder;
+
+  // Verifica se o valor pago é maior que 0 antes de criar o registro de pagamento
+  if (paid_amount > 0) {
+    const { error: paymentError } = await supabase
+      .from('payments')
+      .insert([{
+        order_id: order.id,
+        amount: paid_amount,
+        payment_option,
+      }]);
+
+    // Tratamento de erro com mensagem informativa
+    if (paymentError) {
+      console.error('Erro ao criar o registro de pagamento:', paymentError.message);
+      throw new Error(`Erro ao processar pagamento: ${paymentError.message}`);
+    }
+  }
+} catch (error) {
+  // Log detalhado do erro para depuração
+  console.error('Erro durante o processamento do pedido:', error);
+  throw error; // Propaga o erro para tratamento externo, se necessário
+}
+
 
       return order;
     },
