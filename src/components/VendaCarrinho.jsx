@@ -32,12 +32,24 @@ const VendaCarrinho = ({
 }) => {
   const [total, setTotal] = useState(0);
 
-  const handleDateTimeChange = (e) => {
-    const selectedDateTime = e.target.value;
-    if (selectedDateTime) {
-      setDataEntrega(new Date(selectedDateTime));
+  const handleDateChange = (e) => {
+    const selectedDate = e.target.value;
+    const currentTime = dataEntrega ? dataEntrega.toTimeString().slice(0,5) : '';
+    
+    if (selectedDate) {
+      const newDate = new Date(selectedDate + 'T' + (currentTime || '00:00'));
+      setDataEntrega(newDate);
     } else {
       setDataEntrega(null);
+    }
+  };
+
+  const handleTimeChange = (e) => {
+    const selectedTime = e.target.value;
+    if (dataEntrega && selectedTime) {
+      const currentDate = dataEntrega.toISOString().split('T')[0];
+      const newDateTime = new Date(currentDate + 'T' + selectedTime);
+      setDataEntrega(newDateTime);
     }
   };
 
@@ -122,13 +134,24 @@ const VendaCarrinho = ({
           </div>
         </div>
 
-        <div className="grid grid-cols-3 gap-4">
+        <div className="grid grid-cols-4 gap-4">
           <div className="space-y-2">
-            <label className="text-sm font-medium">Data e Hora de Entrega</label>
+            <label className="text-sm font-medium">Data de Entrega</label>
             <Input
-              type="datetime-local"
-              value={dataEntrega ? new Date(dataEntrega.getTime() - dataEntrega.getTimezoneOffset() * 60000).toISOString().slice(0, 16) : ''}
-              onChange={handleDateTimeChange}
+              type="date"
+              value={dataEntrega ? dataEntrega.toISOString().split('T')[0] : ''}
+              onChange={handleDateChange}
+              className="w-full"
+              required
+            />
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Hora de Entrega</label>
+            <Input
+              type="time"
+              value={dataEntrega ? dataEntrega.toTimeString().slice(0,5) : ''}
+              onChange={handleTimeChange}
               className="w-full"
               required
             />
