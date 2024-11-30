@@ -34,10 +34,9 @@ const VendaCarrinho = ({
 
   const handleDateChange = (e) => {
     const selectedDate = e.target.value;
-    const currentTime = dataEntrega ? dataEntrega.toTimeString().slice(0,5) : '';
     
     if (selectedDate) {
-      const newDate = new Date(selectedDate + 'T' + (currentTime || '00:00'));
+      const newDate = new Date(selectedDate + 'T00:00');
       setDataEntrega(newDate);
     } else {
       setDataEntrega(null);
@@ -46,11 +45,16 @@ const VendaCarrinho = ({
 
   const handleTimeChange = (e) => {
     const selectedTime = e.target.value;
-    if (dataEntrega && selectedTime) {
-      const currentDate = dataEntrega.toISOString().split('T')[0];
-      const newDateTime = new Date(currentDate + 'T' + selectedTime);
-      setDataEntrega(newDateTime);
+    if (!selectedTime) return;
+
+    if (!dataEntrega) {
+      toast.error("Por favor, selecione uma data primeiro");
+      return;
     }
+
+    const currentDate = dataEntrega.toISOString().split('T')[0];
+    const newDateTime = new Date(currentDate + 'T' + selectedTime);
+    setDataEntrega(newDateTime);
   };
 
   const calcularTotalDescontos = () => {
