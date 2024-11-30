@@ -1,6 +1,6 @@
 import React from 'react';
 import { Draggable } from '@hello-pangea/dnd';
-import { format } from 'date-fns';
+import { format, parseISO } from 'date-fns';
 
 const KanbanCard = ({ item, index, onClick }) => {
   return (
@@ -17,7 +17,7 @@ const KanbanCard = ({ item, index, onClick }) => {
             <div className="flex justify-between items-center">
               <p className="font-semibold">Pedido #{item.order_number}</p>
               <p className="text-sm">
-                {item.delivery_date ? format(new Date(item.delivery_date), 'dd/MM/yyyy') : 'N/A'}
+                {item.delivery_date ? format(parseISO(item.delivery_date), 'dd/MM/yyyy') : 'N/A'}
               </p>
             </div>
             <p className="text-sm text-gray-600 dark:text-gray-300">
