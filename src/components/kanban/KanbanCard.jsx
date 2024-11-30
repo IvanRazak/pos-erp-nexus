@@ -14,18 +14,15 @@ const KanbanCard = ({ item, index, onClick }) => {
           onClick={onClick}
         >
           <div className="flex flex-col gap-2">
-            <div>
+            <div className="flex justify-between items-center">
               <p className="font-semibold">Pedido #{item.order_number}</p>
-              <p className="text-sm text-gray-600 dark:text-gray-300">
-                {item.customer?.name}
-              </p>
-            </div>
-            <div>
-              <p className="text-xs text-gray-500 dark:text-gray-400">Data Entrega</p>
               <p className="text-sm">
                 {item.delivery_date ? format(new Date(item.delivery_date), 'dd/MM/yyyy') : 'N/A'}
               </p>
             </div>
+            <p className="text-sm text-gray-600 dark:text-gray-300">
+              {item.customer?.name}
+            </p>
           </div>
         </div>
       )}

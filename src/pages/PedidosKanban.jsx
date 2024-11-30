@@ -2,14 +2,18 @@ import React from 'react';
 import { DragDropContext } from '@hello-pangea/dnd';
 import { useOrders } from '../integrations/supabase/hooks/orders';
 import { useUpdateOrder } from '../integrations/supabase/hooks/orders';
+import { useAddEventLog } from '../integrations/supabase/hooks/events_log';
 import KanbanColumn from '../components/kanban/KanbanColumn';
 import KanbanPedidoDetalhesModal from '../components/kanban/KanbanPedidoDetalhesModal';
 import { useToast } from '../components/ui/use-toast';
+import { useSupabaseAuth } from '../integrations/supabase';
 
 const PedidosKanban = () => {
   const { data: orders, isLoading } = useOrders();
   const updateOrder = useUpdateOrder();
+  const addEventLog = useAddEventLog();
   const { toast } = useToast();
+  const { user } = useSupabaseAuth();
   const [selectedPedido, setSelectedPedido] = React.useState(null);
 
   const columns = {
@@ -36,11 +40,18 @@ const PedidosKanban = () => {
 
     const { draggableId, destination } = result;
     const newStatus = destination.droppableId;
+    const order = orders.find(o => o.id === draggableId);
 
     try {
       await updateOrder.mutateAsync({
         id: draggableId,
         status: newStatus
+      });
+
+      // Add event log
+      await addEventLog.mutateAsync({
+        user_name: user?.email || 'Sistema',
+        description: `Status do Pedido #${order.order_number} alterado para ${columns[newStatus].title}`
       });
 
       toast({
