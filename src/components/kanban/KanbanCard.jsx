@@ -21,7 +21,7 @@ const KanbanCard = ({ item, index, onClick }) => {
           {...provided.draggableProps}
           {...provided.dragHandleProps}
           className={`bg-white dark:bg-gray-700 p-4 rounded shadow cursor-pointer hover:shadow-md transition-shadow ${
-            isLateDelivery ? 'animate-pulse bg-red-100 dark:bg-red-900/20' : ''
+            isLateDelivery ? 'animate-pulse bg-red-100 dark:bg-red-900/40' : ''
           }`}
           onClick={onClick}
         >
