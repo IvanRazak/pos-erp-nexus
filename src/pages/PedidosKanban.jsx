@@ -3,7 +3,7 @@ import { DragDropContext } from '@hello-pangea/dnd';
 import { useOrders } from '../integrations/supabase/hooks/orders';
 import { useUpdateOrder } from '../integrations/supabase/hooks/orders';
 import KanbanColumn from '../components/kanban/KanbanColumn';
-import PedidoDetalhesModal from '../components/PedidoDetalhesModal';
+import KanbanPedidoDetalhesModal from '../components/kanban/KanbanPedidoDetalhesModal';
 import { useToast } from '../components/ui/use-toast';
 
 const PedidosKanban = () => {
@@ -78,7 +78,7 @@ const PedidosKanban = () => {
       </DragDropContext>
 
       {selectedPedido && (
-        <PedidoDetalhesModal
+        <KanbanPedidoDetalhesModal
           pedido={selectedPedido}
           onClose={() => setSelectedPedido(null)}
         />
