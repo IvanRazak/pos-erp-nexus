@@ -4,6 +4,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { Switch } from "@/components/ui/switch";
 import { useAddPaymentOption, useAddCustomerType, useAddUser } from '../integrations/supabase';
 import { toast } from "sonner";
 import bcrypt from 'bcryptjs';
@@ -20,10 +21,19 @@ const AdminMenu = () => {
   const [isGerenciarOpcoesSelecaoOpen, setIsGerenciarOpcoesSelecaoOpen] = useState(false);
   const [isEventsLogOpen, setIsEventsLogOpen] = useState(false);
   const [isOrderStatusSettingsOpen, setIsOrderStatusSettingsOpen] = useState(false);
+  const [isLateOrdersHighlightEnabled, setIsLateOrdersHighlightEnabled] = useState(() => {
+    return localStorage.getItem('lateOrdersHighlight') === 'true';
+  });
   
   const addPaymentOption = useAddPaymentOption();
   const addCustomerType = useAddCustomerType();
   const addUser = useAddUser();
+
+  const handleLateOrdersHighlightChange = (checked) => {
+    setIsLateOrdersHighlightEnabled(checked);
+    localStorage.setItem('lateOrdersHighlight', checked);
+    toast.success(checked ? "Destaque de pedidos atrasados ativado" : "Destaque de pedidos atrasados desativado");
+  };
 
   const handleCadastrarOpcaoPagamento = (event) => {
     event.preventDefault();
@@ -93,6 +103,26 @@ const AdminMenu = () => {
           <SheetTitle>Menu Administrativo</SheetTitle>
         </SheetHeader>
         <div className="space-y-4 mt-4">
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button className="w-full">Configurar Destaque de Pedidos Atrasados</Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Destaque de Pedidos Atrasados</DialogTitle>
+              </DialogHeader>
+              <div className="flex items-center space-x-2">
+                <Switch
+                  checked={isLateOrdersHighlightEnabled}
+                  onCheckedChange={handleLateOrdersHighlightChange}
+                />
+                <span>
+                  {isLateOrdersHighlightEnabled ? "Desativar" : "Ativar"} destaque de pedidos atrasados
+                </span>
+              </div>
+            </DialogContent>
+          </Dialog>
+
           <Button className="w-full" onClick={() => setIsOrderStatusSettingsOpen(true)}>
             Configurar Status dos Pedidos
           </Button>
