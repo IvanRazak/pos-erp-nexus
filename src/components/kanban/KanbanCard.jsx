@@ -13,12 +13,6 @@ const KanbanCard = ({ item, index, onClick }) => {
     return format(date, 'dd/MM/yyyy');
   };
 
-  const formatDeliveryTime = (dateString) => {
-    if (!dateString) return '';
-    const date = parseISO(dateString);
-    return format(date, 'HH:mm');
-  };
-
   return (
     <Draggable draggableId={item.id} index={index}>
       {(provided) => (
@@ -32,16 +26,11 @@ const KanbanCard = ({ item, index, onClick }) => {
           onClick={onClick}
         >
           <div className="flex flex-col gap-2">
-            <div className="flex justify-between items-start">
+            <div className="flex justify-between items-center">
               <p className="font-semibold">Pedido #{item.order_number}</p>
-              <div className="text-right">
-                <p className={`text-sm ${isLateDelivery ? 'text-red-600 dark:text-red-400' : ''}`}>
-                  {formatDeliveryDate(item.delivery_date)}
-                </p>
-                <p className="text-sm text-gray-500">
-                  {formatDeliveryTime(item.delivery_date)}
-                </p>
-              </div>
+              <p className={`text-sm ${isLateDelivery ? 'text-red-600 dark:text-red-400' : ''}`}>
+                {formatDeliveryDate(item.delivery_date)}
+              </p>
             </div>
             <p className="text-sm text-gray-600 dark:text-gray-300">
               {item.customer?.name}
