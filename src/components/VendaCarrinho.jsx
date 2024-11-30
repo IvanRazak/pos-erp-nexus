@@ -6,7 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { format } from "date-fns";
-import { CalendarIcon } from "lucide-react";
+import { CalendarIcon, Clock } from "lucide-react";
 import { cn } from "@/lib/utils";
 import CarrinhoItem from './CarrinhoItem';
 import { calcularTotal } from '../utils/vendaUtils';
@@ -35,6 +35,26 @@ const VendaCarrinho = ({
   onDiscountChange
 }) => {
   const [total, setTotal] = useState(0);
+  const [selectedTime, setSelectedTime] = useState('12:00');
+
+  const handleDateTimeSelect = (date) => {
+    if (!date) return;
+    
+    const [hours, minutes] = selectedTime.split(':');
+    const newDate = new Date(date);
+    newDate.setHours(parseInt(hours), parseInt(minutes));
+    setDataEntrega(newDate);
+  };
+
+  const handleTimeChange = (e) => {
+    setSelectedTime(e.target.value);
+    if (dataEntrega) {
+      const [hours, minutes] = e.target.value.split(':');
+      const newDate = new Date(dataEntrega);
+      newDate.setHours(parseInt(hours), parseInt(minutes));
+      setDataEntrega(newDate);
+    }
+  };
 
   const calcularTotalDescontos = () => {
     const descontosIndividuais = carrinho.reduce((sum, item) => sum + (parseFloat(item.discount) || 0), 0);
@@ -119,18 +139,29 @@ const VendaCarrinho = ({
 
         <div className="grid grid-cols-3 gap-4">
           <div className="space-y-2">
-            <label className="text-sm font-medium">Data de Entrega</label>
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button variant={"outline"} className={cn("w-full justify-start text-left font-normal", !dataEntrega && "text-muted-foreground")}>
-                  <CalendarIcon className="mr-2 h-4 w-4" />
-                  {dataEntrega ? format(dataEntrega, "PPP") : <span>Selecione a data</span>}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0">
-                <Calendar mode="single" selected={dataEntrega} onSelect={setDataEntrega} initialFocus />
-              </PopoverContent>
-            </Popover>
+            <label className="text-sm font-medium">Data e Hora de Entrega</label>
+            <div className="flex gap-2">
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant={"outline"} className={cn("w-[200px] justify-start text-left font-normal", !dataEntrega && "text-muted-foreground")}>
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {dataEntrega ? format(dataEntrega, "PPP") : <span>Selecione a data</span>}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0">
+                  <Calendar mode="single" selected={dataEntrega} onSelect={handleDateTimeSelect} initialFocus />
+                </PopoverContent>
+              </Popover>
+              <div className="flex items-center gap-2">
+                <Clock className="h-4 w-4 text-gray-500" />
+                <Input
+                  type="time"
+                  value={selectedTime}
+                  onChange={handleTimeChange}
+                  className="w-[120px]"
+                />
+              </div>
+            </div>
           </div>
 
           <div className="space-y-2">
