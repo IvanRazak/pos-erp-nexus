@@ -3,11 +3,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Calendar } from "@/components/ui/calendar";
-import { format } from "date-fns";
-import { CalendarIcon, Clock } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 import CarrinhoItem from './CarrinhoItem';
 import { calcularTotal } from '../utils/vendaUtils';
 
@@ -35,24 +31,13 @@ const VendaCarrinho = ({
   onDiscountChange
 }) => {
   const [total, setTotal] = useState(0);
-  const [selectedTime, setSelectedTime] = useState('12:00');
 
-  const handleDateTimeSelect = (date) => {
-    if (!date) return;
-    
-    const [hours, minutes] = selectedTime.split(':');
-    const newDate = new Date(date);
-    newDate.setHours(parseInt(hours), parseInt(minutes));
-    setDataEntrega(newDate);
-  };
-
-  const handleTimeChange = (e) => {
-    setSelectedTime(e.target.value);
-    if (dataEntrega) {
-      const [hours, minutes] = e.target.value.split(':');
-      const newDate = new Date(dataEntrega);
-      newDate.setHours(parseInt(hours), parseInt(minutes));
-      setDataEntrega(newDate);
+  const handleDateTimeChange = (e) => {
+    const selectedDateTime = e.target.value;
+    if (selectedDateTime) {
+      setDataEntrega(new Date(selectedDateTime));
+    } else {
+      setDataEntrega(null);
     }
   };
 
@@ -140,28 +125,13 @@ const VendaCarrinho = ({
         <div className="grid grid-cols-3 gap-4">
           <div className="space-y-2">
             <label className="text-sm font-medium">Data e Hora de Entrega</label>
-            <div className="flex gap-2">
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button variant={"outline"} className={cn("w-[200px] justify-start text-left font-normal", !dataEntrega && "text-muted-foreground")}>
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {dataEntrega ? format(dataEntrega, "PPP") : <span>Selecione a data</span>}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0">
-                  <Calendar mode="single" selected={dataEntrega} onSelect={handleDateTimeSelect} initialFocus />
-                </PopoverContent>
-              </Popover>
-              <div className="flex items-center gap-2">
-                <Clock className="h-4 w-4 text-gray-500" />
-                <Input
-                  type="time"
-                  value={selectedTime}
-                  onChange={handleTimeChange}
-                  className="w-[120px]"
-                />
-              </div>
-            </div>
+            <Input
+              type="datetime-local"
+              value={dataEntrega ? new Date(dataEntrega.getTime() - dataEntrega.getTimezoneOffset() * 60000).toISOString().slice(0, 16) : ''}
+              onChange={handleDateTimeChange}
+              className="w-full"
+              required
+            />
           </div>
 
           <div className="space-y-2">
@@ -194,7 +164,18 @@ const VendaCarrinho = ({
           <p className="text-lg">Valor Adicional: R$ {valorAdicional.toFixed(2)}</p>
           <p className="text-xl font-bold">Total: R$ {total.toFixed(2)}</p>
           <p className="text-xl font-bold">Saldo Restante: R$ {Math.max(total - valorPago, 0).toFixed(2)}</p>
-          <Button onClick={finalizarVenda} className="w-full mt-4">Finalizar Venda</Button>
+          <Button 
+            onClick={() => {
+              if (!dataEntrega) {
+                toast.error("Por favor, selecione a data e hora de entrega");
+                return;
+              }
+              finalizarVenda();
+            }} 
+            className="w-full mt-4"
+          >
+            Finalizar Venda
+          </Button>
         </div>
       </div>
     </div>
