@@ -79,6 +79,7 @@ const PedidosKanban = () => {
         variant: "destructive",
         duration: 3000,
       });
+      return; // Add return here to prevent further execution
     }
   };
 
