@@ -54,14 +54,17 @@ const PedidosKanban = () => {
       });
 
       toast({
-        title: "Status atualizado",
-        description: `Pedido movido para ${columns[newStatus].title}`,
+        title: "Status atualizado com sucesso",
+        description: `Pedido #${order.order_number} movido para ${columns[newStatus].title}`,
+        duration: 3000,
       });
     } catch (error) {
+      console.error('Erro ao atualizar status:', error);
       toast({
         title: "Erro ao atualizar status",
-        description: "Não foi possível atualizar o status do pedido",
+        description: "Não foi possível atualizar o status do pedido. Tente novamente.",
         variant: "destructive",
+        duration: 3000,
       });
     }
   };
