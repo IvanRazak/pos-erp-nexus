@@ -1,11 +1,17 @@
 import React from 'react';
 import { Draggable } from '@hello-pangea/dnd';
-import { format, isBefore } from 'date-fns';
+import { format, parseISO } from 'date-fns';
 
 const KanbanCard = ({ item, index, onClick }) => {
   const isLateDelivery = item.delivery_date && 
-    isBefore(new Date(item.delivery_date), new Date()) && 
+    new Date(item.delivery_date) < new Date() && 
     localStorage.getItem('lateOrdersHighlight') === 'true';
+
+  const formatDeliveryDate = (dateString) => {
+    if (!dateString) return 'N/A';
+    const date = parseISO(dateString);
+    return format(date, 'dd/MM/yyyy');
+  };
 
   return (
     <Draggable draggableId={item.id} index={index}>
@@ -23,7 +29,7 @@ const KanbanCard = ({ item, index, onClick }) => {
             <div className="flex justify-between items-center">
               <p className="font-semibold">Pedido #{item.order_number}</p>
               <p className={`text-sm ${isLateDelivery ? 'text-red-600 dark:text-red-400' : ''}`}>
-                {item.delivery_date ? format(new Date(item.delivery_date), 'dd/MM/yyyy') : 'N/A'}
+                {formatDeliveryDate(item.delivery_date)}
               </p>
             </div>
             <p className="text-sm text-gray-600 dark:text-gray-300">
