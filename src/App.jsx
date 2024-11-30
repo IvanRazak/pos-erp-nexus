@@ -14,6 +14,7 @@ import GerenciamentoPedidos from "./components/GerenciamentoPedidos";
 import Caixa from "./components/Caixa";
 import Financeiro from "./components/Financeiro";
 import Relatorios from "./components/Relatorios";
+import PedidosKanban from "./pages/PedidosKanban";
 
 const queryClient = new QueryClient();
 
@@ -32,6 +33,7 @@ const App = () => (
                   <Route path="produtos" element={<Produtos />} />
                   <Route path="venda" element={<Venda />} />
                   <Route path="pedidos" element={<GerenciamentoPedidos />} />
+                  <Route path="pedidos-kanban" element={<PedidosKanban />} />
                   <Route path="caixa" element={<Caixa />} />
                   <Route path="financeiro" element={<Financeiro />} />
                   <Route path="relatorios" element={<Relatorios />} />
