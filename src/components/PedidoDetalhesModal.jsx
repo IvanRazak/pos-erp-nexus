@@ -144,6 +144,9 @@ const PedidoDetalhesModal = ({ pedido, onClose }) => {
         y += styles.itemDetails.margin;
       }
       
+      doc.text(`Valor Unitário: R$ ${item.unit_price.toFixed(2)}`, styles.itemDetails.indent, y);
+      y += styles.itemDetails.margin;
+      
       if (item.extras?.length > 0) {
         doc.text('Opções Extras:', styles.itemDetails.indent, y);
         y += styles.extras.margin;
@@ -166,10 +169,48 @@ const PedidoDetalhesModal = ({ pedido, onClose }) => {
       y += styles.item.margin;
     });
     
+    // Summary
+    if (y > 250) {
+      doc.addPage();
+      y = styles.summary.margin;
+    }
+    
+    doc.setFontSize(styles.summary.fontSize);
+    doc.text('Resumo:', styles.summary.indent, y);
+    y += styles.totals.margin;
+    
+    doc.setFontSize(styles.totals.fontSize);
+    if (pedido.discount > 0) {
+      doc.text(`Desconto Geral: R$ ${pedido.discount.toFixed(2)}`, styles.totals.indent, y);
+      y += styles.totals.margin;
+    }
+    
+    if (pedido.additional_value > 0) {
+      doc.text(`Valor Adicional: R$ ${pedido.additional_value.toFixed(2)}`, styles.totals.indent, y);
+      if (pedido.additional_value_description) {
+        doc.text(`Descrição: ${pedido.additional_value_description}`, styles.totals.indent, y + styles.totals.margin);
+        y += styles.totals.margin * 2;
+      } else {
+        y += styles.totals.margin;
+      }
+    }
+    
+    doc.text(`Valor Total: R$ ${pedido.total_amount?.toFixed(2) || '0.00'}`, styles.totals.indent, y);
+    y += styles.totals.margin;
+    doc.text(`Valor Pago: R$ ${pedido.paid_amount?.toFixed(2) || '0.00'}`, styles.totals.indent, y);
+    y += styles.totals.margin;
+    doc.text(`Saldo Restante: R$ ${pedido.remaining_balance?.toFixed(2) || '0.00'}`, styles.totals.indent, y);
+    
     doc.save(`pedido-${pedido.order_number}.pdf`);
   };
 
   if (isLoading) return <div>Carregando detalhes do pedido...</div>;
+
+  const calcularTotalDescontos = () => {
+    const descontosIndividuais = itensPedido.reduce((sum, item) => sum + (item.discount || 0), 0);
+    const descontoGeral = pedido.discount || 0;
+    return descontosIndividuais + descontoGeral;
+  };
 
   const renderExtras = (extras, itemQuantity) => {
     return extras.map((extra) => {
@@ -228,6 +269,18 @@ const PedidoDetalhesModal = ({ pedido, onClose }) => {
                   itensPedido={itensPedido}
                   renderExtras={renderExtras}
                 />
+              </div>
+              <div className="mt-4 p-4 bg-gray-50 rounded">
+                <p className="text-sm font-medium">Total Descontos (Individuais + Geral): R$ {calcularTotalDescontos().toFixed(2)}</p>
+                {pedido.additional_value > 0 && (
+                  <div className="text-sm font-medium">
+                    <p>Valor Adicional: R$ {pedido.additional_value.toFixed(2)}</p>
+                    {pedido.additional_value_description && (
+                      <p className="text-gray-600">Descrição: {pedido.additional_value_description}</p>
+                    )}
+                  </div>
+                )}
+                <p className="text-lg font-bold mt-2">Total Final: R$ {pedido.total_amount?.toFixed(2) || '0.00'}</p>
               </div>
             </div>
           </ScrollArea>
