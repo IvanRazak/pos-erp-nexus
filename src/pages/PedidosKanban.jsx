@@ -43,18 +43,18 @@ const PedidosKanban = () => {
     const newStatus = destination.droppableId;
     const order = orders.find(o => o.id === draggableId);
 
-    // Validação para pedidos com saldo restante quando movidos para "Entregue"
-    if (newStatus === 'delivered' && order.remaining_balance > 0) {
-      toast({
-        title: "Não é possível marcar como entregue!",
-        description: "Este pedido possui saldo restante a ser pago.",
-        variant: "destructive",
-        duration: 3000,
-      });
-      return;
-    }
-
     try {
+      // Validação para pedidos com saldo restante quando movidos para "Entregue"
+      if (newStatus === 'delivered' && order.remaining_balance > 0) {
+        toast({
+          title: "Não é possível marcar como entregue!",
+          description: "Este pedido possui saldo restante a ser pago.",
+          variant: "destructive",
+          duration: 3000,
+        });
+        return;
+      }
+
       await updateOrder.mutateAsync({
         id: draggableId,
         status: newStatus
@@ -79,7 +79,6 @@ const PedidosKanban = () => {
         variant: "destructive",
         duration: 3000,
       });
-      return; // Add return here to prevent further execution
     }
   };
 
