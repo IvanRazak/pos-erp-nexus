@@ -44,17 +44,6 @@ const PedidosKanban = () => {
     const order = orders.find(o => o.id === draggableId);
 
     try {
-      // Validação para pedidos com saldo restante quando movidos para "Entregue"
-      if (newStatus === 'delivered' && order.remaining_balance > 0) {
-        toast({
-          title: "Não é possível marcar como entregue!",
-          description: "Este pedido possui saldo restante a ser pago.",
-          variant: "destructive",
-          duration: 3000,
-        });
-        return;
-      }
-
       await updateOrder.mutateAsync({
         id: draggableId,
         status: newStatus
@@ -62,8 +51,7 @@ const PedidosKanban = () => {
 
       await addEventLog.mutateAsync({
         user_name: user.username,
-        description: `Status do Pedido #${order.order_number} alterado para ${columns[newStatus].title}`,
-        ip_address: window.location.hostname
+        description: `Status do Pedido #${order.order_number} alterado para ${columns[newStatus].title}`
       });
 
       toast({
