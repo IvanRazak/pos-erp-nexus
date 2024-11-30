@@ -4,7 +4,7 @@ import KanbanCard from './KanbanCard';
 
 const KanbanColumn = ({ id, title, items, onItemClick }) => {
   return (
-    <div className="bg-gray-100 dark:bg-gray-800 rounded-lg p-4">
+    <div className="bg-gray-300 dark:bg-gray-800 rounded-lg p-4">
       <h2 className="font-semibold mb-4">{title}</h2>
       <Droppable droppableId={id}>
         {(provided) => (
