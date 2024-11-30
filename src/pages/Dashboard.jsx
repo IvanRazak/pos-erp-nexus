@@ -16,6 +16,7 @@ const Dashboard = () => {
     { value: "produtos", label: "Produtos" },
     { value: "venda", label: "Venda" },
     { value: "pedidos", label: "Gerenciamento de Pedidos" },
+    { value: "pedidos-kanban", label: "Pedidos Kanban" },
     { value: "caixa", label: "Caixa" },
     { value: "financeiro", label: "Financeiro" },
     { value: "relatorios", label: "Relatórios" }
@@ -31,11 +32,14 @@ const Dashboard = () => {
         );
         break;
       case 'producao':
-        tabs = [{ value: "pedidos", label: "Gerenciamento de Pedidos" }];
+        tabs = [
+          { value: "pedidos", label: "Gerenciamento de Pedidos" },
+          { value: "pedidos-kanban", label: "Pedidos Kanban" }
+        ];
         break;
       case 'seller':
         tabs = defaultTabs.filter(tab => 
-          tab.value !== 'relatorios' && tab.value !== 'caixa'  && tab.value !== 'financeiro'
+          tab.value !== 'relatorios' && tab.value !== 'caixa' && tab.value !== 'financeiro'
         );
         break;
       case 'admin':
