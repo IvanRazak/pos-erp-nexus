@@ -1,6 +1,6 @@
 import React from 'react';
 import { Draggable } from '@hello-pangea/dnd';
-import { formatCurrency } from '../../utils/formatters';
+import { format } from 'date-fns';
 
 const KanbanCard = ({ item, index, onClick }) => {
   return (
@@ -21,7 +21,7 @@ const KanbanCard = ({ item, index, onClick }) => {
               </p>
             </div>
             <span className="text-sm font-medium">
-              {formatCurrency(item.total_amount)}
+              {item.delivery_date ? format(new Date(item.delivery_date), 'dd/MM/yyyy') : 'Sem data'}
             </span>
           </div>
         </div>
