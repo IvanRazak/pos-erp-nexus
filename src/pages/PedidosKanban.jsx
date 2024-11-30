@@ -44,6 +44,17 @@ const PedidosKanban = () => {
     const order = orders.find(o => o.id === draggableId);
 
     try {
+      // Verifica se está tentando mover para "Entregue" e tem saldo restante
+      if (newStatus === 'delivered' && order.remaining_balance > 0) {
+        toast({
+          title: "Não é possível atualizar o status",
+          description: "Este pedido ainda possui saldo restante e não pode ser movido para Entregue.",
+          variant: "destructive",
+          duration: 3000,
+        });
+        return;
+      }
+
       await updateOrder.mutateAsync({
         id: draggableId,
         status: newStatus
