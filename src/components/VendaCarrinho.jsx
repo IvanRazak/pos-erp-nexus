@@ -1,10 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 import CarrinhoItem from './CarrinhoItem';
+import VendaCarrinhoSummary from './venda/VendaCarrinhoSummary';
 import { calcularTotal } from '../utils/vendaUtils';
 
 const VendaCarrinho = ({ 
@@ -45,10 +43,18 @@ const VendaCarrinho = ({
 
   const handleTimeChange = (e) => {
     const selectedTime = e.target.value;
-    if (!selectedTime) return;
+    if (!selectedTime) {
+      toast.error("A Hora deve ser preenchida");
+      return;
+    }
 
     if (!dataEntrega) {
       toast.error("Por favor, selecione uma data primeiro");
+      return;
+    }
+
+    if (selectedTime === "00:00") {
+      toast.error("A Hora deve ser preenchida");
       return;
     }
 
@@ -70,6 +76,21 @@ const VendaCarrinho = ({
     };
     updateTotal();
   }, [carrinho, desconto, valorAdicional]);
+
+  const handleFinalizarVenda = () => {
+    if (!dataEntrega) {
+      toast.error("Por favor, selecione a data e hora de entrega");
+      return;
+    }
+    
+    const time = dataEntrega.toTimeString().slice(0,5);
+    if (time === "00:00") {
+      toast.error("A Hora deve ser preenchida");
+      return;
+    }
+    
+    finalizarVenda();
+  };
 
   return (
     <div className="mt-4">
@@ -105,106 +126,25 @@ const VendaCarrinho = ({
         </TableBody>
       </Table>
       
-      <div className="mt-4 space-y-4">
-        <div className="grid grid-cols-3 gap-4">
-          <div className="space-y-2">
-            <label className="text-sm font-medium">Desconto Geral (R$)</label>
-            <Input 
-              type="number" 
-              placeholder="0.00" 
-              value={desconto} 
-              onChange={(e) => setDesconto(parseFloat(e.target.value) || 0)}
-            />
-          </div>
-          
-          <div className="space-y-2">
-            <label className="text-sm font-medium">Valor Adicional (R$)</label>
-            <Input 
-              type="number" 
-              placeholder="0.00" 
-              value={valorAdicional} 
-              onChange={(e) => setValorAdicional(parseFloat(e.target.value) || 0)}
-            />
-          </div>
-
-          <div className="space-y-2">
-            <label className="text-sm font-medium">Descrição do Valor Adicional</label>
-            <Input 
-              type="text" 
-              placeholder="Ex: Taxa de entrega" 
-              value={descricaoValorAdicional} 
-              onChange={(e) => setDescricaoValorAdicional(e.target.value)}
-            />
-          </div>
-        </div>
-
-        <div className="grid grid-cols-4 gap-4">
-          <div className="space-y-2">
-            <label className="text-sm font-medium">Data de Entrega</label>
-            <Input
-              type="date"
-              value={dataEntrega ? dataEntrega.toISOString().split('T')[0] : ''}
-              onChange={handleDateChange}
-              className="w-full"
-              required
-            />
-          </div>
-
-          <div className="space-y-2">
-            <label className="text-sm font-medium">Hora de Entrega</label>
-            <Input
-              type="time"
-              value={dataEntrega ? dataEntrega.toTimeString().slice(0,5) : ''}
-              onChange={handleTimeChange}
-              className="w-full"
-              required
-            />
-          </div>
-
-          <div className="space-y-2">
-            <label className="text-sm font-medium">Forma de Pagamento</label>
-            <Select onValueChange={setOpcaoPagamento} value={opcaoPagamento}>
-              <SelectTrigger>
-                <SelectValue placeholder="Selecione" />
-              </SelectTrigger>
-              <SelectContent>
-                {opcoesPagamento?.map((opcao) => (
-                  <SelectItem key={opcao.id} value={opcao.name}>{opcao.name}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="space-y-2">
-            <label className="text-sm font-medium">Valor Pago (R$)</label>
-            <Input 
-              type="number" 
-              placeholder="0.00" 
-              value={valorPago} 
-              onChange={(e) => setValorPago(parseFloat(e.target.value) || 0)}
-            />
-          </div>
-        </div>
-
-        <div className="mt-4 space-y-2 bg-gray-50 p-4 rounded-lg">
-          <p className="text-lg">Total Descontos (Individuais + Geral): R$ {calcularTotalDescontos().toFixed(2)}</p>
-          <p className="text-lg">Valor Adicional: R$ {valorAdicional.toFixed(2)}</p>
-          <p className="text-xl font-bold">Total: R$ {total.toFixed(2)}</p>
-          <p className="text-xl font-bold">Saldo Restante: R$ {Math.max(total - valorPago, 0).toFixed(2)}</p>
-          <Button 
-            onClick={() => {
-              if (!dataEntrega) {
-                toast.error("Por favor, selecione a data e hora de entrega");
-                return;
-              }
-              finalizarVenda();
-            }} 
-            className="w-full mt-4"
-          >
-            Finalizar Venda
-          </Button>
-        </div>
-      </div>
+      <VendaCarrinhoSummary
+        desconto={desconto}
+        setDesconto={setDesconto}
+        valorAdicional={valorAdicional}
+        setValorAdicional={setValorAdicional}
+        descricaoValorAdicional={descricaoValorAdicional}
+        setDescricaoValorAdicional={setDescricaoValorAdicional}
+        dataEntrega={dataEntrega}
+        setDataEntrega={setDataEntrega}
+        opcaoPagamento={opcaoPagamento}
+        setOpcaoPagamento={setOpcaoPagamento}
+        opcoesPagamento={opcoesPagamento}
+        valorPago={valorPago}
+        setValorPago={setValorPago}
+        total={total}
+        handleDateChange={handleDateChange}
+        handleTimeChange={handleTimeChange}
+        finalizarVenda={handleFinalizarVenda}
+      />
     </div>
   );
 };
