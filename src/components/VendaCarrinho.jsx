@@ -52,11 +52,6 @@ const VendaCarrinho = ({
       return;
     }
 
-    if (selectedTime === '00:00') {
-      toast.error("A Hora deve ser preenchida");
-      return;
-    }
-
     const currentDate = dataEntrega.toISOString().split('T')[0];
     const newDateTime = new Date(currentDate + 'T' + selectedTime);
     setDataEntrega(newDateTime);
@@ -142,7 +137,8 @@ const VendaCarrinho = ({
             />
           </div>
         </div>
-      <div className="grid grid-cols-4 gap-4">
+
+        <div className="grid grid-cols-4 gap-4">
           <div className="space-y-2">
             <label className="text-sm font-medium">Data de Entrega</label>
             <Input
@@ -164,6 +160,7 @@ const VendaCarrinho = ({
               required
             />
           </div>
+
           <div className="space-y-2">
             <label className="text-sm font-medium">Forma de Pagamento</label>
             <Select onValueChange={setOpcaoPagamento} value={opcaoPagamento}>
@@ -187,7 +184,8 @@ const VendaCarrinho = ({
               onChange={(e) => setValorPago(parseFloat(e.target.value) || 0)}
             />
           </div>
-      </div>
+        </div>
+
         <div className="mt-4 space-y-2 bg-gray-50 p-4 rounded-lg">
           <p className="text-lg">Total Descontos (Individuais + Geral): R$ {calcularTotalDescontos().toFixed(2)}</p>
           <p className="text-lg">Valor Adicional: R$ {valorAdicional.toFixed(2)}</p>
@@ -206,6 +204,7 @@ const VendaCarrinho = ({
             Finalizar Venda
           </Button>
         </div>
+      </div>
     </div>
   );
 };
