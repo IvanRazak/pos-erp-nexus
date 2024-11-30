@@ -6,6 +6,7 @@ import { useAddEventLog } from '../integrations/supabase/hooks/events_log';
 import KanbanColumn from '../components/kanban/KanbanColumn';
 import KanbanPedidoDetalhesModal from '../components/kanban/KanbanPedidoDetalhesModal';
 import { useToast } from '../components/ui/use-toast';
+import { Toaster } from '../components/ui/toaster';
 import { useAuth } from '../hooks/useAuth';
 
 const PedidosKanban = () => {
@@ -75,6 +76,7 @@ const PedidosKanban = () => {
 
   return (
     <div className="p-4">
+      <Toaster />
       <h1 className="text-2xl font-bold mb-6">Pedidos</h1>
       <DragDropContext onDragEnd={handleDragEnd}>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
