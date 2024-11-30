@@ -6,16 +6,14 @@ import { useAddEventLog } from '../integrations/supabase/hooks/events_log';
 import KanbanColumn from '../components/kanban/KanbanColumn';
 import KanbanPedidoDetalhesModal from '../components/kanban/KanbanPedidoDetalhesModal';
 import { useToast } from '../components/ui/use-toast';
-import { useSupabaseAuth } from '../integrations/supabase';
-import { useUser } from '../integrations/supabase/hooks/users';
+import { useAuth } from '../hooks/useAuth';
 
 const PedidosKanban = () => {
   const { data: orders, isLoading } = useOrders();
   const updateOrder = useUpdateOrder();
   const addEventLog = useAddEventLog();
   const { toast } = useToast();
-  const { session } = useSupabaseAuth();
-  const { data: user } = useUser(session?.user?.id);
+  const { user } = useAuth();
   const [selectedPedido, setSelectedPedido] = React.useState(null);
 
   const columns = {
@@ -50,11 +48,8 @@ const PedidosKanban = () => {
         status: newStatus
       });
 
-      // Tenta obter o nome do usuário de várias formas, priorizando o username
-      const userName = user?.username || session?.user?.email || 'Sistema';
-
       await addEventLog.mutateAsync({
-        user_name: userName,
+        user_name: user.username,
         description: `Status do Pedido #${order.order_number} alterado para ${columns[newStatus].title}`
       });
 
