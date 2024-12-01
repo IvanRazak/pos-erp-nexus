@@ -7,16 +7,17 @@ const KanbanCard = ({ item, index, onClick }) => {
     new Date(item.delivery_date) < new Date() && 
     localStorage.getItem('lateOrdersHighlight') === 'true';
 
-  const formatDeliveryDateTime = (dateString) => {
+  const formatDeliveryDate = (dateString) => {
     if (!dateString) return 'N/A';
     const date = parseISO(dateString);
-    return {
-      date: format(date, 'dd/MM/yyyy'),
-      time: format(date, 'HH:mm')
-    };
+    return format(date, 'dd/MM/yyyy');
   };
 
-  const { date, time } = formatDeliveryDateTime(item.delivery_date);
+  const formatDeliveryTime = (dateString) => {
+    if (!dateString) return '';
+    const date = parseISO(dateString);
+    return format(date, 'HH:mm');
+  };
 
   return (
     <Draggable draggableId={item.id} index={index}>
@@ -32,20 +33,19 @@ const KanbanCard = ({ item, index, onClick }) => {
         >
           <div className="flex flex-col gap-2">
             <div className="flex justify-between items-start">
-              <p className="font-semibold">Pedido #{item.order_number}
-              <p className="text-sm text-gray-600 dark:text-gray-300">
-              {item.customer?.name}
-            </p>
-              </p>
+              <p className="font-semibold">Pedido #{item.order_number}</p>
               <div className="text-right">
                 <p className={`text-sm ${isLateDelivery ? 'text-red-600 dark:text-red-400' : ''}`}>
-                  {date}
+                  {formatDeliveryDate(item.delivery_date)}
                 </p>
-                <p className="text-sm text-gray-500 dark:text-gray-400">
-                  {time}
+                <p className="text-sm text-gray-500">
+                  {formatDeliveryTime(item.delivery_date)}
                 </p>
               </div>
             </div>
+            <p className="text-sm text-gray-600 dark:text-gray-300">
+              {item.customer?.name}
+            </p>
           </div>
         </div>
       )}
