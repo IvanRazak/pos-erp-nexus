@@ -34,6 +34,30 @@ const VendaCarrinhoSummary = ({
           />
         </div>
         
+        <div className="grid grid-cols-2 gap-2">
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Data de Entrega</label>
+            <Input
+              type="date"
+              value={dataEntrega ? dataEntrega.toISOString().split('T')[0] : ''}
+              onChange={handleDateChange}
+              className="w-full"
+              required
+            />
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Hora</label>
+            <Input
+              type="time"
+              value={dataEntrega ? dataEntrega.toTimeString().slice(0,5) : ''}
+              onChange={handleTimeChange}
+              className="w-full"
+              required
+            />
+          </div>
+        </div>
+
         <div className="space-y-2">
           <label className="text-sm font-medium">Valor Adicional (R$)</label>
           <Input 
@@ -43,41 +67,9 @@ const VendaCarrinhoSummary = ({
             onChange={(e) => setValorAdicional(parseFloat(e.target.value) || 0)}
           />
         </div>
-
-        <div className="space-y-2">
-          <label className="text-sm font-medium">Descrição do Valor Adicional</label>
-          <Input 
-            type="text" 
-            placeholder="Ex: Taxa de entrega" 
-            value={descricaoValorAdicional} 
-            onChange={(e) => setDescricaoValorAdicional(e.target.value)}
-          />
-        </div>
       </div>
 
-      <div className="grid grid-cols-4 gap-4">
-        <div className="space-y-2">
-          <label className="text-sm font-medium">Data de Entrega</label>
-          <Input
-            type="date"
-            value={dataEntrega ? dataEntrega.toISOString().split('T')[0] : ''}
-            onChange={handleDateChange}
-            className="w-full"
-            required
-          />
-        </div>
-
-        <div className="space-y-2">
-          <label className="text-sm font-medium">Hora de Entrega</label>
-          <Input
-            type="time"
-            value={dataEntrega ? dataEntrega.toTimeString().slice(0,5) : ''}
-            onChange={handleTimeChange}
-            className="w-full"
-            required
-          />
-        </div>
-
+      <div className="grid grid-cols-3 gap-4">
         <div className="space-y-2">
           <label className="text-sm font-medium">Forma de Pagamento</label>
           <Select onValueChange={setOpcaoPagamento} value={opcaoPagamento}>
@@ -99,6 +91,16 @@ const VendaCarrinhoSummary = ({
             placeholder="0.00" 
             value={valorPago} 
             onChange={(e) => setValorPago(parseFloat(e.target.value) || 0)}
+          />
+        </div>
+
+        <div className="space-y-2">
+          <label className="text-sm font-medium">Descrição do Valor Adicional</label>
+          <Input 
+            type="text" 
+            placeholder="Ex: Taxa de entrega" 
+            value={descricaoValorAdicional} 
+            onChange={(e) => setDescricaoValorAdicional(e.target.value)}
           />
         </div>
       </div>
