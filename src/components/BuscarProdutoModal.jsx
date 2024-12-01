@@ -104,12 +104,17 @@ const BuscarProdutoModal = ({ isOpen, onClose, onSelectProduto }) => {
         {selectedProduct && (
           <div className="mt-4 space-y-2 bg-gray-100 p-4 rounded-md">
             <h3 className="font-bold">{selectedProduct.name}</h3>
-            <Input
-              type="number"
-              placeholder="Quantidade"
-              value={quantidade}
-              onChange={(e) => setQuantidade(parseInt(e.target.value) || 1)}
-            />
+            <div className="flex items-center gap-2">
+              <label htmlFor="quantidade" className="text-sm font-medium">Quantidade:</label>
+              <Input
+                id="quantidade"
+                type="number"
+                placeholder="Quantidade"
+                value={quantidade}
+                onChange={(e) => setQuantidade(parseInt(e.target.value) || 1)}
+                className="w-24"
+              />
+            </div>
             {selectedProduct.unit_type === 'square_meter' && (
               <>
                 <Input

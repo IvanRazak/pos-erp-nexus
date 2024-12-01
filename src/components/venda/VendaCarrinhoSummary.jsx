@@ -35,28 +35,6 @@ const VendaCarrinhoSummary = ({
         </div>
         
         <div className="space-y-2">
-          <label className="text-sm font-medium">Valor Adicional (R$)</label>
-          <Input 
-            type="number" 
-            placeholder="0.00" 
-            value={valorAdicional} 
-            onChange={(e) => setValorAdicional(parseFloat(e.target.value) || 0)}
-          />
-        </div>
-
-        <div className="space-y-2">
-          <label className="text-sm font-medium">Descrição do Valor Adicional</label>
-          <Input 
-            type="text" 
-            placeholder="Ex: Taxa de entrega" 
-            value={descricaoValorAdicional} 
-            onChange={(e) => setDescricaoValorAdicional(e.target.value)}
-          />
-        </div>
-      </div>
-
-      <div className="grid grid-cols-4 gap-4">
-        <div className="space-y-2">
           <label className="text-sm font-medium">Data de Entrega</label>
           <Input
             type="date"
@@ -75,6 +53,18 @@ const VendaCarrinhoSummary = ({
             onChange={handleTimeChange}
             className="w-full"
             required
+          />
+        </div>
+      </div>
+
+      <div className="grid grid-cols-3 gap-4">
+        <div className="space-y-2">
+          <label className="text-sm font-medium">Valor Adicional (R$)</label>
+          <Input 
+            type="number" 
+            placeholder="0.00" 
+            value={valorAdicional} 
+            onChange={(e) => setValorAdicional(parseFloat(e.target.value) || 0)}
           />
         </div>
 
@@ -99,6 +89,18 @@ const VendaCarrinhoSummary = ({
             placeholder="0.00" 
             value={valorPago} 
             onChange={(e) => setValorPago(parseFloat(e.target.value) || 0)}
+          />
+        </div>
+      </div>
+
+      <div className="grid grid-cols-3 gap-4">
+        <div className="space-y-2">
+          <label className="text-sm font-medium">Descrição do Valor Adicional</label>
+          <Input 
+            type="text" 
+            placeholder="Ex: Taxa de entrega" 
+            value={descricaoValorAdicional} 
+            onChange={(e) => setDescricaoValorAdicional(e.target.value)}
           />
         </div>
       </div>
