@@ -114,7 +114,7 @@ const Venda = () => {
       const erros = [];
       if (!clienteSelecionado) erros.push("Selecione um cliente");
       if (carrinho.length === 0) erros.push("O carrinho está vazio");
-      if (!dataEntrega) erros.push("Defina uma data de entrega");
+      if (!dataEntrega) erros.push("Defina uma data e hora de entrega");
       if (!opcaoPagamento) erros.push("Selecione uma opção de pagamento");
       
       if (erros.length > 0) {
@@ -130,7 +130,6 @@ const Venda = () => {
       const totalVenda = await calcularTotal(carrinho) - parseFloat(desconto) + parseFloat(valorAdicional);
       const saldoRestante = totalVenda - valorPago;
 
-      // Obter o status do pedido de forma assíncrona
       const status = await getOrderStatus(totalVenda, valorPago);
 
       const novaVenda = {
@@ -139,7 +138,7 @@ const Venda = () => {
         paid_amount: valorPago,
         remaining_balance: saldoRestante,
         status: status,
-        delivery_date: format(dataEntrega, 'yyyy-MM-dd'),
+        delivery_date: dataEntrega.toISOString(), // Save the full datetime
         payment_option: opcaoPagamento,
         items: carrinho.map(item => ({
           product_id: item.id,
@@ -162,7 +161,6 @@ const Venda = () => {
 
       const novoPedido = await addOrder.mutateAsync(novaVenda);
 
-      // Buscar dados do pedido
       const { data: orderData, error: orderError } = await supabase
         .from('orders')
         .select(`
@@ -183,7 +181,6 @@ const Venda = () => {
 
       if (orderError) throw orderError;
 
-      // Gerar e imprimir conteúdo
       const printContent = await generatePrintContent(orderData, orderData.items);
       const printWindow = window.open('', '_blank');
       if (printWindow) {
