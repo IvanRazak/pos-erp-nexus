@@ -55,10 +55,9 @@ const VendaCarrinhoSummary = ({
         </div>
       </div>
 
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-4 gap-4">
         <div className="space-y-2">
-          <label className="text-sm font-medium">Data e Hora de Entrega</label>
-          <div className="flex gap-2">
+          <label className="text-sm font-medium">Data de Entrega</label>
           <Input
             type="date"
             value={dataEntrega ? dataEntrega.toISOString().split('T')[0] : ''}
@@ -66,9 +65,9 @@ const VendaCarrinhoSummary = ({
             className="w-full"
             required
           />
-        
+        </div>
 
-         <div className="flex items-center gap-2">
+        <div className="space-y-2">
           <label className="text-sm font-medium">Hora de Entrega</label>
           <Input
             type="time"
@@ -77,9 +76,6 @@ const VendaCarrinhoSummary = ({
             className="w-full"
             required
           />
-        </div>
-            </div>
-          </div>
         </div>
 
         <div className="space-y-2">
