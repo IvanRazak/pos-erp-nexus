@@ -32,7 +32,7 @@ const KanbanCard = ({ item, index, onClick }) => {
         >
           <div className="flex flex-col gap-2">
             <div className="flex justify-between items-start">
-              <p className="font-semibold">Pedido #{item.order_number}
+              <p className="font-semibold">#{item.order_number}
               <p className="text-sm text-gray-600 dark:text-gray-300">
               {item.customer?.name}
             </p>
