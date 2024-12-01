@@ -55,34 +55,27 @@ const VendaCarrinhoSummary = ({
         </div>
       </div>
 
-        <div className="grid grid-cols-3 gap-4">
-          <div className="space-y-2">
-            <label className="text-sm font-medium">Data e Hora de Entrega</label>
-            <div className="flex gap-2">
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button variant={"outline"} className={cn("w-[200px] justify-start text-left font-normal", !dataEntrega && "text-muted-foreground")}>
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {dataEntrega ? format(dataEntrega, "PPP") : <span>Selecione a data</span>}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0">
-                  <Calendar mode="single" selected={dataEntrega} onSelect={handleDateTimeSelect} initialFocus />
-                </PopoverContent>
-              </Popover>
-              <div className="flex items-center gap-2">
-                <Clock className="h-4 w-4 text-gray-500" />
-                <Input
-                  type="time"
-                  value={selectedTime}
-                  onChange={handleTimeChange}
-                  className="w-[120px]"
-                />
-              </div>
-            </div>
-          </div>
+      <div className="grid grid-cols-4 gap-4">
+        <div className="space-y-2">
+          <label className="text-sm font-medium">Data de Entrega</label>
+          <Input
+            type="date"
+            value={dataEntrega ? dataEntrega.toISOString().split('T')[0] : ''}
+            onChange={handleDateChange}
+            className="w-full"
+            required
+          />
+        </div>
 
-          // ... keep existing code (payment options and paid amount)
+        <div className="space-y-2">
+          <label className="text-sm font-medium">Hora de Entrega</label>
+          <Input
+            type="time"
+            value={dataEntrega ? dataEntrega.toTimeString().slice(0,5) : ''}
+            onChange={handleTimeChange}
+            className="w-full"
+            required
+          />
         </div>
 
         <div className="space-y-2">
