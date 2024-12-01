@@ -7,17 +7,16 @@ const KanbanCard = ({ item, index, onClick }) => {
     new Date(item.delivery_date) < new Date() && 
     localStorage.getItem('lateOrdersHighlight') === 'true';
 
-  const formatDeliveryDate = (dateString) => {
+  const formatDeliveryDateTime = (dateString) => {
     if (!dateString) return 'N/A';
     const date = parseISO(dateString);
-    return format(date, 'dd/MM/yyyy');
+    return {
+      date: format(date, 'dd/MM/yyyy'),
+      time: format(date, 'HH:mm')
+    };
   };
 
-  const formatDeliveryTime = (dateString) => {
-    if (!dateString) return '';
-    const date = parseISO(dateString);
-    return format(date, 'HH:mm');
-  };
+  const { date, time } = formatDeliveryDateTime(item.delivery_date);
 
   return (
     <Draggable draggableId={item.id} index={index}>
@@ -36,10 +35,10 @@ const KanbanCard = ({ item, index, onClick }) => {
               <p className="font-semibold">Pedido #{item.order_number}</p>
               <div className="text-right">
                 <p className={`text-sm ${isLateDelivery ? 'text-red-600 dark:text-red-400' : ''}`}>
-                  {formatDeliveryDate(item.delivery_date)}
+                  {date}
                 </p>
-                <p className="text-sm text-gray-500">
-                  {formatDeliveryTime(item.delivery_date)}
+                <p className="text-sm text-gray-500 dark:text-gray-400">
+                  {time}
                 </p>
               </div>
             </div>
