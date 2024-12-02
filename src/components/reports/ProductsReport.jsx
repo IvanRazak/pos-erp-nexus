@@ -19,7 +19,7 @@ const ProductsReport = ({ pedidos, produtos }) => {
         quantidade: 0,
         valorTotal: 0,
         valorTotalComDesconto: 0,
-        totalItensVendidos: 0
+        totalItensVendidos: 0 // Para calcular a média do preço unitário
       });
     });
 
@@ -30,11 +30,11 @@ const ProductsReport = ({ pedidos, produtos }) => {
       pedido.items.forEach(item => {
         if (productSalesMap.has(item.product_id)) {
           const currentData = productSalesMap.get(item.product_id);
-          const quantidade = Number(item.quantity) || 0;
-          const valorUnitario = Number(item.unit_price) || 0;
-          const desconto = Number(item.discount) || 0;
-          const valorTotalItem = Number(item.total_amount) || (quantidade * valorUnitario);
-          const valorTotalComDesconto = Number(item.total_with_discount) || (valorTotalItem - desconto);
+          const quantidade = item.quantity || 0;
+          const valorUnitario = item.unit_price || 0;
+          const desconto = item.discount || 0;
+          const valorTotalItem = quantidade * valorUnitario;
+          const valorTotalComDesconto = valorTotalItem - desconto;
 
           productSalesMap.set(item.product_id, {
             ...currentData,
@@ -55,7 +55,6 @@ const ProductsReport = ({ pedidos, produtos }) => {
           ? item.valorTotalComDesconto / item.totalItensVendidos 
           : 0
       }))
-      .filter(item => item.quantidade > 0) // Only show products that have been sold
       .sort((a, b) => b.valorTotalComDesconto - a.valorTotalComDesconto);
   };
 
@@ -64,7 +63,7 @@ const ProductsReport = ({ pedidos, produtos }) => {
   if (relatorio.length === 0) {
     return (
       <div className="text-center py-4">
-        <p>Nenhum produto vendido encontrado.</p>
+        <p>Nenhum produto encontrado.</p>
       </div>
     );
   }
