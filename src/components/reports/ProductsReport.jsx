@@ -1,43 +1,64 @@
 import React from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts';
-import { parseISO, startOfDay, endOfDay, isWithinInterval } from "date-fns";
 
 const ProductsReport = ({ filters, pedidos, produtos }) => {
   const gerarRelatorioProdutos = () => {
-    if (!pedidos || !produtos) return [];
-    
-    const produtosVendidos = pedidos.flatMap(pedido => 
-      pedido.items?.map(item => ({
-        ...item,
-        data: pedido.created_at,
-        status: pedido.status
-      })) || []
-    );
+    if (!pedidos || !produtos || pedidos.length === 0 || produtos.length === 0) {
+      return [];
+    }
 
-    return produtos.map(produto => {
-      const vendasProduto = produtosVendidos.filter(item => {
-        const matchData = (!filters.dataInicio || !filters.dataFim || 
-          isWithinInterval(parseISO(item.data), {
-            start: filters.dataInicio ? startOfDay(filters.dataInicio) : startOfDay(new Date(0)),
-            end: filters.dataFim ? endOfDay(filters.dataFim) : endOfDay(new Date())
-          }));
-        
-        return item.product_id === produto.id && matchData;
-      });
+    // Create a map to store product sales data
+    const productSalesMap = new Map();
 
-      const quantidade = vendasProduto.reduce((sum, item) => sum + (item.quantity || 0), 0);
-      const valorTotal = vendasProduto.reduce((sum, item) => sum + ((item.quantity || 0) * (item.unit_price || 0)), 0);
-
-      return {
+    // Initialize map with all products
+    produtos.forEach(produto => {
+      productSalesMap.set(produto.id, {
         produto: produto.name,
-        quantidade,
-        valorTotal
-      };
-    }).filter(item => item.quantidade > 0);
+        quantidade: 0,
+        valorTotal: 0
+      });
+    });
+
+    // Process orders and accumulate sales data
+    pedidos.forEach(pedido => {
+      // Skip if order items is undefined or empty
+      if (!pedido.items || pedido.items.length === 0) return;
+
+      // Check date filter
+      const orderDate = new Date(pedido.created_at);
+      const startDate = filters.dataInicio ? new Date(filters.dataInicio) : new Date(0);
+      const endDate = filters.dataFim ? new Date(filters.dataFim) : new Date();
+      
+      if (orderDate >= startDate && orderDate <= endDate) {
+        pedido.items.forEach(item => {
+          if (productSalesMap.has(item.product_id)) {
+            const currentData = productSalesMap.get(item.product_id);
+            productSalesMap.set(item.product_id, {
+              ...currentData,
+              quantidade: currentData.quantidade + (item.quantity || 0),
+              valorTotal: currentData.valorTotal + ((item.quantity || 0) * (item.unit_price || 0))
+            });
+          }
+        });
+      }
+    });
+
+    // Convert map to array and filter out products with no sales
+    return Array.from(productSalesMap.values())
+      .filter(item => item.quantidade > 0)
+      .sort((a, b) => b.valorTotal - a.valorTotal);
   };
 
   const relatorio = gerarRelatorioProdutos();
+
+  if (relatorio.length === 0) {
+    return (
+      <div className="text-center py-4">
+        <p>Nenhum dado encontrado para o período selecionado.</p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4">
@@ -60,19 +81,17 @@ const ProductsReport = ({ filters, pedidos, produtos }) => {
         </TableBody>
       </Table>
 
-      {relatorio.length > 0 && (
-        <div className="mt-4">
-          <BarChart width={800} height={300} data={relatorio}>
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="produto" />
-            <YAxis />
-            <Tooltip />
-            <Legend />
-            <Bar dataKey="quantidade" fill="#8884d8" name="Quantidade" />
-            <Bar dataKey="valorTotal" fill="#82ca9d" name="Valor Total" />
-          </BarChart>
-        </div>
-      )}
+      <div className="mt-4">
+        <BarChart width={800} height={300} data={relatorio}>
+          <CartesianGrid strokeDasharray="3 3" />
+          <XAxis dataKey="produto" />
+          <YAxis />
+          <Tooltip />
+          <Legend />
+          <Bar dataKey="quantidade" fill="#8884d8" name="Quantidade" />
+          <Bar dataKey="valorTotal" fill="#82ca9d" name="Valor Total" />
+        </BarChart>
+      </div>
     </div>
   );
 };
