@@ -2,7 +2,7 @@ import React from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts';
 
-const ProductsReport = ({ filters, pedidos, produtos }) => {
+const ProductsReport = ({ pedidos, produtos }) => {
   const gerarRelatorioProdutos = () => {
     if (!pedidos || !produtos || pedidos.length === 0 || produtos.length === 0) {
       return [];
@@ -20,33 +20,24 @@ const ProductsReport = ({ filters, pedidos, produtos }) => {
       });
     });
 
-    // Process orders and accumulate sales data
+    // Process all orders without date filtering
     pedidos.forEach(pedido => {
-      // Skip if order items is undefined or empty
       if (!pedido.items || pedido.items.length === 0) return;
-
-      // Check date filter
-      const orderDate = new Date(pedido.created_at);
-      const startDate = filters.dataInicio ? new Date(filters.dataInicio) : new Date(0);
-      const endDate = filters.dataFim ? new Date(filters.dataFim) : new Date();
       
-      if (orderDate >= startDate && orderDate <= endDate) {
-        pedido.items.forEach(item => {
-          if (productSalesMap.has(item.product_id)) {
-            const currentData = productSalesMap.get(item.product_id);
-            productSalesMap.set(item.product_id, {
-              ...currentData,
-              quantidade: currentData.quantidade + (item.quantity || 0),
-              valorTotal: currentData.valorTotal + ((item.quantity || 0) * (item.unit_price || 0))
-            });
-          }
-        });
-      }
+      pedido.items.forEach(item => {
+        if (productSalesMap.has(item.product_id)) {
+          const currentData = productSalesMap.get(item.product_id);
+          productSalesMap.set(item.product_id, {
+            ...currentData,
+            quantidade: currentData.quantidade + (item.quantity || 0),
+            valorTotal: currentData.valorTotal + ((item.quantity || 0) * (item.unit_price || 0))
+          });
+        }
+      });
     });
 
-    // Convert map to array and filter out products with no sales
+    // Convert map to array and sort by total value
     return Array.from(productSalesMap.values())
-      .filter(item => item.quantidade > 0)
       .sort((a, b) => b.valorTotal - a.valorTotal);
   };
 
@@ -55,7 +46,7 @@ const ProductsReport = ({ filters, pedidos, produtos }) => {
   if (relatorio.length === 0) {
     return (
       <div className="text-center py-4">
-        <p>Nenhum dado encontrado para o período selecionado.</p>
+        <p>Nenhum produto encontrado.</p>
       </div>
     );
   }
