@@ -6,6 +6,7 @@ import { DatePicker } from "@/components/ui/date-picker";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useOrders, useCustomers, useProducts, usePaymentOptions } from '../integrations/supabase';
+import { useUsers } from '../integrations/supabase/hooks/users';
 import { startOfDay, endOfDay, isWithinInterval, parseISO } from "date-fns";
 import ProductsReport from './reports/ProductsReport';
 import OrdersReport from './reports/OrdersReport';
@@ -22,13 +23,15 @@ const Relatorios = () => {
     formaPagamento: '',
     valorMinimo: '',
     valorMaximo: '',
-    status: 'all'
+    status: 'all',
+    usuario: ''
   });
 
   const { data: pedidos } = useOrders();
   const { data: clientes } = useCustomers();
   const { data: produtos } = useProducts();
   const { data: paymentOptions } = usePaymentOptions();
+  const { data: users } = useUsers();
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -50,8 +53,9 @@ const Relatorios = () => {
       const matchValor = (!filters.valorMinimo || item.total_amount >= parseFloat(filters.valorMinimo)) &&
                         (!filters.valorMaximo || item.total_amount <= parseFloat(filters.valorMaximo));
       const matchStatus = filters.status === 'all' || item.status === filters.status;
+      const matchUsuario = !filters.usuario || item.created_by === filters.usuario;
       
-      return matchData && matchValor && matchStatus;
+      return matchData && matchValor && matchStatus && matchUsuario;
     }) || [];
   };
 
@@ -121,6 +125,22 @@ const Relatorios = () => {
           value={filters.valorMaximo}
           onChange={(e) => setFilters({...filters, valorMaximo: e.target.value})}
         />
+      </div>
+
+      <div className="mb-4">
+        <Select onValueChange={(value) => setFilters({...filters, usuario: value})} value={filters.usuario}>
+          <SelectTrigger>
+            <SelectValue placeholder="Filtrar por Usuário" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="">Todos os Usuários</SelectItem>
+            {users?.map((user) => (
+              <SelectItem key={user.username} value={user.username}>
+                {user.username}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
       <Tabs defaultValue="produtos" className="mt-4">
