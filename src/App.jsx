@@ -1,48 +1,51 @@
-import React from "react";
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import React from 'react';
+import { Toaster } from "@/components/ui/sonner";
+import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { ThemeProvider } from "./components/theme-provider";
-import { Toaster } from "./components/ui/sonner";
-import { SupabaseAuthProvider } from "./integrations/supabase";
-import AdminMenu from "./components/AdminMenu";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { SupabaseAuthProvider } from './integrations/supabase/auth';
+import { ThemeProvider } from "next-themes";
+import Login from "./pages/Login";
+import Dashboard from "./pages/Dashboard";
 import Clientes from "./components/Clientes";
 import Produtos from "./components/Produtos";
 import Venda from "./components/Venda";
 import GerenciamentoPedidos from "./components/GerenciamentoPedidos";
-import PedidosKanban from "./pages/PedidosKanban";
+import Caixa from "./components/Caixa";
 import Financeiro from "./components/Financeiro";
 import Relatorios from "./components/Relatorios";
-import Login from "./pages/Login";
+import PedidosKanban from "./pages/PedidosKanban";
 
 const queryClient = new QueryClient();
 
-function App() {
-  return (
-    <QueryClientProvider client={queryClient}>
-      <SupabaseAuthProvider>
-        <ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
-          <Router>
-            <div className="min-h-screen">
-              <AdminMenu />
-              <div className="p-4">
-                <Routes>
-                  <Route path="/" element={<Venda />} />
-                  <Route path="/clientes" element={<Clientes />} />
-                  <Route path="/produtos" element={<Produtos />} />
-                  <Route path="/pedidos" element={<GerenciamentoPedidos />} />
-                  <Route path="/pedidos-kanban" element={<PedidosKanban />} />
-                  <Route path="/financeiro" element={<Financeiro />} />
-                  <Route path="/relatorios" element={<Relatorios />} />
-                  <Route path="/login" element={<Login />} />
-                </Routes>
-              </div>
-            </div>
-          </Router>
-          <Toaster />
-        </ThemeProvider>
-      </SupabaseAuthProvider>
-    </QueryClientProvider>
-  );
-}
+const App = () => (
+  <React.StrictMode>
+    <ThemeProvider defaultTheme="light" attribute="class">
+      <QueryClientProvider client={queryClient}>
+        <SupabaseAuthProvider>
+          <TooltipProvider>
+            <Toaster />
+            <BrowserRouter>
+              <Routes>
+                <Route path="/login" element={<Login />} />
+                <Route path="/dashboard" element={<Dashboard />}>
+                  <Route path="clientes" element={<Clientes />} />
+                  <Route path="produtos" element={<Produtos />} />
+                  <Route path="venda" element={<Venda />} />
+                  <Route path="pedidos" element={<GerenciamentoPedidos />} />
+                  <Route path="pedidos-kanban" element={<PedidosKanban />} />
+                  <Route path="caixa" element={<Caixa />} />
+                  <Route path="financeiro" element={<Financeiro />} />
+                  <Route path="relatorios" element={<Relatorios />} />
+                </Route>
+                <Route path="/" element={<Navigate to="/login" replace />} />
+              </Routes>
+            </BrowserRouter>
+          </TooltipProvider>
+        </SupabaseAuthProvider>
+      </QueryClientProvider>
+    </ThemeProvider>
+  </React.StrictMode>
+);
 
 export default App;
