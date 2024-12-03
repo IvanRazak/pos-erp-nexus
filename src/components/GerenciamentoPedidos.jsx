@@ -21,7 +21,8 @@ const GerenciamentoPedidos = () => {
     dataFim: null,
     valorMinimo: '',
     valorMaximo: '',
-    status: 'all'
+    status: 'all',
+    createdBy: 'all'
   });
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(20);
@@ -61,7 +62,8 @@ const GerenciamentoPedidos = () => {
       const matchValor = (!filters.valorMinimo || pedido.total_amount >= parseFloat(filters.valorMinimo)) &&
                         (!filters.valorMaximo || pedido.total_amount <= parseFloat(filters.valorMaximo));
       const matchStatus = filters.status === 'all' || pedido.status === filters.status;
-      return matchData && matchCliente && matchNumeroPedido && matchValor && matchStatus;
+      const matchCreatedBy = filters.createdBy === 'all' || pedido.created_by === filters.createdBy;
+      return matchData && matchCliente && matchNumeroPedido && matchValor && matchStatus && matchCreatedBy;
     });
   }, [pedidos, filters]);
 

@@ -3,8 +3,11 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { DatePicker } from "@/components/ui/date-picker";
 import { ptBR } from 'date-fns/locale';
+import { useUsers } from '../../integrations/supabase';
 
 const PedidosFiltros = ({ filters, setFilters }) => {
+  const { data: users } = useUsers();
+
   return (
     <div className="grid grid-cols-2 gap-4 mb-4">
       <Input
@@ -55,6 +58,22 @@ const PedidosFiltros = ({ filters, setFilters }) => {
           <SelectItem value="awaiting_approval">Aguardando Aprovação</SelectItem>
           <SelectItem value="ready_for_pickup">Pronto para Retirada</SelectItem>
           <SelectItem value="delivered">Entregue</SelectItem>
+        </SelectContent>
+      </Select>
+      <Select 
+        value={filters.createdBy || 'all'} 
+        onValueChange={(value) => setFilters({...filters, createdBy: value})}
+      >
+        <SelectTrigger>
+          <SelectValue placeholder="Filtrar por Usuário" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="all">Todos os Usuários</SelectItem>
+          {users?.map((user) => (
+            <SelectItem key={user.id} value={user.username}>
+              {user.username}
+            </SelectItem>
+          ))}
         </SelectContent>
       </Select>
     </div>
