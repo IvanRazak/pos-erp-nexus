@@ -2,8 +2,9 @@ import React from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts';
 import { formatCurrency } from '../../utils/formatters';
+import { isWithinInterval, parseISO, startOfDay, endOfDay } from 'date-fns';
 
-const ProductsReport = ({ pedidos, produtos }) => {
+const ProductsReport = ({ pedidos, produtos, filters }) => {
   const gerarRelatorioProdutos = () => {
     if (!pedidos || !produtos || pedidos.length === 0 || produtos.length === 0) {
       return [];
@@ -19,12 +20,33 @@ const ProductsReport = ({ pedidos, produtos }) => {
         quantidade: 0,
         valorTotal: 0,
         valorTotalComDesconto: 0,
-        totalItensVendidos: 0 // Para calcular a média do preço unitário
+        totalItensVendidos: 0
       });
     });
 
-    // Process all orders
-    pedidos.forEach(pedido => {
+    // Filter and process orders
+    const filteredOrders = pedidos.filter(pedido => {
+      if (!pedido.items) return false;
+      
+      const matchData = (!filters.dataInicio || !filters.dataFim || isWithinInterval(
+        parseISO(pedido.created_at),
+        {
+          start: startOfDay(filters.dataInicio),
+          end: endOfDay(filters.dataFim)
+        }
+      ));
+
+      const matchValor = (!filters.valorMinimo || pedido.total_amount >= parseFloat(filters.valorMinimo)) &&
+                        (!filters.valorMaximo || pedido.total_amount <= parseFloat(filters.valorMaximo));
+      
+      const matchStatus = filters.status === 'all' || pedido.status === filters.status;
+      const matchCreatedBy = filters.createdBy === 'all' || pedido.created_by === filters.createdBy;
+      
+      return matchData && matchValor && matchStatus && matchCreatedBy;
+    });
+
+    // Process filtered orders
+    filteredOrders.forEach(pedido => {
       if (!pedido.items || pedido.items.length === 0) return;
       
       pedido.items.forEach(item => {
@@ -58,18 +80,51 @@ const ProductsReport = ({ pedidos, produtos }) => {
       .sort((a, b) => b.valorTotalComDesconto - a.valorTotalComDesconto);
   };
 
+  if (!pedidos || !produtos) {
+    return (
+      <div className="text-center py-4">
+        <p>Carregando dados...</p>
+      </div>
+    );
+  }
+
   const relatorio = gerarRelatorioProdutos();
 
   if (relatorio.length === 0) {
     return (
       <div className="text-center py-4">
-        <p>Nenhum produto encontrado.</p>
+        <p>Nenhum produto encontrado para os filtros selecionados.</p>
       </div>
     );
   }
 
   return (
     <div className="space-y-4">
+      <div className="grid grid-cols-4 gap-4 mb-4">
+        <div className="p-4 bg-white rounded-lg shadow">
+          <h3 className="text-sm font-medium text-gray-500">Total de Produtos</h3>
+          <p className="text-2xl font-bold">{relatorio.length}</p>
+        </div>
+        <div className="p-4 bg-white rounded-lg shadow">
+          <h3 className="text-sm font-medium text-gray-500">Total de Itens Vendidos</h3>
+          <p className="text-2xl font-bold">
+            {relatorio.reduce((sum, item) => sum + item.quantidade, 0)}
+          </p>
+        </div>
+        <div className="p-4 bg-white rounded-lg shadow">
+          <h3 className="text-sm font-medium text-gray-500">Total de Vendas</h3>
+          <p className="text-2xl font-bold">
+            {formatCurrency(relatorio.reduce((sum, item) => sum + item.valorTotalComDesconto, 0))}
+          </p>
+        </div>
+        <div className="p-4 bg-white rounded-lg shadow">
+          <h3 className="text-sm font-medium text-gray-500">Ticket Médio</h3>
+          <p className="text-2xl font-bold">
+            {formatCurrency(relatorio.reduce((sum, item) => sum + item.valorTotalComDesconto, 0) / relatorio.reduce((sum, item) => sum + item.quantidade, 0))}
+          </p>
+        </div>
+      </div>
+
       <Table>
         <TableHeader>
           <TableRow>
