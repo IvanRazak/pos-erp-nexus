@@ -5,7 +5,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { DatePicker } from "@/components/ui/date-picker";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useOrders, useCustomers, useProducts, usePaymentOptions } from '../integrations/supabase';
+import { useOrders, useCustomers, useProducts, usePaymentOptions, useUsers } from '../integrations/supabase';
 import { startOfDay, endOfDay, isWithinInterval, parseISO } from "date-fns";
 import ProductsReport from './reports/ProductsReport';
 import OrdersReport from './reports/OrdersReport';
@@ -22,13 +22,15 @@ const Relatorios = () => {
     formaPagamento: '',
     valorMinimo: '',
     valorMaximo: '',
-    status: 'all'
+    status: 'all',
+    createdBy: 'all'
   });
 
   const { data: pedidos } = useOrders();
   const { data: clientes } = useCustomers();
   const { data: produtos } = useProducts();
   const { data: paymentOptions } = usePaymentOptions();
+  const { data: users } = useUsers();
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -50,8 +52,9 @@ const Relatorios = () => {
       const matchValor = (!filters.valorMinimo || item.total_amount >= parseFloat(filters.valorMinimo)) &&
                         (!filters.valorMaximo || item.total_amount <= parseFloat(filters.valorMaximo));
       const matchStatus = filters.status === 'all' || item.status === filters.status;
+      const matchCreatedBy = filters.createdBy === 'all' || item.created_by === filters.createdBy;
       
-      return matchData && matchValor && matchStatus;
+      return matchData && matchValor && matchStatus && matchCreatedBy;
     }) || [];
   };
 
@@ -83,7 +86,7 @@ const Relatorios = () => {
     <div className="container mx-auto p-4">
       <h2 className="text-2xl font-bold mb-4">Relatórios</h2>
 
-      <div className="grid grid-cols-3 gap-4 mb-4">
+      <div className="grid grid-cols-4 gap-4 mb-4">
         <DatePicker
           selected={filters.dataInicio}
           onChange={(date) => setFilters({...filters, dataInicio: date})}
@@ -104,6 +107,22 @@ const Relatorios = () => {
             <SelectItem value="ready_for_pickup">Pronto para Retirada</SelectItem>
             <SelectItem value="delivered">Entregue</SelectItem>
             <SelectItem value="cancelled">Cancelado</SelectItem>
+          </SelectContent>
+        </Select>
+        <Select 
+          value={filters.createdBy || 'all'} 
+          onValueChange={(value) => setFilters({...filters, createdBy: value})}
+        >
+          <SelectTrigger>
+            <SelectValue placeholder="Filtrar por Usuário" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Todos os Usuários</SelectItem>
+            {users?.map((user) => (
+              <SelectItem key={user.id} value={user.username}>
+                {user.username}
+              </SelectItem>
+            ))}
           </SelectContent>
         </Select>
       </div>

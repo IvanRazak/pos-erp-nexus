@@ -13,7 +13,8 @@ const OrdersReport = ({ filteredOrders, clientes }) => {
       data: format(parseISO(pedido.created_at), 'dd/MM/yyyy', { locale: ptBR }),
       valor: pedido.total_amount,
       status: pedido.status,
-      formaPagamento: pedido.payment_option
+      formaPagamento: pedido.payment_option,
+      criadoPor: pedido.created_by
     }));
   };
 
@@ -27,6 +28,7 @@ const OrdersReport = ({ filteredOrders, clientes }) => {
           <TableHead>Valor</TableHead>
           <TableHead>Status</TableHead>
           <TableHead>Forma de Pagamento</TableHead>
+          <TableHead>Criado Por</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
@@ -38,6 +40,7 @@ const OrdersReport = ({ filteredOrders, clientes }) => {
             <TableCell>R$ {pedido.valor.toFixed(2)}</TableCell>
             <TableCell>{pedido.status}</TableCell>
             <TableCell>{pedido.formaPagamento}</TableCell>
+            <TableCell>{pedido.criadoPor}</TableCell>
           </TableRow>
         ))}
       </TableBody>
