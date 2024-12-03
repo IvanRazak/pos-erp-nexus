@@ -46,6 +46,7 @@ const OrderStatusSettings = ({ isOpen, onClose }) => {
   };
 
   const statusOptions = [
+    { value: 'no_change', label: 'Não Mudar Status' },
     { value: 'in_production', label: 'Em Produção' },
     { value: 'pending', label: 'Pendente' },
     { value: 'paid', label: 'Pago' },
