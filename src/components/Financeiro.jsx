@@ -74,9 +74,23 @@ const Financeiro = () => {
 
     try {
       // Determina o status correto com base nas configurações
-      const novoStatus = novoSaldoRestante <= 0 
-        ? orderStatusSettings?.full_payment_status_financeiro || 'paid'
-        : orderStatusSettings?.partial_payment_status || 'partial_payment';
+      let novoStatus = pedidoSelecionado.status; // Mantém o status atual por padrão
+      
+      if (novoSaldoRestante <= 0) {
+        // Se o saldo foi totalmente pago, verifica as configurações
+        const statusConfig = orderStatusSettings?.full_payment_status_financeiro;
+        // Só muda o status se não for 'no_change'
+        if (statusConfig && statusConfig !== 'no_change') {
+          novoStatus = statusConfig;
+        }
+      } else {
+        // Se ainda há saldo restante, verifica as configurações para pagamento parcial
+        const statusConfig = orderStatusSettings?.partial_payment_status;
+        // Só muda o status se não for 'no_change'
+        if (statusConfig && statusConfig !== 'no_change') {
+          novoStatus = statusConfig;
+        }
+      }
 
       await updateOrder.mutateAsync({
         id: pedidoSelecionado.id,
