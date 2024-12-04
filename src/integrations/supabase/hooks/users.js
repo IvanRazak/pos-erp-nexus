@@ -17,6 +17,7 @@ const fromSupabase = async (query) => {
 | email        | text                    | string                    | true     |
 | password_hash| text                    | string                    | true     |
 | role         | public.user_role        | string                    | true     |
+| blocked      | boolean                 | boolean                   | true     |
 | created_at   | timestamp with time zone| string                    | false    |
 | updated_at   | timestamp with time zone| string                    | false    |
 */

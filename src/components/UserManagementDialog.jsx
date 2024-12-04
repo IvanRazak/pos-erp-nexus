@@ -13,7 +13,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Edit2, Trash2 } from 'lucide-react';
+import { Edit2, Trash2, Lock, Unlock } from 'lucide-react';
 
 const UserManagementDialog = () => {
   const [editingUser, setEditingUser] = useState(null);
@@ -91,6 +91,26 @@ const UserManagementDialog = () => {
     }
   };
 
+  const handleToggleBlock = (user) => {
+    const message = user.blocked ? 'desbloquear' : 'bloquear';
+    if (window.confirm(`Tem certeza que deseja ${message} este usuário?`)) {
+      updateUser.mutate(
+        {
+          id: user.id,
+          blocked: !user.blocked
+        },
+        {
+          onSuccess: () => {
+            toast.success(`Usuário ${user.blocked ? 'desbloqueado' : 'bloqueado'} com sucesso!`);
+          },
+          onError: (error) => {
+            toast.error(`Erro ao ${message} usuário: ${error.message}`);
+          }
+        }
+      );
+    }
+  };
+
   const handleCancel = () => {
     setEditingUser(null);
   };
@@ -150,15 +170,17 @@ const UserManagementDialog = () => {
               <TableHead>Usuário</TableHead>
               <TableHead>Email</TableHead>
               <TableHead>Nível</TableHead>
+              <TableHead>Status</TableHead>
               <TableHead>Ações</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {users?.map((user) => (
-              <TableRow key={user.id}>
+              <TableRow key={user.id} className={user.blocked ? "bg-red-50" : ""}>
                 <TableCell>{user.username}</TableCell>
                 <TableCell>{user.email}</TableCell>
                 <TableCell>{user.role}</TableCell>
+                <TableCell>{user.blocked ? 'Bloqueado' : 'Ativo'}</TableCell>
                 <TableCell>
                   <div className="flex gap-2">
                     <Button
@@ -174,6 +196,17 @@ const UserManagementDialog = () => {
                       onClick={() => handleDelete(user.id)}
                     >
                       <Trash2 className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => handleToggleBlock(user)}
+                    >
+                      {user.blocked ? (
+                        <Unlock className="h-4 w-4" />
+                      ) : (
+                        <Lock className="h-4 w-4" />
+                      )}
                     </Button>
                   </div>
                 </TableCell>
