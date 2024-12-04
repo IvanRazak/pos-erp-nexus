@@ -141,7 +141,7 @@ const UserManagementDialog = () => {
           placeholder={editingUser ? "Nova senha (deixe em branco para manter a atual)" : "Senha"} 
           required={!editingUser}
         />
-        <Select name="role" defaultValue={editingUser?.role || ''}>
+        <Select name="role" defaultValue={editingUser?.role || ''} required>
           <SelectTrigger>
             <SelectValue placeholder="Nível de acesso" />
           </SelectTrigger>
