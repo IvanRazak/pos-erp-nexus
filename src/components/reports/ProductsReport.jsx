@@ -4,6 +4,10 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'rec
 import { formatCurrency } from '../../utils/formatters';
 import { isWithinInterval, parseISO, startOfDay, endOfDay } from 'date-fns';
 
+const formatQuantity = (value) => {
+  return Number(value).toFixed(2);
+};
+
 const ProductsReport = ({ pedidos, produtos, filters }) => {
   const gerarRelatorioProdutos = () => {
     if (!pedidos || !produtos || pedidos.length === 0 || produtos.length === 0) {
@@ -108,7 +112,7 @@ const ProductsReport = ({ pedidos, produtos, filters }) => {
         <div className="p-4 bg-white rounded-lg shadow">
           <h3 className="text-sm font-medium text-gray-500">Total de Itens Vendidos</h3>
           <p className="text-2xl font-bold">
-            {relatorio.reduce((sum, item) => sum + item.quantidade, 0)}
+            {formatQuantity(relatorio.reduce((sum, item) => sum + item.quantidade, 0))}
           </p>
         </div>
         <div className="p-4 bg-white rounded-lg shadow">
@@ -139,7 +143,7 @@ const ProductsReport = ({ pedidos, produtos, filters }) => {
           {relatorio.map((item, index) => (
             <TableRow key={index}>
               <TableCell>{item.produto}</TableCell>
-              <TableCell className="text-right">{item.quantidade}</TableCell>
+              <TableCell className="text-right">{formatQuantity(item.quantidade)}</TableCell>
               <TableCell className="text-right">{formatCurrency(item.valorTotal)}</TableCell>
               <TableCell className="text-right">{formatCurrency(item.valorTotalComDesconto)}</TableCell>
               <TableCell className="text-right">{formatCurrency(item.precoMedioUnitario)}</TableCell>
