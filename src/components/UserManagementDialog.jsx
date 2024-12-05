@@ -179,11 +179,7 @@ const UserManagementDialog = () => {
               <TableRow key={user.id} className={user.blocked ? "bg-red-50" : ""}>
                 <TableCell>{user.username}</TableCell>
                 <TableCell>{user.email}</TableCell>
-                <TableCell>
-                  {user.role === 'admin' && 'Administrador'}
-                  {user.role === 'operator' && 'Operador'}
-                  {user.role === 'seller' && 'Vendedor'}
-                </TableCell>
+                <TableCell>{user.role}</TableCell>
                 <TableCell>{user.blocked ? 'Bloqueado' : 'Ativo'}</TableCell>
                 <TableCell>
                   <div className="flex gap-2">
