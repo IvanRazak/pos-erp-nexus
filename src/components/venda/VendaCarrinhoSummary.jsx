@@ -110,7 +110,7 @@ const VendaCarrinhoSummary = ({
         <p className="text-xl font-bold">Saldo Restante: R$ {Math.max(total - valorPago, 0).toFixed(2)}</p>
         <button 
           onClick={finalizarVenda}
-          className="w-full mt-4"
+          className="w-full mt-4 bg-primary px-4 py-2 rounded hover:bg-primary/90"
         >
           Finalizar Venda
         </button>
