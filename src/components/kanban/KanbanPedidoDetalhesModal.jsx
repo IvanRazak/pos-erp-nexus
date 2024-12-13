@@ -117,12 +117,6 @@ const KanbanPedidoDetalhesModal = ({ pedido, onClose }) => {
           <div className="flex justify-between items-center">
             <DialogTitle>Detalhes do Pedido #{pedido.order_number}</DialogTitle>
             <div className="flex gap-2">
-              <Button onClick={handlePrint} variant="outline" size="icon">
-                <Printer className="h-4 w-4" />
-              </Button>
-              <Button onClick={handleExportPDF} variant="outline" size="icon">
-                <FileDown className="h-4 w-4" />
-              </Button>
             </div>
           </div>
         </DialogHeader>
