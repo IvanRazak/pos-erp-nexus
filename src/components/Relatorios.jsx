@@ -104,6 +104,7 @@ const Relatorios = () => {
           <SelectContent>
             <SelectItem value="all">Todos</SelectItem>
             <SelectItem value="in_production">Em Produção</SelectItem>
+            <SelectItem value="awaiting_approval">Aguardando Aprovação</SelectItem>
             <SelectItem value="ready_for_pickup">Pronto para Retirada</SelectItem>
             <SelectItem value="delivered">Entregue</SelectItem>
             <SelectItem value="cancelled">Cancelado</SelectItem>
