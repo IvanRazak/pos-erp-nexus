@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
@@ -9,6 +9,13 @@ import { useSelectionOptions } from '../integrations/supabase/hooks/extra_option
 const ProdutoExtraOptionsModal = ({ produto, opcoesExtras, onClose, onConfirm }) => {
   const [extrasEscolhidas, setExtrasEscolhidas] = useState([]);
   const { data: selectionOptions } = useSelectionOptions();
+
+  // Inicializa as opções extras se estiver editando um item
+  useEffect(() => {
+    if (produto.editMode && produto.extras) {
+      setExtrasEscolhidas(produto.extras);
+    }
+  }, [produto]);
 
   const produtoOpcoesExtras = opcoesExtras?.filter(opcao => 
     produto.extra_options?.includes(opcao.id)
@@ -65,53 +72,68 @@ const ProdutoExtraOptionsModal = ({ produto, opcoesExtras, onClose, onConfirm })
     <Dialog open={true} onOpenChange={onClose}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Opções Extras para {produto.name}</DialogTitle>
+          <DialogTitle>
+            {produto.editMode ? 'Editar Opções de' : 'Opções Extras para'} {produto.name}
+          </DialogTitle>
         </DialogHeader>
         <div className="space-y-4">
-          {produtoOpcoesExtras?.map((opcao) => (
-            <div key={opcao.id} className="flex items-center space-x-2">
-              <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                {opcao.name}
-                {opcao.type !== 'select' && ` - R$ ${opcao.price?.toFixed(2) ?? 'N/A'}`}
-                {extrasEscolhidas.find(e => e.id === opcao.id)?.totalPrice && 
-                  ` (Total: R$ ${extrasEscolhidas.find(e => e.id === opcao.id).totalPrice.toFixed(2)})`
-                }
-                {extrasEscolhidas.find(e => e.id === opcao.id)?.selectedOptionName && 
-                  ` - ${extrasEscolhidas.find(e => e.id === opcao.id).selectedOptionName}`
-                }
-              </label>
-              {opcao.type === 'select' ? (
-                <Select onValueChange={(value) => handleExtraChange(opcao, value)}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione uma opção" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {selectionOptions
-                      ?.filter(so => opcao.selection_options?.includes(so.id))
-                      .map((option) => (
-                        <SelectItem key={option.id} value={option.id}>
-                          {option.name} - R$ {option.value.toFixed(2)}
-                        </SelectItem>
-                      ))}
-                  </SelectContent>
-                </Select>
-              ) : opcao.type === 'number' ? (
-                <Input
-                  type="number"
-                  placeholder="Valor"
-                  onChange={(e) => handleExtraChange(opcao, e.target.value)}
-                />
-              ) : (
-                <Checkbox
-                  onCheckedChange={(checked) => handleExtraChange(opcao, checked)}
-                />
-              )}
-            </div>
-          ))}
+          {produtoOpcoesExtras?.map((opcao) => {
+            const escolhida = extrasEscolhidas.find(e => e.id === opcao.id);
+            return (
+              <div key={opcao.id} className="flex items-center space-x-2">
+                <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                  {opcao.name}
+                  {opcao.type !== 'select' && ` - R$ ${opcao.price?.toFixed(2) ?? 'N/A'}`}
+                  {escolhida?.totalPrice && 
+                    ` (Total: R$ ${escolhida.totalPrice.toFixed(2)})`
+                  }
+                  {escolhida?.selectedOptionName && 
+                    ` - ${escolhida.selectedOptionName}`
+                  }
+                </label>
+                {opcao.type === 'select' ? (
+                  <Select 
+                    onValueChange={(value) => handleExtraChange(opcao, value)}
+                    defaultValue={escolhida?.value}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione uma opção" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {selectionOptions
+                        ?.filter(so => opcao.selection_options?.includes(so.id))
+                        .map((option) => (
+                          <SelectItem key={option.id} value={option.id}>
+                            {option.name} - R$ {option.value.toFixed(2)}
+                          </SelectItem>
+                        ))}
+                    </SelectContent>
+                  </Select>
+                ) : opcao.type === 'number' ? (
+                  <Input
+                    type="number"
+                    placeholder="Valor"
+                    defaultValue={escolhida?.value}
+                    onChange={(e) => handleExtraChange(opcao, e.target.value)}
+                    className="w-24"
+                  />
+                ) : (
+                  <Checkbox
+                    checked={!!escolhida}
+                    onCheckedChange={(checked) => handleExtraChange(opcao, checked)}
+                  />
+                )}
+              </div>
+            );
+          })}
         </div>
         <div className="flex justify-end space-x-2 mt-4">
-          <Button variant="outline" onClick={onClose}>Cancelar</Button>
-          <Button onClick={() => onConfirm(extrasEscolhidas)}>Confirmar</Button>
+          <Button variant="outline" onClick={onClose}>
+            Cancelar
+          </Button>
+          <Button onClick={() => onConfirm(extrasEscolhidas)}>
+            {produto.editMode ? 'Atualizar' : 'Adicionar'} ao Carrinho
+          </Button>
         </div>
       </DialogContent>
     </Dialog>
