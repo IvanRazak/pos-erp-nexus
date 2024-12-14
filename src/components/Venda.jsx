@@ -62,7 +62,11 @@ const Venda = () => {
   };
 
   const handleEditCartItem = (itemToEdit) => {
-    setProdutoSelecionado(itemToEdit);
+    // Mantém as opções extras do item ao editar
+    setProdutoSelecionado({
+      ...itemToEdit,
+      editMode: true, // Flag para identificar que é uma edição
+    });
     setCarrinho(carrinho.filter(item => item !== itemToEdit));
     setIsExtraOptionsModalOpen(true);
   };
