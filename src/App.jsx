@@ -15,6 +15,7 @@ import Caixa from "./components/Caixa";
 import Financeiro from "./components/Financeiro";
 import Relatorios from "./components/Relatorios";
 import PedidosKanban from "./pages/PedidosKanban";
+import ProtectedRoute from "./components/ProtectedRoute";
 
 const queryClient = new QueryClient();
 
@@ -28,15 +29,47 @@ const App = () => (
             <BrowserRouter>
               <Routes>
                 <Route path="/login" element={<Login />} />
-                <Route path="/dashboard" element={<Dashboard />}>
-                  <Route path="clientes" element={<Clientes />} />
-                  <Route path="produtos" element={<Produtos />} />
-                  <Route path="venda" element={<Venda />} />
-                  <Route path="pedidos" element={<GerenciamentoPedidos />} />
-                  <Route path="pedidos-kanban" element={<PedidosKanban />} />
-                  <Route path="caixa" element={<Caixa />} />
-                  <Route path="financeiro" element={<Financeiro />} />
-                  <Route path="relatorios" element={<Relatorios />} />
+                <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>}>
+                  <Route path="clientes" element={
+                    <ProtectedRoute route="clientes">
+                      <Clientes />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="produtos" element={
+                    <ProtectedRoute route="produtos">
+                      <Produtos />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="venda" element={
+                    <ProtectedRoute route="venda">
+                      <Venda />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="pedidos" element={
+                    <ProtectedRoute route="pedidos">
+                      <GerenciamentoPedidos />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="pedidos-kanban" element={
+                    <ProtectedRoute route="pedidos-kanban">
+                      <PedidosKanban />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="caixa" element={
+                    <ProtectedRoute route="caixa">
+                      <Caixa />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="financeiro" element={
+                    <ProtectedRoute route="financeiro">
+                      <Financeiro />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="relatorios" element={
+                    <ProtectedRoute route="relatorios">
+                      <Relatorios />
+                    </ProtectedRoute>
+                  } />
                 </Route>
                 <Route path="/" element={<Navigate to="/login" replace />} />
               </Routes>
