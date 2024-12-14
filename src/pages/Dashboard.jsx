@@ -3,6 +3,7 @@ import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import AdminMenu from '../components/AdminMenu';
 import { useAuth } from '../hooks/useAuth';
+import { usePermissions } from '../hooks/usePermissions';
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 
@@ -10,8 +11,9 @@ const Dashboard = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, logout } = useAuth();
+  const { permissions, loading } = usePermissions(user?.role);
 
-  const defaultTabs = [
+  const allTabs = [
     { value: "clientes", label: "Clientes" },
     { value: "produtos", label: "Produtos" },
     { value: "venda", label: "Venda" },
@@ -22,38 +24,17 @@ const Dashboard = () => {
     { value: "relatorios", label: "Relatórios" }
   ];
 
-  let tabs = [];
-
-  if (user) {
-    switch (user.role) {
-      case 'operator':
-        tabs = defaultTabs.filter(tab => 
-          tab.value !== 'relatorios'
-        );
-        break;
-      case 'producao':
-        tabs = [
-          { value: "pedidos", label: "Gerenciamento de Pedidos" },
-          { value: "pedidos-kanban", label: "Pedidos Kanban" }
-        ];
-        break;
-      case 'seller':
-        tabs = defaultTabs.filter(tab => 
-          tab.value !== 'relatorios' && tab.value !== 'caixa' && tab.value !== 'financeiro'
-        );
-        break;
-      case 'admin':
-        tabs = defaultTabs;
-        break;
-      default:
-        tabs = [];
-    }
-  }
+  // Filtra as tabs com base nas permissões do usuário
+  const tabs = allTabs.filter(tab => permissions.includes(tab.value));
 
   const handleLogout = () => {
     logout();
     navigate('/login');
   };
+
+  if (loading) {
+    return <div>Carregando...</div>;
+  }
 
   return (
     <div className="container mx-auto p-4">
