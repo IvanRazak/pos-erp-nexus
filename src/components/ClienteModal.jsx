@@ -4,6 +4,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { supabase } from '../lib/supabase';
+import { traduzirStatus } from '../utils/statusTraducao';
 
 const ClienteModal = ({ cliente, onClose, onUpdate }) => {
   const { data: pedidos, isLoading, error } = useQuery({
@@ -43,7 +44,7 @@ const ClienteModal = ({ cliente, onClose, onUpdate }) => {
                   <TableCell>{pedido.order_number}</TableCell>
                   <TableCell>{new Date(pedido.created_at).toLocaleDateString()}</TableCell>
                   <TableCell>R$ {pedido.total_amount.toFixed(2)}</TableCell>
-                  <TableCell>{pedido.status}</TableCell>
+                  <TableCell>{traduzirStatus(pedido.status)}</TableCell>
                 </TableRow>
               ))}
             </TableBody>
