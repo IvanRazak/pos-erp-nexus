@@ -31,10 +31,10 @@ const KanbanCard = ({ item, index, onClick }) => {
     
     if (now >= deliveryDate) {
       // Pedido já está atrasado
-      return 'animate-pulse bg-red-200/90 dark:bg-red-900/40';
+      return 'animate-pulse bg-red-200 dark:bg-red-900/40';
     } else {
       // Pedido está dentro do período de alerta
-      return 'animate-pulse bg-orange-600/20 dark:bg-orange-900/40';
+      return 'animate-pulse bg-orange-200 dark:bg-orange-900/60';
     }
   };
 
@@ -45,9 +45,7 @@ const KanbanCard = ({ item, index, onClick }) => {
           ref={provided.innerRef}
           {...provided.draggableProps}
           {...provided.dragHandleProps}
-          className={`bg-white dark:bg-gray-700 p-4 rounded shadow cursor-pointer hover:shadow-md transition-shadow ${
-            getHighlightClass()
-          }`}
+          className={`${getHighlightClass() || 'bg-white dark:bg-gray-700'} p-4 rounded shadow cursor-pointer hover:shadow-md transition-shadow`}
           onClick={onClick}
         >
           <div className="flex flex-col gap-2">
