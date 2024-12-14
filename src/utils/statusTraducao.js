@@ -5,6 +5,7 @@ export const traduzirStatus = (status) => {
     'ready_for_pickup': 'Pronto para Retirada',
     'delivered': 'Entregue',
     'cancelled': 'Cancelado',
+    'paid': 'Pago',
     'partial_payment': 'Pagamento Parcial',
   };
   return traducoes[status] || status;
