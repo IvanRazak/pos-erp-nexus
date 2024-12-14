@@ -46,8 +46,10 @@ const UserManagementForm = () => {
         </SelectTrigger>
         <SelectContent>
           <SelectItem value="admin">Administrador</SelectItem>
+          <SelectItem value="gerente">Gerente</SelectItem>
           <SelectItem value="operator">Operador</SelectItem>
           <SelectItem value="seller">Vendedor</SelectItem>
+          <SelectItem value="producao">Produção</SelectItem>
         </SelectContent>
       </Select>
       <Button type="submit">Adicionar Usuário</Button>
