@@ -13,6 +13,7 @@ import * as paymentsHooks from './hooks/payments';
 import * as productsHooks from './hooks/products';
 import * as usersHooks from './hooks/users';
 import * as eventsLogHooks from './hooks/events_log';
+import * as webhookSettingsHooks from './hooks/webhook_settings';
 
 export {
   supabase,
@@ -44,7 +45,7 @@ export const {
   useAddExtraOption,
   useUpdateExtraOption,
   useDeleteExtraOption,
-  useSelectionOptions, // Add this line to export useSelectionOptions
+  useSelectionOptions, 
   useAddSelectionOption,
   useUpdateSelectionOption,
   useDeleteSelectionOption,
@@ -110,3 +111,8 @@ export const {
 export const {
   useAddEventLog,
 } = eventsLogHooks;
+
+export const {
+  useWebhookSettings,
+  useUpdateWebhookSettings,
+} = webhookSettingsHooks;
