@@ -25,8 +25,7 @@ const ClienteDocumentInfo = ({ register, setValue, watch, errors }) => {
           <InputMask
             mask="999.999.999-99"
             {...register("cpf", { 
-              required: "CPF é obrigatório",
-              validate: validateCPF
+              validate: value => !value || validateCPF(value) === true
             })}
           >
             {(inputProps) => (
